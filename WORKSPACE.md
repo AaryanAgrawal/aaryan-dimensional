@@ -254,8 +254,13 @@ dimos commits OK, harness code lives in THIS repo (`trial/harness/`).
       DIM-944 + END-76)
 - [ ] todo — CUDA runs: villages 1-5 + go2_hongkong_office at full scale (see "Tasks — CUDA
       machine" immediately below — claim from there, not from this line)
-- [ ] todo — website update to v5 — **window 2's lane now** (Aaryan Jul 17); source is `site/` in
-      this repo (§1), page still shows the old benchmark framing; deploy via the portfolio repo
+- [x] done (Jul 25) — website update to v5 — `site/` synced into the laptop portfolio checkout
+      (`~/Files/Personal Assistant/07_Professional/portfolio`) and shipped: page.tsx +
+      OpenQuestions.tsx + data + 24 figures, `tsc --noEmit` clean, `next build` green,
+      `vercel --prod` → live at https://aaryanagrawal.me/dimensional. The PR pointer was stale on
+      the way out — #3016 closed Jul 24, superseded by open **#3162** — so `site/` was corrected
+      first, then synced (rule: edit `site/` first, sync on deploy). Live now carries the Jul 20
+      hero/takeaway structure, not the old benchmark framing.
 - [ ] todo — page comments feature — on hold, not blocking, revisit after the above
 
 ### Tasks — CUDA machine (window 2) — committed first work package (Aaryan, Jul 16)

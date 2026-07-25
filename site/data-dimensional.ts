@@ -28,10 +28,10 @@ export const trial = {
     "Phase 4 — fusion of relocalization priors (pending — after this ticket)",
   ],
   pr: {
-    href: "https://github.com/dimensionalOS/dimos/pull/3016",
-    label: "PR #3016",
+    href: "https://github.com/dimensionalOS/dimos/pull/3162",
+    label: "PR #3162",
   },
-  lastUpdated: "July 20, 2026",
+  lastUpdated: "July 25, 2026",
 };
 
 // Hero — the "one look" proof shown on top: the three main-takeaway graphs.
@@ -130,7 +130,7 @@ export const phase2 = {
     "IRL validation on go2 — tag-graded, the run recorded into the suite (done Jul 18 — see the robot-day section); the mid360 lane measured in replay of a recorded walk, not IRL yet",
   ],
   lines: [
-    "FiducialPrior — age-gated marker fixes into the shared judge (PR #3016)",
+    "FiducialPrior — age-gated marker fixes into the shared judge (PR #3162)",
     "Decorrelated result (the graded tag is held out of every marker map, so it never helps): 52.5% → 72.5% on a hard 100 m outdoor walk (n=40, full denominator, replay; referee-era measurement — the instrument was retired 2026-07-22, so this stands as recorded but cannot be rebuilt) — sections with marker coverage went 7/15 → 15/15 while all 25 uncovered sections returned byte-identical answers, proving the gain is the markers",
     "Rescues were catastrophic-to-centimeters: 6.7–72 m wrong-basin solves pulled to 0.05–0.10 m",
     "Markers visible → the global search can stand down: 100% of attempted at ~9× faster on that walk; coverage (not accuracy) is the limiter",
