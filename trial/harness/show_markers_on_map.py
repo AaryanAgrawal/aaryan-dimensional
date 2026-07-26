@@ -23,7 +23,7 @@ hovering shows the id and clicking selects that one tag.
 Marker-map schema (two variants, auto-detected):
   A. ``map global --markers`` / eval.py survey schema (the default gated file) --
      dimos' own ``load_marker_map`` reads exactly this
-     (dimos/perception/fiducial/fiducial_relocalization.py:62-76):
+     (dimos/mapping/relocalization/priors.py::load_marker_map):
        {"meta": {...}, "markers": {"<id>": {"translation": [x,y,z],
                                             "rotation": [qx,qy,qz,qw]}}}  # map_T_tag
      translation is [x,y,z] m; rotation is a [qx,qy,qz,qw] quaternion.
@@ -52,15 +52,15 @@ from matplotlib import colormaps
 import numpy as np
 import rerun as rr
 
+from dimos.mapping.relocalization.priors import load_marker_map
 from dimos.msgs.sensor_msgs.PointCloud2 import PointCloud2
-from dimos.perception.fiducial.fiducial_relocalization import load_marker_map
 
 DEF_PREMAP = (
-    "/home/dimos/dimensional-trial/trial/harness/out/robotday_build/"
+    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.pc2.lcm"
 )
 DEF_MARKER_MAP = (
-    "/home/dimos/dimensional-trial/trial/harness/out/robotday_build_gated/"
+    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.marker_map.json"
 )
 

@@ -82,13 +82,20 @@ from dimos.perception.fiducial.marker_pose import (  # noqa: E402
     estimate_marker_pose_candidates,
     marker_reprojection_error,
 )
-from dimos.perception.fiducial.visual_relocalization import detect_markers  # noqa: E402
 from dimos.robot.unitree.go2.connection import (  # noqa: E402
     BASE_TO_OPTICAL,
     _camera_info_static,
 )
 
 SEED = 0  # printed per house rule; nothing below draws random numbers
+
+
+def _detect(gray: np.ndarray, detector: cv2.aruco.ArucoDetector) -> list[tuple[int, np.ndarray]]:
+    """``(marker_id, 4x2 corners_px)`` per tag in one grayscale frame."""
+    corners, ids, _ = detector.detectMarkers(gray)
+    if ids is None or len(ids) == 0:
+        return []
+    return [(int(mid[0]), c.reshape(4, 2)) for c, mid in zip(corners, ids, strict=True)]
 
 TAG_ID = 10  # the one surveyed tag in hk_village3.marker_map.yaml
 MARKER_LENGTH_M = 0.10  # matches every -o marker_length_m in the rehearsal
@@ -186,7 +193,7 @@ def detection_pass(db_path: Path, cache: Path, use_cache: bool) -> dict[str, np.
         for obs in store.stream("color_image", Image):
             n_frames += 1
             img = obs.data
-            for marker_id, corners in detect_markers(img.to_grayscale().as_numpy(), detector):
+            for marker_id, corners in _detect(img.to_grayscale().as_numpy(), detector):
                 if marker_id != TAG_ID:
                     n_other_ids += 1
                     continue

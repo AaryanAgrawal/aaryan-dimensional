@@ -38,11 +38,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import rerun as rr
 
+from dimos.mapping.relocalization.priors import load_marker_map
 from dimos.msgs.sensor_msgs.PointCloud2 import PointCloud2
-from dimos.perception.fiducial.fiducial_relocalization import load_marker_map
 
 PREMAP_PC2 = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/robotday_build/"
+    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.pc2.lcm"
 )
 PREP_PKL = Path(
@@ -53,11 +53,11 @@ ODOM_DB = Path(
     "/home/dimos/dimensional-trial/dimos/data/sf_office_go2_20260718_survey1.db"
 )
 # Marker survey the reloc benchmark actually loads as marker_map_file: eval.py
-# converts robotday_build_gated's gated YAML to this sibling .json (map_T_tag,
-# translation+quaternion) and passes it as relocalizationmodule.marker_map_file.
-# Same PGO world frame as the robotday_build premap above, so tags land on it.
+# converts the gated YAML to this sibling .json (map_T_tag, translation+quaternion)
+# and passes it as relocalizationmodule.marker_map_file. Same PGO world frame as the
+# premap above (both now under premaps/sf_office_20260718_survey1/), so tags land on it.
 MARKER_MAP_JSON = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/robotday_build_gated/"
+    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.marker_map.json"
 )
 OUT_RRD = Path(

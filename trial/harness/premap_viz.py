@@ -29,10 +29,10 @@ sorted by timestamp, tags sorted by id); everything logged ``static=True``.
 Defaults target sf_office survey1. Point it at another premap with the flags:
 
     python premap_viz.py \
-        --premap    out/robotday_build/sf_office_go2_20260718_survey3.pc2.lcm \
+        --premap    out/premaps/sf_office_20260718_survey3/sf_office_go2_20260718_survey3.pc2.lcm \
         --prep-pkl  out/prepared/sf_office_go2_20260718_survey3.pkl \
         --odom-db   ../../dimos/data/sf_office_go2_20260718_survey3.db \
-        --marker-map out/robotday_build_gated/sf_office_go2_20260718_survey3.marker_map.json \
+        --marker-map out/premaps/sf_office_20260718_survey3/sf_office_go2_20260718_survey3.marker_map.json \
         --out-rrd   out/eval/survey3_premap_markers.rrd
 
 The PNG defaults to the ``--out-rrd`` path with a ``.png`` suffix. A missing

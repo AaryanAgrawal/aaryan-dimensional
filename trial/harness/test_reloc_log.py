@@ -169,6 +169,21 @@ def test_rejects_counted_in_both_formats_and_never_as_accepts() -> None:
     assert len(reloc_log.parse_accepts(text)) == 1
 
 
+def test_reject_sources_names_the_refused_prior_and_unknown_when_absent() -> None:
+    """Each reject reports the prior that was refused, in file order; a line that named
+    none reads `unknown` rather than being dropped or attributed to a real prior."""
+    text = "\n".join([
+        "08:45:00.000 [war][...module.py] relocalize rejected fitness=0.31 "
+        "source=fiducial threshold=0.6",
+        "08:45:01.000 [war][...module.py] relocalize rejected fitness=0.41 "
+        "source=ransac threshold=0.6",
+        "22:11:55.000 [inf][...module.py] relocalize rejected: fitness=0.19 < threshold=0.45",
+        CURRENT_ACCEPT,
+    ])
+    assert reloc_log.reject_sources(text) == ["fiducial", "ransac", "unknown"]
+    assert reloc_log.count_rejects(text) == 3  # one definition: the count IS the length
+
+
 def test_module_started_matches_both_capitalizations() -> None:
     """The event was capitalized before the structlog switch; both mean started."""
     assert reloc_log.module_started("Relocalization module started map_file='x'")

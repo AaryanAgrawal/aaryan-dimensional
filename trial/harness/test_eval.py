@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Unit tests for eval.py's PURE orchestration logic -- no replay, no subprocess.
 
-Two things are graded, both offline:
+Three things are graded, all offline:
   * --list builds the held-out pair matrix and RUNS NOTHING -- proven by hard-failing
     if eval.py ever calls subprocess.run in the --list path.
   * _marker_json converts run A's gated marker YAML to the module's JSON contract
     (sorted-by-int-id, float-coerced, schema=map_T_tag), idempotently.
+  * _report folds a captured pair into dimos' own SourceTally and never invents a
+    number for an artifact that is missing.
 
 Deterministic: fixed inputs, no wall-clock, no randomness. Run:
   uv run --project /home/dimos/dimensional-trial/dimos \
@@ -33,7 +35,6 @@ def _fake_pair(tmp_path: Path) -> dict:
         "replay_recording": "rec_B",
         "premap": tmp_path / "absent_premap.lcm",
         "marker_map_yaml": None,
-        "markers_map_b": None,
     }
 
 
@@ -120,7 +121,7 @@ def test_marker_json_is_idempotent(tmp_path) -> None:
 def test_build_matrix_overrides_and_presence_flags(tmp_path, monkeypatch) -> None:
     """_build_matrix records premap presence and the exact reloc override surface.
     With a present marker JSON both overrides appear (marker_map_file first, then
-    use_fiducial_prior=true); an absent premap is flagged, not raised."""
+    verbose_eval_logging=true); an absent premap is flagged, not raised."""
     yaml_path = tmp_path / "s.marker_map.yaml"
     yaml_path.write_text(
         "markers:\n  3:\n    translation: [1, 1, 1]\n    rotation: [1, 0, 0, 0]\n"
@@ -136,5 +137,59 @@ def test_build_matrix_overrides_and_presence_flags(tmp_path, monkeypatch) -> Non
     assert s["marker_present"] is True
     assert s["overrides"] == [
         f"{eval_harness.MODULE}.marker_map_file={yaml_path.with_suffix('.json')}",
-        f"{eval_harness.MODULE}.use_fiducial_prior=true",
+        f"{eval_harness.MODULE}.verbose_eval_logging=true",
     ]
+
+
+def _capture_on_disk(tmp_path: Path, monkeypatch, *, with_score: bool) -> dict:
+    """A pair whose three captured artifacts are written by hand, so every count below
+    is known truth: 3 accepts (ransac 0.8/0.9, fiducial 0.7) and 3 rejects (2/1)."""
+    monkeypatch.setattr(eval_harness, "OUT_DIR", tmp_path)
+    (tmp_path / "t.replay.json").write_text(json.dumps({"meta": {}, "fixes": [
+        {"source": "ransac", "fitness": 0.8}, {"source": "ransac", "fitness": 0.9},
+        {"source": "fiducial", "fitness": 0.7}]}))
+    (tmp_path / "t.replay_run.log").write_text(
+        "10:00:00.0 [war][...module.py] relocalize rejected fitness=0.31 "
+        "source=fiducial threshold=0.6\n"
+        "10:00:01.0 [war][...module.py] relocalize rejected fitness=0.22 "
+        "source=fiducial threshold=0.6\n"
+        "10:00:02.0 [war][...module.py] relocalize rejected fitness=0.41 "
+        "source=ransac threshold=0.6\n")
+    if with_score:
+        (tmp_path / "t.replay_score.json").write_text(json.dumps(
+            {"overall": {"n": 3, "n_success": 2},
+             "first_accept_t_since_drive_start_s": 12.5}))
+    return {"tag": "t", "scene": "sf_office",
+            "premap_recording": "recA", "replay_recording": "recB"}
+
+
+def test_report_tallies_accepts_and_rejects_per_prior(tmp_path, monkeypatch, capsys) -> None:
+    """Captured fixes tally by WINNING prior and log rejects by REFUSED prior, and the
+    printed table is dimos' own format_eval_summary -- so it cannot drift from the one
+    the live module prints at stop()."""
+    stats = eval_harness._report(_capture_on_disk(tmp_path, monkeypatch, with_score=True))
+
+    assert stats["by_source"] == {
+        "fiducial": {"acc": 1, "rej": 2, "fitnesses": [0.7]},
+        "ransac": {"acc": 2, "rej": 1, "fitnesses": [0.8, 0.9]},
+    }
+    assert stats["score_unaligned"]["first_accept_s"] == 12.5
+    out = capsys.readouterr().out
+    assert "TOTAL     3    3" in out  # counts sum; med_fit blanks, it does not aggregate
+    assert "UNALIGNED" in out  # the frame caveat rides every report, never a footnote
+
+
+def test_report_omits_the_score_block_rather_than_fabricating_one(
+    tmp_path, monkeypatch
+) -> None:
+    """No score_replay output -> `score_unaligned` is None. A zeroed block would read
+    downstream as a measured zero-success run."""
+    stats = eval_harness._report(_capture_on_disk(tmp_path, monkeypatch, with_score=False))
+    assert stats["score_unaligned"] is None
+
+
+def test_report_returns_none_when_the_capture_is_missing(tmp_path, monkeypatch) -> None:
+    """An uncaptured pair reports nothing at all -- main() records the skip instead."""
+    spec = _capture_on_disk(tmp_path, monkeypatch, with_score=True)
+    (tmp_path / "t.replay.json").unlink()
+    assert eval_harness._report(spec) is None

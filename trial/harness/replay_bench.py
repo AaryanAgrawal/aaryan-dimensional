@@ -70,7 +70,7 @@ DIMOS_ROOT = Path(__file__).resolve().parents[2] / "dimos"
 TRIAL_ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = Path(__file__).parent / "out" / "results_dimos"
 
-BLUEPRINT = "unitree-go2-relocalization-fiducial"
+BLUEPRINT = "unitree-go2-relocalization"
 FRAME_WORLD = "world"
 FRAME_MAP = "map"
 WARMUP_BUDGET_S = 90.0  # module deploy + teardown headroom on top of drive length
@@ -289,7 +289,7 @@ def _parse_and_join(
             "n_pts": acc.n_pts,
             "time_cost_s": tc,
             # No source= means the single-source path ran (no judge) -- that path IS
-            # ransac, which is why absence maps to it here and in eval_module.
+            # ransac, which is why absence maps to it here and in eval.py's tally.
             "source": acc.source or "ransac",
             "rot_source": rot_source,
         })

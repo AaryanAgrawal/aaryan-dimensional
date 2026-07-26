@@ -6,6 +6,7 @@ import {
   evidence,
   glossary,
   heroFigures,
+  learnings,
   notes,
   nextSection,
   provenance,
@@ -377,6 +378,25 @@ export default function DimensionalPage() {
         <div className="mt-10">
           <SubHeading>Open questions</SubHeading>
           <OpenQuestions seeds={openQuestions} />
+        </div>
+      </section>
+
+      {/* Methodology — sanity-check by visualizing at every step */}
+      <section className="mt-12 border-t border-line pt-6">
+        <PhaseHeading>{learnings.heading}</PhaseHeading>
+        <p className="mt-3 text-sm text-soft">{learnings.intro}</p>
+        <div className="mt-6 space-y-3">
+          {learnings.items.map((it) => (
+            <div key={it.title} className="rounded-lg border border-line bg-tile px-4 py-3">
+              <p className="text-sm font-semibold text-ink">{it.title}</p>
+              <p className="mt-1 text-sm text-soft">{it.body}</p>
+              {it.placeholder ? (
+                <p className="mt-2 rounded-md border border-dashed border-line px-3 py-2 text-[11px] text-faint">
+                  Screenshot to add — {it.placeholder}
+                </p>
+              ) : null}
+            </div>
+          ))}
         </div>
       </section>
 

@@ -87,6 +87,74 @@ Next actions.
 
 ## 2. Next actions
 
+**STATE 2026-07-25 — PR #3162 is open as a DRAFT at `+1251 / -89` across 15 files.**
+Branch `feat/relocalization-fiducial-prior`, in sync with origin. Companion PR #3161 (camera
+calibration, `feat/cameracalibrate`, +415/-14) untouched today. Everything below is verified by
+execution unless marked otherwise.
+
+### What shipped
+- Fiducial relocalization prior: tag sightings fused (medoid seed, Huber IRLS, Markley eigen-mean)
+  into one `map_T_world` candidate per tag, proposed on the burst edge.
+- Premap survey: `dimos map global --export --markers` writes `<rec>.marker_map.json`
+  (`map_T_marker` per id + `n_detections` + `marker_length_m`), gated with the same per-glimpse bars
+  the live detector uses.
+- Per-prior acceptance: shared geometric gates (gravity 10°, wall floor 100), then each prior's own
+  `fitness_threshold`. One prior fires per cycle; candidates are never pooled.
+- `accepted_fixes` → rerun spheres, coloured by prior, under `-o relocalizationmodule.eval=true`.
+- Structure: `prior.py` (base + RansacPrior) · `fiducial.py` · `module.py` · `relocalize.py` · `eval.py`;
+  marker-map I/O and aggregation live in `perception/fiducial/`. No `core/`, `msgs/`, `transport/` or
+  `robot/cli/` change — `cli/dimos.py` is byte-identical to upstream.
+- Hardware: fiducial fix at 0.867 in 0.1 s vs RANSAC 0.755 in 7.3 s, firing 40 s earlier while the
+  submap was still under the point floor.
+
+### Open — ordered by what blocks a merge
+1. **Video** — `~/Videos/Screencasts/pr video trimmed.webm` (8.5 MB, 15.9 s) needs a browser drag onto
+   the PR body under `## Result`. No API path exists; the caption is already the line beneath.
+2. **Docs are stale in four places** (`docs/capabilities/navigation/relocalization.md`): `:108` tells the
+   operator to use `--eval`, a flag removed in `33b16300e`; `:104`'s console sample predates the current
+   log format; the file-formats table at `:165` has no `marker_map.json` row, so the prior's required
+   input has no documented producer; `:142`'s fold block and its checked-in SVG still show the pre-PR
+   blueprint (grep the SVG: zero marker nodes).
+3. **Codecov patch gate** — `.codecov.yml` sets `patch: true` and this PR adds no tests. Precedent says
+   it may not bite (arkluc's #2160 was +1124/-16 with zero tests), but it is the likeliest blocker.
+4. **`--eval` reject count undercounts.** Only the fitness gate tallies; wall-evidence, gravity,
+   empty-proposal and the caught exception all return before it, so `acc + rej != fires` and an
+   all-refused run prints no summary at all.
+5. **`relocalize.py:248/259` returns stage-2 fitness with a stage-3 transform** — the number every accept
+   gates on describes a different pose than the one published. Pre-existing upstream, but this PR made it
+   load-bearing. One-line fix, changes accept behaviour, wants its own PR.
+6. **`MIN_WALL_POINTS = 100` is marked ARBITRARY/UNTUNED** in a constant this PR added that now gates
+   every fiducial acquisition. Tune it or state the physical why.
+7. **70 added comment lines exceed 100 chars** (ruff does not lint comments); longest is 302. "One line,
+   never two" is being satisfied by writing one paragraph-long line. Cut, do not reflow.
+
+### Known limitations (in the PR body, deliberate)
+- The anchor is the last accepted fix, not a fusion: consecutive good fixes replace rather than converge.
+- Nothing bounds a fix. The jump guard and corroborated acquisition were both removed on 2026-07-24;
+  any fix clearing its prior's bar publishes immediately, the first one included, even a room away.
+- The accept bar is an Open3D wall-ICP inlier ratio — overlap, not correctness. It cannot separate the
+  right pose from one a period along a repeating corridor.
+- Two config keys point at the same marker map (`relocalizationmodule.priors.fiducial.marker_map_file`
+  for the poses, `markerdetectionstreammodule.marker_map_file` for the tag size). Two peer modules, two
+  configs; `-o` cannot reach across. Documented in How to Test.
+
+### If the PR must shrink further
+Simplification is exhausted at ~1250 (a verified −175 landed in `cd474048e`). Below that is a split, and
+the clean seam is **not** `--markers`:
+- marker-map producer + consumer ≈ **705** (aggregation · map · pose · detect · transformer · stream module)
+- relocalization prior plumbing ≈ **545** (module · prior · fiducial · eval · relocalize · blueprint · doc)
+Both under 1k. A survey-only split ships a producer whose consumer does not exist yet.
+
+### Improvements filed in the PR body (not this branch)
+Fuse fixes so they converge · consume the tag covariance we publish and drop · bound candidate
+plausibility before ICP (Mahalanobis, scaled by odometry travelled) · corroborate before publishing ·
+report the fitness of the pose we publish · tune the ICP judge across several recordings.
+Next features: self-degrade with a state machine (AMCL) · top-N candidates with the winner margin as a
+health signal (RTAB-Map) · reloc as a pose-graph edge under a robust loss (Cartographer) · derive the
+judge's density-dependent constants from the incoming cloud.
+
+---
+
 **PROJECT OF RECORD (aligned with Aaryan, Jul 18 ~1 AM — the one-pager):**
 
 - **Name: Fiducial Relocalization** (Linear DIM-920, branch `feat/fiducial-relocalization`,

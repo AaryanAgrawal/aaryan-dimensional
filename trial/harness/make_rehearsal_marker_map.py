@@ -17,7 +17,10 @@ rotations; the angular spread about it and the angle to derive_marker_map's
 lowest-reproj pick are printed as health signals.
 
 This is the producer of the live fiducial prior read by eval.py — see
-out/robotday_build_gated/sf_office_go2_20260718_survey1.marker_map.yaml.
+out/premaps/sf_office_20260718_survey1/sf_office_go2_20260718_survey1.marker_map.yaml.
+That gated survey1 map now lives under premaps/; to regenerate it in place pass
+--out-dir premaps/sf_office_20260718_survey1 (the writer default is still `rehearsal`,
+so without the flag a fresh copy lands in out/rehearsal/ and the reorg drifts back).
 
 Run: cd dimos && uv run python ../trial/harness/make_rehearsal_marker_map.py \
          hk_village3 --tags 10

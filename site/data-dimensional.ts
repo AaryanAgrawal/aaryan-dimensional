@@ -430,6 +430,60 @@ export const evidence: EvidenceSection[] = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Methodology — the through-line of this trial: sanity-check by visualizing at
+// every step. At each stage — recording, premap build, marker survey, scoring
+// — a single number looked clean while a picture or a stream-health view showed
+// the bug. Every item below is a real bug caught by looking, not by trusting
+// the scalar. Rendered after §8 Next, before the reference tier (see page.tsx).
+// ---------------------------------------------------------------------------
+export type Learning = {
+  title: string;
+  body: string;
+  // Optional dashed note — where Aaryan drops a rerun screenshot for this step.
+  placeholder?: string;
+};
+export const learnings: {
+  heading: string;
+  intro: string;
+  items: Learning[];
+} = {
+  heading:
+    "Sanity-check by visualizing at every step — the number looks clean while the picture shows the bug",
+  intro:
+    "Numbers compress. A number with nothing to look at behind it is a guess. At every stage of this trial — recording, premap build, marker survey, scoring — a clean scalar hid a real bug that only a picture or a stream-health view exposed. Six caught by looking:",
+  items: [
+    {
+      title: "A recording that was running, and empty",
+      body: "Camera, odom, and tf all streamed, so the recording looked fine — but `dimos mem summary`, a stream-health view, showed the lidar at 0 items and 0 bytes: a radar fault that would have cost a whole survey. Check the streams, don't assume the recording.",
+    },
+    {
+      title: "Out of focus, or just moving?",
+      body: "The camera looked out of focus live. Dumping single frames and measuring sharpness — Laplacian variance 182 on a steady frame, 24 on a moving one — showed motion blur, not a focus fault.",
+    },
+    {
+      title: "The blob at the start pose",
+      body: "The survey2 map had a dense blob where the robot began. Odom showed it stood still about 13 s before moving (displacement under 0.2 m), stacking ~95 lidar frames in one spot — visible in the map, confirmed by the number.",
+      placeholder: "rerun screenshot of the survey2 start-pose pile-up",
+    },
+    {
+      title: "Twelve boxes for seven tags",
+      body: "`dimos map global --markers` drew 12 marker boxes for 7 physical tags, because a tag re-seen after a 7.5 s gap starts a fresh track. You only notice in the 3D view; fusing every detection per marker_id — robust Huber-IRLS translation, Markley quaternion mean — into one canonical pose drops the viz to 7.",
+      placeholder: "rerun screenshot: 12 boxes before → 7 after per-id fusion",
+    },
+    {
+      title: "The carved premap that rejected everything",
+      body: "Relocalization scored fitness 0.247–0.299 against the 0.45 gate: 100% reject, and 0.27 tells you nothing about why. Rendering the carved cloud showed a one-voxel-thick Z-shell (per-column Z-spread collapsed 0.45 m to 0.05 m), and a controlled decomposition pinned the cause to target thinness — killing the first hypothesis, cross-carve Z disagreement, measured at 0.1%.",
+      placeholder: "rerun screenshot of the one-voxel Z-shell carved cloud",
+    },
+    {
+      title: "The point cloud that looked corrupt",
+      body: "The relocalization replay rendered speckled, wrong-gradient clouds. Not a data bug: the height colormap normalizes per message, so the same wall voxel published on three coincident streams (global_map, merged_map, loaded_map) gets three colors that depth-fight — caught in the viewer, invisible in the logs.",
+      placeholder: "rerun screenshot of the three-stream color depth-fight",
+    },
+  ],
+};
+
 // Open questions — Aaryan's running list. ADD YOURS HERE: one string per
 // question, newest at the top. Public page: keep wording additive/neutral.
 export const openQuestions: string[] = [

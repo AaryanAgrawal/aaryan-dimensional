@@ -11,10 +11,9 @@ listens on the shared LCM bus and reads the log the pipeline already writes:
 
   Terminal A (the pipeline -- the exact run this evidence is OF):
     uv run --project /home/dimos/dimensional-trial/dimos \
-        dimos --replay --replay-db=<rec> run unitree-go2-relocalization-fiducial \
+        dimos --replay --replay-db=<rec> run unitree-go2-relocalization \
         -o relocalizationmodule.map_file=<premap.pc2.lcm abs> \
-        -o relocalizationmodule.marker_map_file=<markers.json abs> \
-        -o relocalizationmodule.use_fiducial_prior=true
+        -o relocalizationmodule.marker_map_file=<markers.json abs> --eval
 
   Terminal B (this recorder, capturing while A runs):
     uv run --project /home/dimos/dimensional-trial/dimos \
@@ -67,9 +66,9 @@ import numpy as np
 import rerun as rr
 
 from dimos.core.transport import LCMTransport
+from dimos.mapping.relocalization.priors import load_marker_map
 from dimos.msgs.sensor_msgs.PointCloud2 import PointCloud2
 from dimos.msgs.tf2_msgs.TFMessage import TFMessage
-from dimos.perception.fiducial.fiducial_relocalization import load_marker_map
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # harness-local modules
 from reloc_log import Accept, parse_accepts  # noqa: E402
@@ -77,7 +76,7 @@ from reloc_log import Accept, parse_accepts  # noqa: E402
 DIMOS_ROOT = Path(__file__).resolve().parents[2] / "dimos"
 TRIAL_ROOT = Path(__file__).resolve().parents[1]
 
-BLUEPRINT = "unitree-go2-relocalization-fiducial"
+BLUEPRINT = "unitree-go2-relocalization"
 CH_GLOBAL_MAP = "/global_map"  # VoxelGridMapper Out -> reloc `global_map` In (live submap)
 CH_TF = "/tf"                  # TF tree; the module republishes world_T_map here
 FRAME_WORLD = "world"
@@ -387,15 +386,12 @@ def _render_pngs(
 def _run_command(recording: str, premap: Path, marker_map: Path, overrides: list[str]) -> str:
     """The exact pipeline command this recording is evidence OF (for the meta and
     stdout) -- the interface-contract run line, plus any extra ``-o`` passed."""
-    has_fid = any(o.startswith("relocalizationmodule.use_fiducial_prior") for o in overrides)
     parts = [
         "uv run --project", str(DIMOS_ROOT), "dimos --replay",
-        f"--replay-db={recording}", "run", BLUEPRINT,
+        f"--replay-db={recording}", "run", BLUEPRINT, "--eval",  # --eval: verbose accept trace
         "-o", f"relocalizationmodule.map_file={premap}",
         "-o", f"relocalizationmodule.marker_map_file={marker_map}",
     ]
-    if not has_fid:
-        parts += ["-o", "relocalizationmodule.use_fiducial_prior=true"]
     for o in overrides:
         parts += ["-o", o]
     return " ".join(parts)

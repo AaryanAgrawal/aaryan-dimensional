@@ -10,13 +10,18 @@ held-out PAIR it shells out to the two shipped drivers and only reads their JSON
                      captures what the real RelocalizationModule publishes on /tf.
   score_replay.py -> grades those published world->map fixes against run B's own
                      PGO silver truth (1 m / 15 deg success bar).
-then hands the captured fixes to `eval_module.run_offline_report`, which prints
-the per-source table, Umeyama-aligns A's map frame to B's PGO-truth frame for a
-real held-out med_err (or `-` with the reason), and writes json + a top-down
-trajectory PNG. This file just picks the pairs, converts A's marker survey to the
-module's JSON contract, serializes the runs (the LCM bus is EXCLUSIVE -- one
-`dimos --replay` at a time; a second Coordinator crashes it), caches per pair, and
-tabulates.
+then tallies the captured accepts by winning prior and renders them through dimos'
+own `relocalization.eval.format_eval_summary` -- the same table the live module
+prints at stop(), so harness and runtime cannot drift. This file just picks the
+pairs, converts A's marker survey to the module's JSON contract, serializes the runs
+(the LCM bus is EXCLUSIVE -- one `dimos --replay` at a time; a second Coordinator
+crashes it), caches per pair, and tabulates.
+
+FRAMES. The accept table is the reported result: counts and fitness are frame-free.
+score_replay's err_t/err_r are NOT -- the fix lands in run A's premap frame while
+the truth is run B's own PGO frame, two independent PGO runs, so absolute error
+carries their rigid offset. It is reported under `score_unaligned`, for comparing
+arms within one pair, never as a held-out accuracy number.
 
 WHY HELD-OUT. The old matrix replayed the SAME recording its premap was built from
 (train == test), so lidar-only absolute numbers were optimistic and only the A/B
@@ -43,9 +48,15 @@ import json
 from pathlib import Path
 import subprocess
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:  # deferred at runtime so --list needs no dimos env (test_eval.py)
+    from dimos.mapping.relocalization.eval import SourceTally
 
 HARNESS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(HARNESS_DIR))  # harness-local modules
+from reloc_log import reject_sources  # noqa: E402
+
 TRIAL_ROOT = HARNESS_DIR.parent
 REPO_ROOT = TRIAL_ROOT.parent
 DIMOS_ROOT = REPO_ROOT / "dimos"
@@ -54,13 +65,16 @@ EVAL_DIR = HARNESS_DIR / "out" / "eval"
 REPLAY_BENCH = HARNESS_DIR / "replay_bench.py"
 SCORE_REPLAY = HARNESS_DIR / "score_replay.py"
 
-# The flagship stack under the SHARED-CONTRACT name (Track A's rename target). Used
-# here for display/provenance only: the actual blueprint is whatever replay_bench.py
-# drives -- keep replay_bench's BLUEPRINT constant in lockstep with this rename.
-BLUEPRINT = "unitree-go2-relocalization-fiducial"
+# The one shipped reloc blueprint (both priors on by default, so it declares neither).
+# Display/provenance only: replay_bench.py drives the actual run -- keep its BLUEPRINT
+# constant in lockstep with this name.
+BLUEPRINT = "unitree-go2-relocalization"
 MODULE = "relocalizationmodule"  # dimos -o override prefix for the reloc module config
 SUCCESS_T_M = 1.0                # translation gate; must match score_replay.SUCCESS_T_M
 SUCCESS_R_DEG = 15.0             # rotation gate;    must match score_replay.SUCCESS_R_DEG
+# Why the accept table, not the error, is this eval's answer -- printed with every pair.
+FRAME_CAVEAT = ("err is UNALIGNED: A's premap frame and B's PGO-truth frame are "
+                "independent PGO runs -- read the accept table, not the absolute error.")
 
 # One entry per held-out PAIR: premap + marker survey from run A, replay run B of
 # the SAME scene. `tag` is the shared output key (its capture reuses across the two
@@ -72,12 +86,10 @@ PAIRS: list[dict[str, Any]] = [
         "tag": "survey2_heldout",
         "premap_recording": "sf_office_go2_20260718_survey1",  # A: built the map
         "replay_recording": "sf_office_go2_20260720_survey2",  # B: the unseen traversal
-        "premap": OUT_DIR.parent / "robotday_build/sf_office_go2_20260718_survey1.pc2.lcm",
+        "premap": OUT_DIR.parent
+        / "premaps/sf_office_20260718_survey1/sf_office_go2_20260718_survey1.pc2.lcm",
         "marker_map_yaml": OUT_DIR.parent
-        / "robotday_build_gated/sf_office_go2_20260718_survey1.marker_map.yaml",
-        # Optional run-B marker survey (map_B_T_tag) that anchors the Umeyama
-        # map_A->map_B alignment; absent today -> med_err prints `-` with the reason.
-        "markers_map_b": None,
+        / "premaps/sf_office_20260718_survey1/sf_office_go2_20260718_survey1.marker_map.yaml",
     },
 ]
 
@@ -125,7 +137,9 @@ def _build_matrix() -> list[dict[str, Any]]:
         marker_json = (
             _marker_json(marker_yaml) if marker_yaml is not None and marker_yaml.exists() else None
         )
-        overrides = [f"{MODULE}.use_fiducial_prior=true"]
+        # What `dimos run --eval` sets. The quiet accept line carries no published_t_m,
+        # and that translation is replay_bench's only key back onto the /tf capture.
+        overrides = [f"{MODULE}.verbose_eval_logging=true"]
         if marker_json is not None:
             overrides.insert(0, f"{MODULE}.marker_map_file={marker_json}")
         specs.append({
@@ -138,7 +152,6 @@ def _build_matrix() -> list[dict[str, Any]]:
             "marker_yaml_abs": str(marker_yaml) if marker_yaml else None,
             "marker_json_abs": str(marker_json) if marker_json else None,
             "marker_present": marker_json is not None,
-            "markers_map_b_abs": str(pair["markers_map_b"]) if pair["markers_map_b"] else None,
             "overrides": overrides,
         })
     return specs
@@ -189,39 +202,68 @@ def _capture(spec: dict[str, Any], rerun: bool) -> str:
     rc_replay = _run(_uv(REPLAY_BENCH, *replay_args))
     if rc_replay != 0:
         print(f"  WARN: replay_bench exit {rc_replay} (report may still use a replay.json)")
-    # Score against run B's own PGO truth (raw / unaligned; eval_module applies the
-    # held-out map_A->map_B alignment on top). Best-effort: a missing score file just
-    # leaves med_err at `-`.
+    # Score against run B's own PGO truth (see FRAME_CAVEAT). Best-effort: a missing
+    # score file just drops `score_unaligned` from the report.
     rc_score = _run(_uv(SCORE_REPLAY, spec["replay_recording"], "--tag", spec["tag"]))
     if rc_score != 0:
         print(f"  WARN: score_replay exit {rc_score} (report continues without per-fix truth)")
     return "ok" if replay_json.exists() else "error: no replay.json produced"
 
 
+def _tally(fixes: list[dict[str, Any]], rejects: list[str]) -> dict[str, SourceTally]:
+    """Captured accepts + rejects folded into the per-source tally the module fills live."""
+    from dimos.mapping.relocalization.eval import SourceTally
+
+    tally: dict[str, SourceTally] = {}
+    for fix in fixes:
+        entry = tally.setdefault(str(fix["source"]), SourceTally())
+        entry.accepts += 1
+        entry.fitnesses.append(float(fix["fitness"]))
+    for source in rejects:
+        tally.setdefault(source, SourceTally()).rejects += 1
+    return tally
+
+
+def _rejects(spec: dict[str, Any]) -> list[str]:
+    """The refused prior of every reject in this pair's run log; [] when it has none."""
+    run_log = _run_log(spec)
+    return reject_sources(run_log.read_text(errors="replace")) if run_log.exists() else []
+
+
+def _score(spec: dict[str, Any]) -> dict[str, Any] | None:
+    """score_replay's overall block + first-accept time, or None if it never ran."""
+    score_json = _score_json(spec)
+    if not score_json.exists():
+        return None
+    doc = json.loads(score_json.read_text())
+    return {
+        "overall": doc["overall"],
+        "first_accept_s": doc["first_accept_t_since_drive_start_s"],
+        "caveat": FRAME_CAVEAT,
+    }
+
+
 def _report(spec: dict[str, Any]) -> dict[str, Any] | None:
-    """Run the shared eval_module report on this pair's captured fixes. Returns its
-    stats dict, or None if the capture is missing."""
-    from dimos.mapping.relocalization.eval_module import run_offline_report
+    """Print this pair's per-source accept table and return its stats; None if uncaptured."""
+    from dimos.mapping.relocalization.eval import format_eval_summary
 
     replay_json = _replay_json(spec)
     if not replay_json.exists():
         return None
-    score_json = _score_json(spec)
-    run_log = _run_log(spec)
-    markers_b = Path(spec["markers_map_b_abs"]) if spec["markers_map_b_abs"] else None
-    result = run_offline_report(
-        replay_json=replay_json,
-        recording_db=DIMOS_ROOT / "data" / f"{spec['replay_recording']}.db",
-        marker_map=Path(spec["marker_yaml_abs"]),
-        out_dir=EVAL_DIR,
-        key=spec["tag"],
-        title=f"{spec['scene']} {spec['premap_recording']}(A) -> {spec['replay_recording']}(B)",
-        run_log=run_log if run_log.exists() else None,
-        score_json=score_json if score_json.exists() else None,
-        markers_map_b=markers_b,
-    )
-    stats: dict[str, Any] = result["stats"]
-    return stats
+    fixes = json.loads(replay_json.read_text())["fixes"]
+    tally = _tally(fixes, _rejects(spec))
+    title = f"{spec['scene']} {spec['premap_recording']}(A) -> {spec['replay_recording']}(B)"
+    print(f"  === held-out reloc: {title} ===")
+    print(format_eval_summary(tally))
+    print(f"  {FRAME_CAVEAT}")
+    return {
+        "title": title,
+        "by_source": {
+            source: {"acc": t.accepts, "rej": t.rejects, "fitnesses": t.fitnesses}
+            for source, t in sorted(tally.items())
+        },
+        "score_unaligned": _score(spec),
+    }
 
 
 def _list(specs: list[dict[str, Any]]) -> None:
@@ -234,17 +276,14 @@ def _list(specs: list[dict[str, Any]]) -> None:
         elif not s["marker_present"]:
             skip = "   [WILL SKIP: marker survey absent]"
         marker = s["marker_json_abs"] or f"(ABSENT) {s['marker_yaml_abs']}"
-        mb = s["markers_map_b_abs"] or "None (med_err held out until run B is surveyed)"
         print(f"[{i}] tag={s['tag']}  scene={s['scene']}{skip}")
         print(f"     A (premap/marker) = {s['premap_recording']}")
         print(f"     B (replay)        = {s['replay_recording']}")
         print(f"     premap            = {s['premap_abs']}{'' if s['premap_present'] else '   (ABSENT)'}")
         print(f"     marker (A, json)  = {marker}")
-        print(f"     markers_map_b     = {mb}")
         print(f"     overrides         = {' '.join(s['overrides'])}")
     print("\nHELD-OUT: premap + marker survey are run A; the replay is run B of the same "
-          "scene (never the same recording). med_err is Umeyama-aligned (map_A->map_B) "
-          "when run B's markers are surveyed, else printed as `-`.")
+          f"scene (never the same recording). {FRAME_CAVEAT}")
 
 
 def main() -> None:
@@ -286,7 +325,7 @@ def main() -> None:
             "git_rev_dimos": _git_rev(DIMOS_ROOT),
             "harness": "trial/harness/eval.py",
             "drivers": ["trial/harness/replay_bench.py", "trial/harness/score_replay.py"],
-            "eval_module": "dimos/mapping/relocalization/eval_module.py",
+            "eval_util": "dimos/mapping/relocalization/eval.py",
             "held_out": True,
         },
         "matrix": specs,

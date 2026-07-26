@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """One parser for RelocalizationModule's accept / reject / census log lines.
 
-Mirrors the approach in dimos ``mapping/relocalization/eval_module.py::_parse_line``
-(key-anchored regexes, ANSI stripped, console + main.jsonl through one path) and
-adds what the harness needs on top of eval_module's HealthLine: the console
-time-of-day (every harness clock join keys off it), ``n_pts``, ``time_cost_s``,
-``reloc_t_m`` and ``margin``.
+The live module keeps its own tally in-process (``mapping/relocalization/eval.py``)
+and never writes one; the harness scores CAPTURED runs, so it reads them back off the
+log: key-anchored regexes, ANSI stripped, console + main.jsonl through one path, plus
+the console time-of-day (every harness clock join keys off it), ``n_pts``,
+``time_cost_s``, ``reloc_t_m`` and ``margin``.
 
 THREE WIRE FORMATS, all live on disk here, so all three parse:
 
@@ -199,9 +199,18 @@ def _as_floats(csv: str | None) -> list[float] | None:
     return None if csv is None else _floats(csv)
 
 
+def reject_sources(log_text: str) -> list[str]:
+    """The refused prior of every reject, in file order; ``unknown`` where the line named none."""
+    return [
+        str(_field(obj, "source", text, _SOURCE_RE) or "unknown")
+        for kind, text, obj in _records(log_text)
+        if kind == "reject"
+    ]
+
+
 def count_rejects(log_text: str) -> int:
     """Accepts below the fitness threshold -- the denominator's other half."""
-    return sum(1 for kind, _t, _o in _records(log_text) if kind == "reject")
+    return len(reject_sources(log_text))
 
 
 def parse_census(log_text: str) -> list[dict[str, int]]:
