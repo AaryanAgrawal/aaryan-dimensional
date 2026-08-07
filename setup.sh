@@ -24,7 +24,9 @@ die()  { printf '%s==> %s%s\n' "$C_ERR" "$*" "$C_OFF" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # Back up before overwriting -- never silently clobber a config someone tuned.
-bak() { if [ -s "$1" ]; then cp -a "$1" "$1.bak.$STAMP"; step "backed up $1"; fi; }
+# -L dereferences: a stow/chezmoi symlink must not back up as another link to the
+# same file, or the write below destroys the original and the backup together.
+bak() { if [ -s "$1" ]; then cp -aL "$1" "$1.bak.$STAMP"; step "backed up $1"; fi; }
 
 parse_args() {
   while [ $# -gt 0 ]; do
@@ -83,12 +85,11 @@ step_system() {
   esac
 
   if [ "$DESKTOP" -eq 1 ]; then
-    case "$PKG" in
-      apt)    pkg tlp powertop nmap arp-scan fontconfig || warn "some laptop tools missing" ;;
-      dnf)    pkg tlp powertop nmap arp-scan fontconfig || warn "some laptop tools missing" ;;
-      pacman) pkg tlp powertop nmap arp-scan fontconfig || warn "some laptop tools missing" ;;
-      zypper) pkg tlp powertop nmap fontconfig || warn "some laptop tools missing" ;;
-    esac
+    # one call each: apt/dnf/pacman abort the whole transaction on a single unknown
+    # name, and a batch failure here would silently drop fontconfig, which step_font needs
+    for p in fontconfig tlp powertop nmap arp-scan; do
+      pkg "$p" >/dev/null 2>&1 || warn "$p not available on this distro"
+    done
     have tlp && $SUDO systemctl enable --now tlp >/dev/null 2>&1 || true
   fi
 }
@@ -99,22 +100,30 @@ step_brew() {
   [ "$USE_BREW" -eq 1 ] || return 0
   if have brew || [ -x "$BREW_BIN" ]; then step "homebrew present"; else
     log "Homebrew"
-    NONINTERACTIVE=1 /bin/bash -c \
-      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" \
-      || { warn "homebrew install failed -- falling back to distro packages"; USE_BREW=0; return 0; }
+    # download separately: a failed curl inside $( ) becomes `bash -c ""`, which exits 0
+    local inst="${TMPDIR:-/tmp}/brew-install.$$.sh"
+    if ! curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o "$inst"; then
+      warn "could not download the homebrew installer -- falling back to distro packages"
+      USE_BREW=0; return 0
+    fi
+    NONINTERACTIVE=1 /bin/bash "$inst" \
+      || { warn "homebrew install failed -- falling back to distro packages"; USE_BREW=0; rm -f "$inst"; return 0; }
+    rm -f "$inst"
   fi
   # `if`, not `&&`: a trailing false test returns 1 and set -e would kill the run here
   if [ -x "$BREW_BIN" ]; then eval "$("$BREW_BIN" shellenv)"; fi
 }
 
-# Short on purpose. History says the shell is used for cd, ls and launching
-# claude -- so this installs what serves that, not a pile to learn.
-# zoxide replaces cd, eza replaces ls, fzf is ctrl-R. Add more when they're earned.
-BREW_TOOLS="zoxide eza fzf ripgrep bat jq gh
+# Short on purpose: history says the shell is cd, ls and launching claude.
+# node is not optional -- claude code runs on it.
+BREW_TOOLS="zoxide eza fzf ripgrep bat jq gh node
   zsh-autosuggestions zsh-syntax-highlighting"
 
 # Distro names differ and several tools simply aren't packaged -- best effort, keep going.
-DISTRO_TOOLS="ripgrep bat eza zoxide fzf jq"
+# gh and the zsh plugins have to be here too: without gh the --no-brew path
+# silently skips GitHub auth and the whole ~/.claude agent layer.
+DISTRO_TOOLS="ripgrep bat eza zoxide fzf jq gh nodejs
+  zsh-autosuggestions zsh-syntax-highlighting"
 
 step_tools() {
   log "CLI tools"
@@ -124,29 +133,37 @@ step_tools() {
   else
     # shellcheck disable=SC2086
     pkg $DISTRO_TOOLS || warn "some distro packages missing"
-    warn "--no-brew: atuin, starship, lazygit, delta et al. are not installed"
   fi
 }
 
 step_runtimes() {
   log "Runtimes"
-  # no rust by default: a toolchain is ~1.5 GB and most boxes here never build Rust
-  if have mise; then
-    mise use -g node@lts python@3.12 || warn "mise runtime install incomplete"
-  else
-    warn "mise missing -- skipping node/python/rust"
-  fi
+  have node || warn "node missing -- claude code needs it"
   have uv || curl -LsSf https://astral.sh/uv/install.sh | sh || warn "uv install failed"
 
+  local me="${USER:-$(id -un)}"   # USER is unset in containers and plain su; set -u would abort
   if have docker; then step "docker present"; else
     curl -fsSL https://get.docker.com | $SUDO sh || warn "docker install failed"
-    $SUDO usermod -aG docker "$USER" 2>/dev/null || true
-    step "added $USER to the docker group -- takes effect after a full logout"
+    $SUDO usermod -aG docker "$me" 2>/dev/null || true
+    step "added $me to the docker group -- takes effect after a full logout"
   fi
 
   # op is how every credential on this box gets fetched; never store one in a file.
   have op || brew install 1password-cli 2>/dev/null \
     || warn "1Password CLI not installed -- https://developer.1password.com/docs/cli/get-started"
+}
+
+step_vscode() {
+  [ "$DESKTOP" -eq 1 ] || return 0
+  log "VS Code"
+  if have code; then step "present"; return 0; fi
+  case "$PKG" in
+    apt)    have snap && $SUDO snap install code --classic \
+              || warn "install VS Code from code.visualstudio.com/docs/setup/linux" ;;
+    dnf)    pkg code || warn "enable the vscode repo: code.visualstudio.com/docs/setup/linux" ;;
+    pacman) warn "VS Code is in the AUR -- 'yay -S visual-studio-code-bin'" ;;
+    *)      warn "install VS Code from code.visualstudio.com/docs/setup/linux" ;;
+  esac
 }
 
 step_claude() {
@@ -343,7 +360,7 @@ EOF
 write_zshrc() {
   bak "$HOME/.zshrc"
   cat > "$HOME/.zshrc" <<'EOF'
-# managed by dotfiles/setup.sh
+# managed by setup.sh -- edits here are overwritten on the next run
 
 for p in /home/linuxbrew/.linuxbrew/bin/brew /opt/homebrew/bin/brew /usr/local/bin/brew; do
   [[ -x $p ]] && eval "$($p shellenv)" && break
@@ -359,68 +376,38 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' menu select
 
 # plugin paths differ per distro and per brew prefix -- probe instead of hardcoding
-for f in zsh-autosuggestions/zsh-autosuggestions.zsh \
-         zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+_plug() {
   for d in "${HOMEBREW_PREFIX:-/nonexistent}/share" /usr/share/zsh/plugins /usr/share; do
-    [[ -r "$d/$f" ]] && source "$d/$f" && break
+    [[ -r "$d/$1" ]] && source "$d/$1" && return
   done
-done
+}
+_plug zsh-autosuggestions/zsh-autosuggestions.zsh
 
-have() { command -v "$1" >/dev/null 2>&1; }
-have starship && eval "$(starship init zsh)"
-have zoxide   && eval "$(zoxide init zsh)"
-have atuin    && eval "$(atuin init zsh)"
-have direnv   && eval "$(direnv hook zsh)"
-have mise     && eval "$(mise activate zsh)"
-have fzf      && source <(fzf --zsh)
+_have() { command -v "$1" >/dev/null 2>&1; }
+_have starship && eval "$(starship init zsh)"
+_have zoxide   && eval "$(zoxide init zsh)"
+_have atuin    && eval "$(atuin init zsh)"
+_have direnv   && eval "$(direnv hook zsh)"
+_have mise     && eval "$(mise activate zsh)"
+_have fzf      && source <(fzf --zsh)
 
-if have eza; then
+if _have eza; then
   alias ls='eza --group-directories-first'
   alias ll='eza -l --git --group-directories-first'
   alias lt='eza --tree --level=2'
 fi
-have bat && { alias cat='bat'; export PAGER='bat --plain'; }
-have code && export EDITOR='code --wait'
+_have bat && { alias cat='bat'; export PAGER='bat --plain'; }
+_have code && export EDITOR='code --wait'
 
 alias gs='git status -sb'
 alias gd='git diff'
 alias ..='cd ..'
+
+# last, on purpose: it wraps every ZLE widget defined before it, fzf's ctrl-R included
+_plug zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 EOF
 }
 
-write_starship_config() {
-  bak "$HOME/.config/starship.toml"
-  mkdir -p "$HOME/.config"
-  cat > "$HOME/.config/starship.toml" <<'EOF'
-"$schema" = 'https://starship.rs/config-schema.json'
-add_newline = true
-command_timeout = 1000
-
-format = """$directory$git_branch$git_status$python$nodejs$rust$cmd_duration
-$character"""
-
-[character]
-success_symbol = "[❯](#a6e3a1)"
-error_symbol = "[❯](#f38ba8)"
-
-[directory]
-style = "bold #89b4fa"
-truncation_length = 3
-truncate_to_repo = true
-
-[git_branch]
-style = "#cba6f7"
-format = "[$branch]($style) "
-
-[git_status]
-style = "#fab387"
-
-[cmd_duration]
-min_time = 2000
-style = "#9399b2"
-format = "[$duration]($style) "
-EOF
-}
 
 write_tmux_config() {
   bak "$HOME/.tmux.conf"
@@ -446,11 +433,7 @@ EOF
 }
 
 write_git_config() {
-  git config --global core.pager        "delta"
-  git config --global interactive.diffFilter "delta --color-only"
-  git config --global delta.navigate    true
-  git config --global delta.side-by-side true
-  git config --global delta.syntax-theme "Catppuccin Mocha"
+  bak "$HOME/.gitconfig"
   git config --global merge.conflictstyle zdiff3
   git config --global diff.colorMoved   default
   git config --global pull.rebase        true
@@ -484,7 +467,6 @@ step_configs() {
   write_ghostty_config
   write_niri_config
   write_zshrc
-  write_starship_config
   write_tmux_config
   write_git_config
   write_ssh_config
@@ -503,7 +485,7 @@ step_github() {
 
 # ~/.claude is the agent layer: CLAUDE.md, rules, agents, skills, commands.
 step_global_config() {
-  have gh || return 0
+  have gh || { warn "gh missing -- ~/.claude agent layer not installed"; return 0; }
   gh auth status >/dev/null 2>&1 || { warn "not authenticated -- skipping $GLOBAL_CONFIG_REPO"; return 0; }
   log "Global agent config"
   local d="$HOME/.claude"
@@ -512,12 +494,20 @@ step_global_config() {
     return 0
   fi
   # Claude Code creates ~/.claude first, so clone-into-nonempty fails: graft a repo on instead.
-  [ -d "$d" ] && tar czf "$HOME/.claude.bak.$STAMP.tar.gz" -C "$HOME" .claude 2>/dev/null || true
+  # Only the config dirs: projects/ holds gigabytes of transcripts and is not ours to move.
+  if [ -d "$d" ]; then
+    if ! tar czf "$HOME/.claude.bak.$STAMP.tar.gz" -C "$d" \
+         --exclude=projects --exclude=todos . 2>/dev/null; then
+      warn "could not back up ~/.claude -- refusing to overwrite it without one"
+      return 0
+    fi
+    step "backed up ~/.claude to ~/.claude.bak.$STAMP.tar.gz"
+  fi
   mkdir -p "$d"
   ( cd "$d" \
     && git init -q \
     && git remote add origin "https://github.com/$GLOBAL_CONFIG_REPO.git" \
-    && git fetch -q origin \
+    && GIT_TERMINAL_PROMPT=0 git fetch -q origin \
     && git checkout -f -B main origin/main ) \
     || warn "could not graft $GLOBAL_CONFIG_REPO into ~/.claude"
   step "credentials are a separate step: ~/.claude/scripts/agent-setup.sh"
@@ -533,8 +523,9 @@ step_shell() {
 summary() {
   log "Done"
   printf '  terminal   %s\n' "$(have ghostty && echo ghostty || echo '-- not installed')"
-  printf '  shell      zsh + starship\n'
+  printf '  shell      %s\n' "$(have starship && echo 'zsh + starship' || echo zsh)"
   printf '  windows    %s\n' "$(have niri && echo 'niri (pick it at the login screen)' || echo '-- not installed')"
+  printf '  editor     %s\n' "$(have code && echo 'VS Code' || echo '-- not installed')"
   printf '  claude     %s\n' "$(have claude && claude --version 2>/dev/null | head -1 || echo '-- not installed')"
   if [ ${#WARNINGS[@]} -gt 0 ]; then
     printf '\n%s  %d thing(s) need you:%s\n' "$C_WARN" "${#WARNINGS[@]}" "$C_OFF"
@@ -552,6 +543,7 @@ main() {
   step_brew
   step_tools
   step_runtimes
+  step_vscode
   step_claude
   step_font
   step_ghostty
