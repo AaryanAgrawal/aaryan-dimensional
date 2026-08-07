@@ -15,6 +15,7 @@ dimos/
 # ignore everything by default, then allowlist back in
 /*
 !/.gitignore
+!/AGENTS.md
 !/CLAUDE.md
 !/WORKSPACE.md
 !/README.md
