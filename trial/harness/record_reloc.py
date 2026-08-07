@@ -10,13 +10,13 @@ launches a replay and never re-implements a dimos data-path step -- it only
 listens on the shared LCM bus and reads the log the pipeline already writes:
 
   Terminal A (the pipeline -- the exact run this evidence is OF):
-    uv run --project /home/dimos/dimensional-trial/dimos \
+    uv run --project /home/dimos/aaryan-dimensional/dimos \
         dimos --replay --replay-db=<rec> run unitree-go2-relocalization \
         -o relocalizationmodule.map_file=<premap.pc2.lcm abs> \
         -o relocalizationmodule.marker_map_file=<markers.json abs> --eval
 
   Terminal B (this recorder, capturing while A runs):
-    uv run --project /home/dimos/dimensional-trial/dimos \
+    uv run --project /home/dimos/aaryan-dimensional/dimos \
         python ../trial/harness/record_reloc.py <rec> \
         --premap <premap.pc2.lcm abs> --marker-map <markers.json abs> \
         --out out/reloc_<rec>.rrd --max-wall-s 240

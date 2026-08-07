@@ -48,7 +48,7 @@ path+mtime+size and gate params; --no-cache forces recompute.
 both references and exits BEFORE the json/figure writes, leaving the
 committed outputs untouched.
 
-Run: cd /home/dimos/dimensional-trial/dimos && \
+Run: cd /home/dimos/aaryan-dimensional/dimos && \
      uv run python ../trial/harness/live_fix_quality.py
 """
 

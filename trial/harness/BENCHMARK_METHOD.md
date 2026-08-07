@@ -25,17 +25,17 @@ re-implementation.
 
 ```
 # 1. premap — REAL dimos (reuse an existing exported .pc2.lcm when present):
-uv run --project /home/dimos/dimensional-trial/dimos \
+uv run --project /home/dimos/aaryan-dimensional/dimos \
     dimos map global <rec> --pgo --export --no-gui --device CPU:0
 
 # 2. driver — runs the shipped blueprint, LISTENS only (no data-path step):
-uv run --project /home/dimos/dimensional-trial/dimos \
+uv run --project /home/dimos/aaryan-dimensional/dimos \
     python trial/harness/replay_bench.py <rec> --premap /abs/<rec>.pc2.lcm
 #   wraps: dimos --replay --replay-db=<rec> run unitree-go2-fiducial-relocalization \
 #          -o relocalizationmodule.map_file=<abs .pc2.lcm> [-o ...]
 
 # 3. scorer — grades the PUBLISHED fixes vs PGO silver truth:
-uv run --project /home/dimos/dimensional-trial/dimos \
+uv run --project /home/dimos/aaryan-dimensional/dimos \
     python trial/harness/score_replay.py <rec>
 ```
 

@@ -35,7 +35,7 @@ matrix, table, and eval.json are byte-reproducible (only git revs + the drivers'
 own captures vary, and those carry their own provenance).
 
 Run (bus is exclusive -> pairs run strictly serial; a cached capture replays nothing):
-  uv run --project /home/dimos/dimensional-trial/dimos \
+  uv run --project /home/dimos/aaryan-dimensional/dimos \
       python trial/harness/eval.py                 # whole matrix, cached
   ...  python trial/harness/eval.py --list         # print the pair matrix, run nothing
   ...  python trial/harness/eval.py --only sf_office --rerun   # one pair, no cache

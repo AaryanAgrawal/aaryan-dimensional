@@ -75,7 +75,7 @@ from premap_with_path import (
 )
 
 DEFAULT_OUT_RRD = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/eval/"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/eval/"
     "survey1_premap_markers.rrd"
 )
 

@@ -18,7 +18,7 @@ Colors are the dataviz reference palette, slots 1-3 in documented adjacent order
 (order validated per palette.md; magenta's light-surface contrast relief rule is
 met by direct labels on every bar).
 
-Run: cd /home/dimos/dimensional-trial/dimos && \
+Run: cd /home/dimos/aaryan-dimensional/dimos && \
      OMP_NUM_THREADS=1 uv run python ../trial/harness/robotday_figures.py
 """
 from __future__ import annotations

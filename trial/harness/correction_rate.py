@@ -25,14 +25,14 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 
-sys.path.insert(0, "/home/dimos/dimensional-trial/dimos")
-sys.path.insert(0, "/home/dimos/dimensional-trial/trial/harness")
+sys.path.insert(0, "/home/dimos/aaryan-dimensional/dimos")
+sys.path.insert(0, "/home/dimos/aaryan-dimensional/trial/harness")
 from dimos.memory2.store.sqlite import SqliteStore  # noqa: E402
 from dimos.msgs.geometry_msgs.PoseStamped import PoseStamped  # noqa: E402
 from reloc_log import parse_accepts  # noqa: E402
 
-DATA = Path("/home/dimos/dimensional-trial/dimos/data")
-CACHE = Path("/home/dimos/dimensional-trial/trial/harness/out/odom_arclen")
+DATA = Path("/home/dimos/aaryan-dimensional/dimos/data")
+CACHE = Path("/home/dimos/aaryan-dimensional/trial/harness/out/odom_arclen")
 CACHE.mkdir(parents=True, exist_ok=True)
 
 
@@ -216,7 +216,7 @@ def report_log(tag: str, path: Path, recording: str | None, start_re: str, drop_
 
 
 if __name__ == "__main__":
-    base = Path("/home/dimos/dimensional-trial/trial/harness/out/results_dimos")
+    base = Path("/home/dimos/aaryan-dimensional/trial/harness/out/results_dimos")
     targets = [
         ("hk_village3_reloc_only", base / "hk_village3.replay.json"),
         ("hk_village3_consistency", base / "hk_village3.consistency_check.replay.json"),
@@ -229,8 +229,8 @@ if __name__ == "__main__":
     ]
     res = [report(t, p) for t, p in targets if p.exists()]
 
-    bp = Path("/home/dimos/dimensional-trial/trial/harness/out/hk_village3_bp_runs")
-    ev = Path("/home/dimos/dimensional-trial/trial/harness/out/eval")
+    bp = Path("/home/dimos/aaryan-dimensional/trial/harness/out/hk_village3_bp_runs")
+    ev = Path("/home/dimos/aaryan-dimensional/trial/harness/out/eval")
     log_targets = [
         ("bp_run1_lidar", bp / "run1_lidar.log", "hk_village3"),
         ("bp_run2_lidar_fiducial", bp / "run2_lidar_fiducial.log", "hk_village3"),

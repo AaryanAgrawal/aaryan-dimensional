@@ -19,8 +19,8 @@ Next actions.
 
 1. **Clone this repo** (if not already here):
    ```bash
-   git clone https://github.com/AaryanAgrawal/dimensional-trial.git
-   cd dimensional-trial
+   git clone https://github.com/AaryanAgrawal/aaryan-dimensional.git
+   cd aaryan-dimensional
    ```
 2. **Clone `dimos` inside this repo root**, on Aaryan's fork, on the trial branch (run from the
    repo root — `dimos/` is gitignored here, its own git repo, never tracked as content; nesting it
@@ -388,7 +388,7 @@ Rules reminder inside the section (one line): claim a task by marking `[~] doing
 
 **dimos on this machine (set up Jul 17):** the pre-existing clone at `~/dimos` (25G data, synced
 venv, fork remote already configured, also used for non-trial work on this box) is **symlinked**
-into the repo root (`dimensional-trial/dimos → /home/dimos/dimos`) — satisfies §0's layout without
+into the repo root (`aaryan-dimensional/dimos → /home/dimos/dimos`) — satisfies §0's layout without
 moving 40G or breaking the machine's other references. Local branch `feat/fiducial-relocalization`
 @ `a6be7e42e` tracking `fork/feat/marker-localization-core` (16 commits over the origin/main
 merge-base). Phase-1 suite **re-verified on this machine: 6/6 green** (`uv run pytest
@@ -1962,11 +1962,11 @@ scope: this repo only, 30-day expiry.
 1. github.com → Settings → Developer settings → Fine-grained personal access tokens → Generate
    new token.
 2. Resource owner: `AaryanAgrawal`. Repository access: **Only select repositories** →
-   `dimensional-trial`. Expiration: **30 days**. Permissions → Repository permissions →
+   `aaryan-dimensional`. Expiration: **30 days**. Permissions → Repository permissions →
    **Contents: Read-only** (leave everything else at No access).
 3. Clone with the token as the password over HTTPS:
    ```bash
-   git clone https://<PAT>@github.com/AaryanAgrawal/dimensional-trial.git
+   git clone https://<PAT>@github.com/AaryanAgrawal/aaryan-dimensional.git
    ```
 
 ---

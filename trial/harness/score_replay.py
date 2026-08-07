@@ -22,7 +22,7 @@ Per fix (map_T_world both sides):
 Fixes with no captured rotation (rare) are scored on translation only (err_t via
 the logged reloc_t = map_T_world translation); their success is left undetermined.
 
-Run: uv run --project /home/dimos/dimensional-trial/dimos \
+Run: uv run --project /home/dimos/aaryan-dimensional/dimos \
         python ../trial/harness/score_replay.py hk_village3
 """
 

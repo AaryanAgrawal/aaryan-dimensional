@@ -1,10 +1,10 @@
-# dimensional-trial
+# aaryan-dimensional
 
-Working repo for Aaryan's Forward Deployed Engineer trial at Dimensional — context, plan, and
-benchmark instruments for the marker-localization project.
+Aaryan's working repo for Dimensional — where all context for the work lives. It began as the
+Forward Deployed Engineer trial, whose marker-localization benchmark instruments are in `trial/`.
 
 ```
-dimensional-trial/         (this repo, root)
+aaryan-dimensional/         (this repo, root)
 ├── CLAUDE.md               how to work in this repo
 ├── WORKSPACE.md            state, plan, history — the living doc
 ├── trial/harness/          the offline relocalization benchmark (premap-scored replay)

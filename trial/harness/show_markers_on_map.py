@@ -56,11 +56,11 @@ from dimos.mapping.relocalization.priors import load_marker_map
 from dimos.msgs.sensor_msgs.PointCloud2 import PointCloud2
 
 DEF_PREMAP = (
-    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.pc2.lcm"
 )
 DEF_MARKER_MAP = (
-    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.marker_map.json"
 )
 

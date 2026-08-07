@@ -10,7 +10,7 @@ Three things are graded, all offline:
     number for an artifact that is missing.
 
 Deterministic: fixed inputs, no wall-clock, no randomness. Run:
-  uv run --project /home/dimos/dimensional-trial/dimos \
+  uv run --project /home/dimos/aaryan-dimensional/dimos \
       python -m pytest trial/harness/test_eval.py -q
 """
 

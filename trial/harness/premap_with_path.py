@@ -42,29 +42,29 @@ from dimos.mapping.relocalization.priors import load_marker_map
 from dimos.msgs.sensor_msgs.PointCloud2 import PointCloud2
 
 PREMAP_PC2 = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.pc2.lcm"
 )
 PREP_PKL = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/prepared/"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/prepared/"
     "sf_office_go2_20260718_survey1.pkl"
 )
 ODOM_DB = Path(
-    "/home/dimos/dimensional-trial/dimos/data/sf_office_go2_20260718_survey1.db"
+    "/home/dimos/aaryan-dimensional/dimos/data/sf_office_go2_20260718_survey1.db"
 )
 # Marker survey the reloc benchmark actually loads as marker_map_file: eval.py
 # converts the gated YAML to this sibling .json (map_T_tag, translation+quaternion)
 # and passes it as relocalizationmodule.marker_map_file. Same PGO world frame as the
 # premap above (both now under premaps/sf_office_20260718_survey1/), so tags land on it.
 MARKER_MAP_JSON = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/premaps/sf_office_20260718_survey1/"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/premaps/sf_office_20260718_survey1/"
     "sf_office_go2_20260718_survey1.marker_map.json"
 )
 OUT_RRD = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/eval/survey1_premap_path.rrd"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/eval/survey1_premap_path.rrd"
 )
 OUT_PNG = Path(
-    "/home/dimos/dimensional-trial/trial/harness/out/eval/"
+    "/home/dimos/aaryan-dimensional/trial/harness/out/eval/"
     "survey1_premap_path_topview.png"
 )
 

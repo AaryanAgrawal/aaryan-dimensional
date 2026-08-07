@@ -8,7 +8,7 @@ bins, and the 0-accept print guard.
 
 Deterministic: scipy Rotation by fixed angles + numpy default_rng; no wall-clock,
 no randomness. Run:
-  uv run --project /home/dimos/dimensional-trial/dimos \
+  uv run --project /home/dimos/aaryan-dimensional/dimos \
       python -m pytest trial/harness/test_score_replay.py -q
 """
 

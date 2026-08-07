@@ -8,7 +8,7 @@ structlog rendering (`verbose_eval_logging=True`), and the LEGACY f-string every
 archived capture in out/ is written in.
 
 Deterministic: fixed strings, no RNG, no clock. Run:
-  uv run --project /home/dimos/dimensional-trial/dimos \
+  uv run --project /home/dimos/aaryan-dimensional/dimos \
       python -m pytest trial/harness/test_reloc_log.py -q
 """
 

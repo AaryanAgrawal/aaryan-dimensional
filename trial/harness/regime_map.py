@@ -28,7 +28,7 @@ produced by the marker-truth benchmark deprecated 2026-07-22 (referee-tag
 scoring, git b713aec); relocalization is now scored against the premap. The
 figure still renders from those saved artifacts, but they cannot be rebuilt.
 
-Run: cd /home/dimos/dimensional-trial/dimos && \
+Run: cd /home/dimos/aaryan-dimensional/dimos && \
      OMP_NUM_THREADS=1 uv run python ../trial/harness/regime_map.py
 """
 from __future__ import annotations

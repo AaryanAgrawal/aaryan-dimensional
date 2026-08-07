@@ -37,7 +37,7 @@ we wrap it with provenance meta -- reproducibility is a house non-negotiable --
 keeping the required keys on every fix element.)
 
 Run (village3, reloc-only):
-  uv run --project /home/dimos/dimensional-trial/dimos \
+  uv run --project /home/dimos/aaryan-dimensional/dimos \
       python ../trial/harness/replay_bench.py hk_village3 \
       --premap /abs/path/hk_village3.pc2.lcm
 

@@ -14,9 +14,9 @@ the harness re-implements **no** data-path step. See `BENCHMARK_METHOD.md` for t
 rule + audit.
 
 ```
-uv run --project /home/dimos/dimensional-trial/dimos dimos map global <rec> --pgo --export --no-gui  # premap (real dimos)
-uv run --project /home/dimos/dimensional-trial/dimos python trial/harness/replay_bench.py <rec> --premap /abs/<rec>.pc2.lcm  # driver: runs blueprint, listens
-uv run --project /home/dimos/dimensional-trial/dimos python trial/harness/score_replay.py <rec>  # scorer: published fixes vs PGO truth
+uv run --project /home/dimos/aaryan-dimensional/dimos dimos map global <rec> --pgo --export --no-gui  # premap (real dimos)
+uv run --project /home/dimos/aaryan-dimensional/dimos python trial/harness/replay_bench.py <rec> --premap /abs/<rec>.pc2.lcm  # driver: runs blueprint, listens
+uv run --project /home/dimos/aaryan-dimensional/dimos python trial/harness/score_replay.py <rec>  # scorer: published fixes vs PGO truth
 ```
 
 > **SUPERSEDED — the sections harness below (`prep.py` sections + `run_bench.py`'s direct
