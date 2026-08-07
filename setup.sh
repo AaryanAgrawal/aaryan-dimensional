@@ -107,15 +107,14 @@ step_brew() {
   if [ -x "$BREW_BIN" ]; then eval "$("$BREW_BIN" shellenv)"; fi
 }
 
-# Deliberately short. Everything here earns a place in the daily loop; the
-# nice-to-haves (difftastic, yazi, chezmoi, glow, xh, yq...) are one brew away.
-BREW_TOOLS="ripgrep fd bat eza zoxide fzf jq
-  lazygit git-delta gh
-  btop atuin direnv starship mosh mise neovim
+# Short on purpose. History says the shell is used for cd, ls and launching
+# claude -- so this installs what serves that, not a pile to learn.
+# zoxide replaces cd, eza replaces ls, fzf is ctrl-R. Add more when they're earned.
+BREW_TOOLS="zoxide eza fzf ripgrep bat jq gh
   zsh-autosuggestions zsh-syntax-highlighting"
 
 # Distro names differ and several tools simply aren't packaged -- best effort, keep going.
-DISTRO_TOOLS="ripgrep fd-find bat eza zoxide fzf jq neovim"
+DISTRO_TOOLS="ripgrep bat eza zoxide fzf jq"
 
 step_tools() {
   log "CLI tools"
@@ -381,8 +380,7 @@ if have eza; then
   alias lt='eza --tree --level=2'
 fi
 have bat && { alias cat='bat'; export PAGER='bat --plain'; }
-have lazygit && alias lg='lazygit'
-have nvim && export EDITOR=nvim
+have code && export EDITOR='code --wait'
 
 alias gs='git status -sb'
 alias gd='git diff'
