@@ -90,6 +90,80 @@ Next actions.
 | Real benchmark run output | `trial/results/` — generated, untracked; EXCEPT `trial/results/figures/*.png` (comparison graphs — tracked, shared between machines) |
 | Everything else from the trial (spec docs, research notes, day-by-day roadmap, PR drafts, page copy) | local disk only, untracked — folded into this doc's sections below where still load-bearing |
 
+## Aug 7–9 — dimos-helm + dimos-infect: the setup stack, two repos, nothing pushed
+
+**STATE 2026-08-09.** A five-agent overnight built the robot setup stack. Both repos build, test
+and lint clean; every commit is LOCAL ONLY, no remote, no PR, no Linear write. Nothing has met a
+robot.
+
+The architecture, decided and not to be redesigned: **helm is the package manager and knows
+platforms only** (os/distro/version, arch, glibc/musl, gpu+cuda, python, ram/disk) — never robots,
+never fails, always works standalone. **infect is how you set up a robot** — it runs on the
+operator's laptop, reaches the robot, and carries one *recipe* per robot. The boundary test for any
+ambiguous fact: does the compat engine need it to pick a wheel? Yes → helm. No → infect. Full plan
+in `workspace/infect-plan.html`.
+
+| What | Where |
+|---|---|
+| helm (the package manager) | `workspace/dimos-helm` — Rust, `nix develop --command cargo test` = **50 passed**. Branch stack `helm/1-unattended` … `helm/10-integration`, each one layer on the last, all rooted at `origin/main`. `fix/jetson-non-interactive` is a parallel branch under review — leave all of these alone. |
+| infect (how you set up a robot) | `workspace/dimos-infect` — new local Rust repo, no remote configured. `cargo test` = **85 + 10 passed**, clippy clean, fmt clean. 3 commits on `main`, ~4.6k lines. |
+| The tailscale decision | `workspace/tailscale-decision.md` — 281 lines, verified against tailscale 1.102.2 and its real source. No code. |
+| What needs a human | `workspace/dimos-infect/OPEN_QUESTIONS.md` — 7 questions. Deferred work is in each repo's `todo.md`. |
+
+**The helm stack, per layer** (`git diff --shortstat` on top of the previous):
+
+| Branch | Files | Diff |
+|---|---|---|
+| `helm/1-unattended` | 3 | +30 / −6 |
+| `helm/2-tegra-cuda` | 2 | +21 / −1 |
+| `helm/3-detect` | 4 | +201 / −1 |
+| `helm/4-use-detection` | 3 | +47 / −2 |
+| `helm/5-plan` | 3 | +337 / −1 |
+| `helm/6-bringup` | 6 | +228 / −1 |
+| `helm/7-exit-code` | 2 | +25 / −1 |
+| `helm/8-doctor-json` | 6 | +399 / −147 |
+| `helm/9-universal` | 8 | +581 / −158 |
+| `helm/10-integration` | 7 | +30 / −23 |
+
+Verified linear: every branch has the previous one as an ancestor, all reachable from `origin/main`,
+14 commits total. `helm/10-integration` is the integration layer added this session — it deletes a
+`home_dir()` the stack had defined twice and written inline three more times.
+
+### The contract, and the two places it did not hold
+
+`dim doctor --json` is the machine interface between the two tools. Run for real, it prints one
+line, exit 0, stderr empty, ten keys: `os os_version arch glibc gpu cuda python ram_gb disk_gb
+findings`, each finding carrying `check / severity / detail / fix` with severity `info|warn|block`.
+
+Two breaks found by running the binaries, both fixed on infect's side because **helm owns the
+contract**:
+
+- **infect emitted `dim setup --smoke-blueprint`, which does not exist.** `dim setup --help` lists
+  fifteen flags and that is not one of them; clap rejects unknown flags, so every install would have
+  died as a usage error at the robot. infect no longer emits it. The consequence is that **no robot
+  has a smoke test** — `[helm].smoke_blueprint` is still declared per recipe and `recipe show` now
+  prints it as `(declared)`. Open question 6.
+- **infect took exit 0 as "healthy".** helm's doctor deliberately exits 0 even when it found a
+  blocker (its own `--help` says anything wrapping dim should gate on `block`), so the verify probe
+  passed machines helm had just refused. It now parses the findings and counts `severity == "block"`;
+  unparseable output counts as blocked, because that means the contract moved. Proven end to end
+  against a fake `dim` that exits 0 either way: the blocked report fails, the healthy one passes.
+
+### What is real, what is stubbed, what needs hardware
+
+**Real and executed:** helm's distro detection (ubuntu/debian/fedora/arch/nixos/wsl + musl vs
+glibc), `dim doctor` and `dim doctor --json`, infect's recipe manifest, lane resolution, `extends`
+merge, match engine, journal, entitlement audit, all nine verbs as plans, and the dry-run path —
+which is safe *by construction*, since `Mode::DryRun` returns before anything is spawned.
+
+**Stubbed:** the runner (nothing walks the phases yet), live probing, `recipe new|add|remove`, the
+guided flow. Script steps are written but nothing executes them.
+
+**Never met hardware, and every claim about it is a hypothesis:** every fact table is hand-written;
+the dnf/pacman/apk package names were never run; musl detection was never run on Alpine; the tegra
+branch of doctor is covered only by fixtures; and whether `nmcli … passwd-file` *persists* the wifi
+psk across a reboot is unproven and is the one that would silently strand a robot.
+
 ## 2. Next actions
 
 **STATE 2026-07-25 — PR #3162 is open as a DRAFT at `+1251 / -89` across 15 files.**
