@@ -164,6 +164,83 @@ the dnf/pacman/apk package names were never run; musl detection was never run on
 branch of doctor is covered only by fixtures; and whether `nmcli … passwd-file` *persists* the wifi
 psk across a reboot is unproven and is the one that would silently strand a robot.
 
+## Aug 10 — dios: one repo, one binary, four branches integrated (nothing pushed)
+
+**STATE 2026-08-10.** `dimos-helm` is now **`workspace/dimos-bios`**, the binary is **`dios`**, and
+`dimos-infect` has been merged into it with its history intact. Four overnight agents built on top
+of that merge; this session integrated all of them onto **`dios/5-integration`**. Local commits
+only — nothing pushed, no PR, no Linear, and all 11 `helm/*` branches are untouched.
+
+The decisions, made and not to be relitigated: **one repo, one binary named `dios`**; the entry
+point for provisioning is **`dios infect --with <recipe>`**; a **recipe** is the unit third parties
+write; `src/pkg/` knows platforms and may never name a robot, `src/infect/` knows robots, and
+**`tests/boundary.rs` is what enforces that** now that it is no longer two repos.
+
+| Branch | What it added | Merged |
+|---|---|---|
+| `dios/1-merge` | the merge, the `dim` → `dios` rename, the two-layer reshape, `tests/boundary.rs` | base |
+| `dios/2-modes` | `--agent` + exit code 2, `critical` per step, `Ask` so no stage can prompt | clean |
+| `dios/3-recipe-doctor` | `dios doctor --recipe <name>\|all` — ten checks, no robot, ~4 ms | 2 conflicts |
+| `dios/4-authoring` | `docs/recipes.md`, `dios recipe new`, the authoring checklist | 2 conflicts |
+
+All four conflicts were in prose (`CHANGELOG.md`, `README.md`) or in one help-text block where two
+agents had each re-aligned the same example column. Both intents kept in every case; nothing was
+dropped. **192 tests green** (155 unit, 3 boundary, 2 prompts, 21 recipe doctor, 11 recipes), up
+from 51 + 96 in the two separate repos.
+
+### What the integration itself had to fix
+
+Three things were only visible once the branches were in one tree, because each one straddles two
+of them:
+
+- **A dry run was an error.** `dios infect --with unitree-g1 --dry-run` bailed with "the runner is
+  not built yet" — the one command you want before touching a robot was the one that refused. It
+  now prints the ordered plan and exits 0, rendering through `recipe::cmd::print_plan`, which
+  `recipe show` also calls so the two cannot drift.
+- **The scaffold had never met the doctor.** `recipe new` (branch 4) and `doctor --recipe`
+  (branch 3) were written in parallel. They agree: what the scaffold writes carries no blocker. It
+  carries exactly one warning, "no `[helm]`: this installs nothing", which is the author's next
+  step; `a_scaffolded_recipe_passes_the_doctor` pins both facts.
+- **The recipe format had a field its own spec did not mention.** `critical` shipped on branch 2
+  while `docs/recipes.md` was being written on branch 4. Now documented, and commented in what
+  `recipe new` writes.
+
+### Proven by running, not assumed
+
+`dios --help`, `dios infect --with unitree-g1 --dry-run` (exit 0, full plan), `dios doctor --recipe
+all` (exit 0, notes only), `dios doctor --json | python3 -m json.tool` (valid, ten keys),
+`dios --dry-run infect bringup --with unitree-g1`, and dry runs of `ssh.install-key`, `wifi.join`
+and `helm.deliver`.
+
+**The boundary guard was watched failing**, in both directions: a robot reference added to
+`src/pkg/plan.rs` failed with `src/pkg/plan.rs says: g1, quadruped, robot, unitree`, and a
+`use crate::infect::…` in `src/pkg/detect.rs` tripped the second test too. Both reverted. A guard
+nobody has seen fail is not a guard.
+
+**`nix build .#linux-arm64` works** — a 6.8 MB static aarch64 binary, which is what the G1's Jetson
+needs and what the previous session left unverified. It has not been executed on an aarch64 machine.
+
+### The thing to check first, before anything else
+
+`docs/TESTING_TOMORROW.md` is the ordered hardware plan, and its step 0 is one command:
+
+```bash
+timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=10 unitree@192.168.123.164 'echo hi'
+```
+
+Every robot-side op is `ssh <robot> '<command>'`. The G1 prints a `ros:foxy(1) noetic(2)` selector
+at login; if that runs for a non-interactive shell it blocks on `read`, and **nothing bounds it** —
+`ConnectTimeout` covers the connect and the auth and then stops applying, and a script step's
+`timeout_s` is parsed and never enforced. So it is a hang, not a slow step, and it invalidates every
+later step. `OPEN_QUESTIONS.md` §8 is what a person has to decide if it does hang.
+
+### Still stubbed after the integration
+
+The **runner** (nothing walks a recipe's phases; steps 3–5 of the testing doc are the plan driven by
+hand with `dios verb run`), `dios infect scan`, `recipe add|remove`, and exit code 2 — `--agent` is
+tested at the seam but no CLI path produces a real one, because no package-manager stage is declared
+critical and the runner that reads `critical` does not exist.
+
 ## 2. Next actions
 
 **STATE 2026-07-25 — PR #3162 is open as a DRAFT at `+1251 / -89` across 15 files.**
