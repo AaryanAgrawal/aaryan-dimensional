@@ -150,7 +150,8 @@ input {
         natural-scroll
         dwt                       // ignore the pad while typing
     }
-    focus-follows-mouse
+    // no focus-follows-mouse: the strip slides under a still cursor and focus would
+    // jump to whatever scrolled beneath it. The keyboard drives focus.
 }
 
 layout {
@@ -183,6 +184,8 @@ binds {
     Mod+L { focus-column-right; }
     Mod+J { focus-window-down; }
     Mod+K { focus-window-up; }
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
 
     Mod+Shift+H { move-column-left; }
     Mod+Shift+L { move-column-right; }
@@ -225,15 +228,20 @@ write_paneru_config() {
 # Letters dodge zsh word-navigation (alt+f, alt+b, alt+.) because
 # macos-option-as-alt is on in the ghostty config and those still have to work.
 
+# Both off: mouse_follows_focus warps the cursor on every focus change, and with a
+# strip that slides under a still cursor, focus_follows_mouse re-focuses whatever
+# scrolls beneath it. Keyboard drives focus; the mouse stays where you left it.
 [options]
-focus_follows_mouse = true
-mouse_follows_focus = true
+focus_follows_mouse = false
+mouse_follows_focus = false
 
 [bindings]
 window_focus_west  = "alt - h"
 window_focus_east  = "alt - l"
 window_focus_south = "alt - j"
 window_focus_north = "alt - k"
+window_focus_first = "alt - home"     # jump to either end instead of scrolling past everything
+window_focus_last  = "alt - end"
 
 window_swap_west = "alt + shift - h"
 window_swap_east = "alt + shift - l"
