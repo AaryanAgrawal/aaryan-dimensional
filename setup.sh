@@ -235,8 +235,6 @@ write_paneru_config() {
 [options]
 focus_follows_mouse = false
 mouse_follows_focus = false
-animation_speed = 10                 # unset means snap instantly; 8-20 is the usable range
-virtual_workspace_animations = true  # animate alt+1/2/3 too, so every move reads the same
 
 [bindings]
 window_focus_west  = "alt - h"
