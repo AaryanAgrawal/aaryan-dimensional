@@ -157,7 +157,8 @@ input {
 layout {
     gaps 8
     center-focused-column "never"
-    preset-column-widths {        // what Mod+R cycles through
+    preset-column-widths {        // what Mod+R cycles through, same four as paneru
+        proportion 0.25
         proportion 0.33333
         proportion 0.5
         proportion 0.66667
@@ -181,30 +182,22 @@ binds {
     Mod+Q { close-window; }
     Mod+O repeat=false { toggle-overview; }   // zoom out and see the whole strip
 
+    // Four keys do everything: Mod+H/L moves along the strip, Mod+J/K sizes the window.
     Mod+H { focus-column-left; }
     Mod+L { focus-column-right; }
-    Mod+J { focus-window-down; }
-    Mod+K { focus-window-up; }
-    Mod+Home { focus-column-first; }
-    Mod+End  { focus-column-last; }
+    Mod+J { switch-preset-column-width-back; }
+    Mod+K { switch-preset-column-width; }
+    Mod+F { maximize-column; }                // same as paneru's alt+f
 
+    // shift: the less-common version of the same axis
     Mod+Shift+H { move-column-left; }
     Mod+Shift+L { move-column-right; }
+    Mod+Shift+J { focus-window-down; }
+    Mod+Shift+K { focus-window-up; }
+    Mod+Shift+F { fullscreen-window; }         // true fullscreen; paneru has no equivalent
 
     Mod+BracketLeft  { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
-
-    Mod+R { switch-preset-column-width; }
-    Mod+Shift+R { switch-preset-column-width-back; }
-    Mod+W { maximize-column; }
-    Mod+C { center-column; }
-
-    Mod+1 { focus-workspace 1; }
-    Mod+2 { focus-workspace 2; }
-    Mod+3 { focus-workspace 3; }
-    Mod+Shift+1 { move-column-to-workspace 1; }
-    Mod+Shift+2 { move-column-to-workspace 2; }
-    Mod+Shift+3 { move-column-to-workspace 3; }
 
     Print { screenshot; }
     Mod+Shift+E { quit; }
@@ -235,36 +228,26 @@ write_paneru_config() {
 [options]
 focus_follows_mouse = false
 mouse_follows_focus = false
+preset_column_widths = [0.25, 0.33333, 0.5, 0.66667]   # same four steps niri cycles
 
 [bindings]
-window_focus_west  = "alt - h"
-window_focus_east  = "alt - l"
-window_focus_south = "alt - j"
-window_focus_north = "alt - k"
-window_focus_first = "alt - home"     # jump to either end instead of scrolling past everything
-window_focus_last  = "alt - end"
 
-window_swap_west = "alt + shift - h"
-window_swap_east = "alt + shift - l"
+# Four keys do everything: alt+h/l moves along the strip, alt+j/k sizes the window.
+# Hold shift for the less-common version of the same axis.
 
-window_stack   = "alt - leftbracket"
-window_unstack = "alt - rightbracket"
+window_focus_west  = "alt - h"          # <- move
+window_focus_east  = "alt - l"          # -> move
+window_shrink      = "alt - j"          # smaller
+window_resize      = "alt - k"          # bigger
+window_fullwidth   = "alt - f"          # fill the screen; costs zsh's forward-word, by choice
 
-window_resize    = "alt - r"
-window_shrink    = "alt + shift - r"
-window_fullwidth = "alt - w"
-window_center    = "alt - c"
-window_equalize  = "alt - e"
+window_swap_west  = "alt + shift - h"   # carry the window with you
+window_swap_east  = "alt + shift - l"
+window_focus_south = "alt + shift - j"  # down/up inside a stacked column
+window_focus_north = "alt + shift - k"
 
-window_virtualnum_1 = "alt - 1"
-window_virtualnum_2 = "alt - 2"
-window_virtualnum_3 = "alt - 3"
-window_virtualmovenum_1 = "alt + shift - 1"
-window_virtualmovenum_2 = "alt + shift - 2"
-window_virtualmovenum_3 = "alt + shift - 3"
-
-window_nextdisplay = "alt - n"
-window_manage = "alt - m"
+window_stack   = "alt - leftbracket"    # pull the neighbour into this column
+window_unstack = "alt - rightbracket"   # push it back out
 
 restart = "ctrl + alt - r"
 quit    = "ctrl + alt - q"
