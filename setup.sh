@@ -157,11 +157,11 @@ input {
 layout {
     gaps 8
     center-focused-column "never"
-    preset-column-widths {        // what Mod+R cycles through, same four as paneru
-        proportion 0.25
+    preset-column-widths {        // what Mod+I / Mod+O cycles, same four as paneru
         proportion 0.33333
         proportion 0.5
-        proportion 0.66667
+        proportion 0.75
+        proportion 1.0
     }
     default-column-width { proportion 0.5; }
     focus-ring {
@@ -180,21 +180,21 @@ screenshot-path "~/Pictures/Screenshots/%Y-%m-%d %H-%M-%S.png"
 binds {
     Mod+T { spawn "ghostty"; }
     Mod+Q { close-window; }
-    Mod+O repeat=false { toggle-overview; }   // zoom out and see the whole strip
+    Mod+Tab repeat=false { toggle-overview; }   // O is taken by grow, so overview moves here
 
-    // Four keys do everything: Mod+H/L moves along the strip, Mod+J/K sizes the window.
-    Mod+H { focus-column-left; }
-    Mod+L { focus-column-right; }
-    Mod+J { switch-preset-column-width-back; }
-    Mod+K { switch-preset-column-width; }
-    Mod+F { maximize-column; }                // same as paneru's alt+f
+    // Three pairs, by row: J/K across the strip, H/L inside a stack, I/O size.
+    Mod+J { focus-column-left; }
+    Mod+K { focus-column-right; }
+    Mod+Shift+J { move-column-left; }
+    Mod+Shift+K { move-column-right; }
 
-    // shift: the less-common version of the same axis
-    Mod+Shift+H { move-column-left; }
-    Mod+Shift+L { move-column-right; }
-    Mod+Shift+J { focus-window-down; }
-    Mod+Shift+K { focus-window-up; }
-    Mod+Shift+F { fullscreen-window; }         // true fullscreen; paneru has no equivalent
+    Mod+H { focus-window-up; }
+    Mod+L { focus-window-down; }
+
+    Mod+I { switch-preset-column-width-back; }   // in  = smaller
+    Mod+O { switch-preset-column-width; }        // out = bigger
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }           // true fullscreen; paneru has no equivalent
 
     Mod+BracketLeft  { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
@@ -228,23 +228,24 @@ write_paneru_config() {
 [options]
 focus_follows_mouse = false
 mouse_follows_focus = false
-preset_column_widths = [0.25, 0.33333, 0.5, 0.66667]   # same four steps niri cycles
+preset_column_widths = [0.33333, 0.5, 0.75, 1.0]   # third, half, 75%, full
 
 [bindings]
 
-# Four keys do everything: alt+h/l moves along the strip, alt+j/k sizes the window.
-# Hold shift for the less-common version of the same axis.
+# Three pairs, by row:  j/k across the strip · h/l inside a stack · i/o size.
+# Shift on the horizontal pair carries the window instead of just looking at it.
 
-window_focus_west  = "alt - h"          # <- move
-window_focus_east  = "alt - l"          # -> move
-window_shrink      = "alt - j"          # smaller
-window_resize      = "alt - k"          # bigger
-window_fullwidth   = "alt - f"          # fill the screen; costs zsh's forward-word, by choice
+window_focus_west  = "alt - j"          # <- along the strip
+window_focus_east  = "alt - k"          # -> along the strip
+window_swap_west   = "alt + shift - j"  # carry the window with you
+window_swap_east   = "alt + shift - k"
 
-window_swap_west  = "alt + shift - h"   # carry the window with you
-window_swap_east  = "alt + shift - l"
-window_focus_south = "alt + shift - j"  # down/up inside a stacked column
-window_focus_north = "alt + shift - k"
+window_focus_north = "alt - h"          # up inside a stacked column
+window_focus_south = "alt - l"          # down
+
+window_shrink    = "alt - i"            # in  = smaller
+window_resize    = "alt - o"            # out = bigger
+window_fullwidth = "alt - f"            # fill the screen
 
 window_stack   = "alt - leftbracket"    # pull the neighbour into this column
 window_unstack = "alt - rightbracket"   # push it back out
@@ -263,6 +264,13 @@ vertical = true
 [swipe.scroll]
 modifier = "alt"            # option + two-finger scroll slides the strip; works with no system change
 vertical_modifier = "shift"
+
+# Manage everything, including background apps and windows with odd accessibility
+# roles that paneru would normally skip. Add a floating=true rule for any window
+# this makes worse -- dialogs and pickers are the usual offenders.
+[windows.everything]
+title = ".*"
+manage = true
 EOF
 }
 
