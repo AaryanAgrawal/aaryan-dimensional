@@ -188,16 +188,13 @@ binds {
     Mod+Shift+J { move-column-left; }
     Mod+Shift+K { move-column-right; }
 
-    Mod+H { focus-window-up; }
+    Mod+H { focus-window-up; }      // only matters when a column holds more than one
     Mod+L { focus-window-down; }
 
     Mod+I { switch-preset-column-width-back; }   // in  = smaller
     Mod+O { switch-preset-column-width; }        // out = bigger
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }           // true fullscreen; paneru has no equivalent
-
-    Mod+BracketLeft  { consume-or-expel-window-left; }
-    Mod+BracketRight { consume-or-expel-window-right; }
 
     Print { screenshot; }
     Mod+Shift+E { quit; }
@@ -232,8 +229,10 @@ preset_column_widths = [0.33333, 0.5, 0.75, 1.0]   # third, half, 75%, full
 
 [bindings]
 
-# Three pairs, by row:  j/k across the strip · h/l inside a stack · i/o size.
+# Three pairs, by row:  j/k across the strip · h/l within a column · i/o size.
 # Shift on the horizontal pair carries the window instead of just looking at it.
+# No stacking: splitting a column means half the screen height each, which is
+# not enough on a laptop. Widths side by side do the same job better.
 
 window_focus_west  = "alt - j"          # <- along the strip
 window_focus_east  = "alt - k"          # -> along the strip
@@ -246,9 +245,6 @@ window_focus_south = "alt - l"          # down
 window_shrink    = "alt - i"            # in  = smaller
 window_resize    = "alt - o"            # out = bigger
 window_fullwidth = "alt - f"            # fill the screen
-
-window_stack   = "alt - leftbracket"    # pull the neighbour into this column
-window_unstack = "alt - rightbracket"   # push it back out
 
 restart = "ctrl + alt - r"
 quit    = "ctrl + alt - q"
