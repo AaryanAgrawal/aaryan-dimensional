@@ -1,0 +1,110 @@
+{
+  "verifiedAt": "2026-08-17",
+  "workspace": "Dimensional",
+  "team": {
+    "id": "b955509d-b31d-4c69-9ca7-66fe12035e5e",
+    "key": "END",
+    "name": "Engineering v2"
+  },
+  "initiatives": [
+    {
+      "id": "0c894e3e-6b61-44a9-af56-6219ea6509f2",
+      "name": "Agents & Memory",
+      "url": "https://linear.app/dimensional/initiative/agents-and-memory-5668ff80c165",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    },
+    {
+      "id": "2dee9dc4-783e-4607-89e6-783d828ef708",
+      "name": "Control",
+      "url": "https://linear.app/dimensional/initiative/control-b58dea6aff12",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    },
+    {
+      "id": "ab304e26-efb0-491c-b6c0-ddd7ee9f2015",
+      "name": "Hardware",
+      "url": "https://linear.app/dimensional/initiative/hardware-0b13187fe0a7",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    },
+    {
+      "id": "b6cca861-de8c-4c0a-b8e8-3a0e59152366",
+      "name": "Infrastructure",
+      "url": "https://linear.app/dimensional/initiative/infrastructure-1737c45fa2d5",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    },
+    {
+      "id": "034cd382-c24f-4907-a7da-ec668d90a471",
+      "name": "Manipulation",
+      "url": "https://linear.app/dimensional/initiative/manipulation-3e0e6ecbcdd6",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    },
+    {
+      "id": "920b2dff-73bc-4789-9fac-676590d0c5c4",
+      "name": "Navigation",
+      "url": "https://linear.app/dimensional/initiative/navigation-6e1c71f5237e",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    },
+    {
+      "id": "f3b5dc48-3452-4eec-89da-c3930fc6a2ed",
+      "name": "Perception",
+      "url": "https://linear.app/dimensional/initiative/perception-1a08ee27f08c",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    },
+    {
+      "id": "92576a46-3f49-451a-b873-ebe3d3f2f987",
+      "name": "Web",
+      "url": "https://linear.app/dimensional/initiative/web-f53b1c83f802",
+      "status": "Active",
+      "owner": null,
+      "description": null
+    }
+  ],
+  "migrationProjects": [
+    {"id":"f8472c3b-a66e-4377-b3c3-36ee5da40ef0","name":"[Example] Long-Horizon Agent Runtime","initiative":"Agents & Memory","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-long-horizon-agent-runtime-d285d148018e"},
+    {"id":"8033e6d8-a5f3-4ea1-aab7-1b1461a42c05","name":"[Example] Long-Horizon Agent Evaluation Suite","initiative":"Agents & Memory","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-long-horizon-agent-evaluation-suite-750fdfed1839"},
+    {"id":"7a2fb4c6-a13d-4781-8e90-5e4f9e97b6f0","name":"[Example] Robot Spatial Memory","initiative":"Agents & Memory","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-robot-spatial-memory-854c5c1a8a11"},
+    {"id":"c44a3933-2f3b-47ea-83bd-326dd6da010a","name":"[Example] Whole-Body Control Runtime","initiative":"Control","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-whole-body-control-runtime-70624020b1af"},
+    {"id":"e3d5130b-cb8e-4b31-9b18-f9c84d2cc1e5","name":"[Example] RL Locomotion Policy Integration","initiative":"Control","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-rl-locomotion-policy-integration-2a9da982d51c"},
+    {"id":"74d724ec-d913-479e-ae2f-6d7a0755ff5f","name":"[Example] M20 Pro Integration","initiative":"Hardware","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-m20-pro-integration-bbe85b4b77cd"},
+    {"id":"1cdaa51e-e0a6-4cd9-b8bd-ea0cd4877813","name":"[Example] Unitree Go2 Platform Integration","initiative":"Hardware","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-unitree-go2-platform-integration-9c8ca109c05f"},
+    {"id":"e64015dc-7453-4144-abc8-db9acb4e1f5f","name":"[Example] Galaxea A1Z Platform Integration","initiative":"Hardware","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-galaxea-a1z-platform-integration-f0685062263b"},
+    {"id":"dc474327-5017-4dac-bebc-54173487193a","name":"DIOS","initiative":"Infrastructure","status":"Backlog","lead":null,"hasProjectDescriptionPrd":true,"url":"https://linear.app/dimensional/project/dios-6ca9b1a7b558"},
+    {"id":"c93eaa34-097a-4d39-a4e4-06525731074f","name":"[Example] Reliable Pick-and-Place","initiative":"Manipulation","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-reliable-pick-and-place-f17c2d3ab4ac"},
+    {"id":"d8c9d729-6801-4578-b6c6-0fd0b849ad3d","name":"[Example] Mobile Manipulation","initiative":"Manipulation","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-mobile-manipulation-03140771e671"},
+    {"id":"9ec04e0d-ed79-46c5-b98f-c5a94479dd8a","name":"[Example] Manipulation Teleoperation & Dataset Capture","initiative":"Manipulation","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-manipulation-teleoperation-and-dataset-capture-cd9c8566f8a2"},
+    {"id":"08dd227b-ffc5-4116-8ceb-9cb68821342a","name":"[Example] ACT Manipulation Policy Deployment","initiative":"Manipulation","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-act-manipulation-policy-deployment-9e3b6ec11bd2"},
+    {"id":"215153fe-d73d-4d53-9677-37ee47982efc","name":"[Example] Unattended 2D Navigation","initiative":"Navigation","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-unattended-2d-navigation-0d769a6f806c"},
+    {"id":"e40bc824-17ed-4f7b-a215-d10fe1ddca8d","name":"[Example] Stereo Visual Odometry Module","initiative":"Navigation","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-stereo-visual-odometry-module-9915a4acab22"},
+    {"id":"d7de89dc-a6eb-48c0-867b-feda0b5002bb","name":"[Example] Quadruped 3D Navigation","initiative":"Navigation","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-quadruped-3d-navigation-4320eb281790"},
+    {"id":"a718719d-aaab-4b4a-bed7-deeffbd20b0f","name":"[Example] 3D Scene Reconstruction & Object Registration","initiative":"Perception","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-3d-scene-reconstruction-and-object-registration-2746c330efaf"},
+    {"id":"0b5efa80-75b7-47dd-baf1-e9f953aeb068","name":"[Example] Multi-Camera Calibration","initiative":"Perception","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-multi-camera-calibration-1c7924bc111c"},
+    {"id":"dcfe9a42-478b-4ff5-8c72-06eb6df4a29f","name":"[Example] Robot Operations Dashboard","initiative":"Web","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-robot-operations-dashboard-85fbd35b930a"},
+    {"id":"bb263aa0-bf9b-4ca0-9484-768833359566","name":"[Example] Robot Web Application SDK","initiative":"Web","status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/example-robot-web-application-sdk-8a280b97a640"}
+  ],
+  "preExistingTeamProjects": [
+    {"id":"4bee1c22-0b20-4e84-b939-d87f5da09cd2","name":"Basic Dashboard","initiatives":["Web"],"status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/basic-dashboard-099125c72627"},
+    {"id":"18e30958-9df4-4162-ac6b-a71b7dec16b9","name":"Simulation","initiatives":["Manipulation","Web"],"status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/simulation-0b56fab984d8"},
+    {"id":"e513d27b-3dad-4bab-a2ec-d4057c8aac47","name":"Hardware Integration","initiatives":[],"status":"Backlog","lead":null,"url":"https://linear.app/dimensional/project/hardware-integration-82f2eb196e5d"},
+    {"id":"b0a17fd6-d69b-464c-b3c6-fb9859222ce0","name":"2D Navigation MVP","initiatives":["Navigation"],"status":"Completed","lead":null,"url":"https://linear.app/dimensional/project/2d-navigation-mvp-2b7711b9be22"}
+  ],
+  "notes": [
+    "No Engineering v1 project or issue was mutated.",
+    "No project or issue was deleted.",
+    "The 19 Example projects have no PRD, milestone, issue, or lead.",
+    "DIOS is the only real migration project and its PRD is in the project description.",
+    "Hackathon is unrelated and was left untouched."
+  ]
+}

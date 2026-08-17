@@ -19,9 +19,13 @@ dimos/
 !/CLAUDE.md
 !/WORKSPACE.md
 !/README.md
+!/linear-migration
 !/trial
 !/office_markers.yaml
 !/site
+
+# Engineering v1 -> Engineering v2 planning, verified Linear snapshot, and review site
+!/linear-migration/**
 
 # trial/ — only the offline benchmark (trial/harness) + tracked figures, nothing else
 /trial/*

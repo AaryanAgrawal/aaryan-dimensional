@@ -68,12 +68,17 @@ Next actions.
      ROBOT_IP=10.0.0.104 dimos run unitree-go2-visual-relocalization
      ```
 6. **Read the rest of this file**, then continue from §2 Next actions.
+7. **If continuing the Engineering v2 Linear migration**, read
+   `linear-migration/HANDOFF.md`, then use `linear-migration/LINEAR_SNAPSHOT.json` as the
+   verified 2026-08-17 baseline. The review artifact source is in
+   `linear-migration/site-source/`.
 
 ## 1. Where everything lives
 
 | What | Where |
 |---|---|
 | The module + all code changes | `dimos` (cloned inside this repo root, §0) — ONE working branch **`feat/fiducial-relocalization`** (local + fork, identical), all 16 commits: the reviewed marker-localization module + the verified Phase 1 priors system. The fork is the PR channel (fork-and-pull — standard practice, Aaryan confirmed keep, Jul 17; **never delete the fork**). The fork also still has `feat/marker-localization-core` (head of closed #2808) — delete only on Aaryan's word. |
+| Engineering v1 → Engineering v2 Linear migration | `linear-migration/HANDOFF.md` for decisions and continuation steps; `linear-migration/LINEAR_SNAPSHOT.json` for verified Linear IDs and URLs; `linear-migration/site-source/` for the review artifact source. |
 | The PR | **#3016** — https://github.com/dimensionalOS/dimos/pull/3016 (supersedes #2808, closed Jul 17 with a pointer — same history, correctly-named branch) |
 | The public presentation page | https://aaryanagrawal.me/dimensional |
 | Trial page source | **`site/` in THIS repo (canonical copy — window 2 owns the website lane, Aaryan Jul 17)**: `page.tsx` (route), `data-dimensional.ts` (content data, lives at `src/data/dimensional.ts` in the portfolio repo), `assets/` (`public/dimensional/` there). Deploy home stays github.com/AaryanAgrawal/portfolio — to ship: copy the three pieces into the portfolio checkout, `npx tsc --noEmit && next build`, `vercel --prod` (scope servicerobotco, project aaryan-portfolio). Edit here first, sync on deploy — keep both in step. |
