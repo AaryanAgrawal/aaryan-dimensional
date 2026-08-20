@@ -8,9 +8,10 @@ only in chat.
 
 ## Layout
 
-This repo folder is the root. `dimos` is cloned inside it (gitignored, its own git repo — never
-tracked as content here). Every session, including work inside `dimos/`, starts from this root and
-follows this file + `WORKSPACE.md`.
+This repo folder is the root, and it tracks durable context only. Every repo being worked on —
+`dimos`, `dios` — is cloned under `workspace/`, which is gitignored in full along with all agent
+scratch and run output. Every session, including work inside `workspace/`, starts from this root
+and follows this file + `WORKSPACE.md`.
 
 ## Anchor on truth
 

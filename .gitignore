@@ -1,19 +1,10 @@
-# Allowlist model — this repo tracks only the trial's lean working set:
-# CLAUDE.md, WORKSPACE.md, the offline benchmark (trial/harness/) + its tracked
-# comparison figures (trial/results/figures/), the /dimensional page source (site/),
-# and office_markers.yaml (kept: dimos' go2 blueprint resolves that bare name — see
-# its header comment). The cut real-life benchmark's instruments (trial/scripts/),
-# the synthetic demo harness (demo/), and the tag PDFs (print/) were removed in the
-# Jul 17 cleanup — all in git history ≤ 90c494a. Everything else (spec docs, research
-# notes, day-by-day roadmap, PR drafts, page copy, personal logistics, credentials)
-# stays on disk, untracked — folded into WORKSPACE.md where still load-bearing.
-# See WORKSPACE.md §1 "Where everything lives".
+# Allowlist model: everything is ignored, then tracked paths are added back. This repo
+# tracks durable context only — how to work (CLAUDE/AGENTS), the working log (WORKSPACE),
+# robot setup, templates, dios design docs, the /dimensional page, and the learn decks.
+# Everything else — clones, agent scratch, run output, drafts — lives under workspace/,
+# untracked. Trial material was removed 2026-08-20; it is in git history <= c20f601.
 
-# dimos is its own git repo (cloned separately) — never track as content here
-dimos/
-
-# workspace/ holds clones of the repos being worked on (dios, dimos, …), each its own
-# git repo — never tracked as content here
+# workspace/ holds the repo clones being worked on and all scratch — never tracked here
 workspace/
 
 # ignore everything by default, then allowlist back in
@@ -21,50 +12,39 @@ workspace/
 !/.gitignore
 !/AGENTS.md
 !/CLAUDE.md
-!/WORKSPACE.md
 !/README.md
-!/linear-migration
-!/trial
-!/office_markers.yaml
-!/site
+!/WORKSPACE.md
+!/G1_SETUP_GUIDE.md
+!/G1_WIPE_AND_REINSTALL.md
+!/dios
 !/learn
+!/linear-migration
+!/scripts
+!/site
+!/templates
 
-# Engineering v1 -> Engineering v2 planning, verified Linear snapshot, and review site
+# dios/ — our design docs and the script that renders them; generated HTML stays out
+/dios/*
+!/dios/*.md
+!/dios/render-review-docs.sh
+!/dios/review-document.css
+
+# learn/ — Q/A decks for spaced repetition, one file per language
+/learn/*
+!/learn/*.md
+
+# linear-migration/ — Engineering v1 -> v2 planning, Linear snapshot, review site
 !/linear-migration/**
 
-# trial/ — only the offline benchmark (trial/harness) + tracked figures, nothing else
-/trial/*
-!/trial/harness
+# scripts/ — robot bringup and one-click setup
+/scripts/*
+!/scripts/*.sh
+!/scripts/*.md
 
-# trial/harness — the offline confidence benchmark (sections harness); out/ stays untracked
-/trial/harness/*
-!/trial/harness/*.py
-!/trial/harness/*.md
-!/trial/harness/*.yaml
-!/trial/harness/*.sh
-!/trial/harness/tests
-/trial/harness/tests/*
-!/trial/harness/tests/*.py
-/trial/harness/out/
-
-# python
-**/__pycache__/
-*.pyc
-.pytest_cache/
-
-# os
-.DS_Store
-
-# secrets — never belongs in git history even privately
-credentials.md
-
-# trial/results — raw run output stays untracked; comparison FIGURES are tracked
-# (visual proof shared between machines — CUDA queue task 6)
-!/trial/results
-/trial/results/*
-!/trial/results/figures
-/trial/results/figures/*
-!/trial/results/figures/*.png
+# templates/ — the PRD template, markdown source + rendered form
+/templates/*
+!/templates/*.md
+!/templates/*.html
 
 # site/ — the /dimensional page source + assets (canonical copy; deploys from the portfolio repo)
 /site/*
@@ -78,6 +58,13 @@ credentials.md
 /site/assets/flow/*
 !/site/assets/flow/*.png
 
-# learn/ — Q/A notes for spaced repetition, one file per topic; markdown only
-/learn/*
-!/learn/*.md
+# python
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# os
+.DS_Store
+
+# secrets — never belongs in git history even privately
+credentials.md

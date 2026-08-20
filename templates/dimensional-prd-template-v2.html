@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Dimensional PRD Template V2</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">:root {
+--ground: #eef2f3;
+--paper: #ffffff;
+--ink: #10191c;
+--muted: #53666d;
+--line: #d5e0e3;
+--soft: #f3f7f8;
+--accent: #08758d;
+}
+* { box-sizing: border-box; }
+body {
+max-width: 840px;
+margin: 28px auto 70px;
+padding: 38px 44px;
+background: var(--paper);
+color: var(--ink);
+border: 1px solid var(--line);
+border-radius: 8px;
+font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+html { background: var(--ground); }
+h1 { margin-top: 0; font-size: 30px; line-height: 1.12; letter-spacing: -.03em; }
+h2 { margin-top: 30px; padding-top: 17px; border-top: 1px solid var(--line); font-size: 20px; }
+h3 { margin-top: 22px; font-size: 16px; }
+p, ul, ol { margin-top: 0; }
+li { margin-bottom: 4px; }
+a { color: var(--accent); }
+code { padding: 2px 5px; background: var(--soft); border-radius: 3px; font: .88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+pre { padding: 14px 16px; overflow: auto; background: var(--soft); border: 1px solid var(--line); border-radius: 5px; }
+pre code { padding: 0; background: none; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px; }
+th, td { padding: 7px 9px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: var(--soft); }
+blockquote { margin-left: 0; padding-left: 16px; border-left: 4px solid var(--accent); color: var(--muted); }
+hr { margin: 28px 0; border: 0; border-top: 1px solid var(--line); }
+@media (max-width: 600px) {
+body { margin: 0; padding: 25px 20px; border: 0; border-radius: 0; }
+}
+@media print {
+html { background: white; }
+body { max-width: none; margin: 0; border: 0; }
+}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Dimensional PRD Template V2</h1>
+</header>
+<h1 id="feature-name-prd">[Feature name] PRD</h1>
+<table>
+<tbody>
+<tr>
+<td><strong>Owner</strong></td>
+<td>Who is accountable?</td>
+</tr>
+<tr>
+<td><strong>Project</strong></td>
+<td>Which broad Linear project contains this work?</td>
+</tr>
+<tr>
+<td><strong>Labels</strong></td>
+<td>Which Linear labels apply?</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>Draft / Review / Accepted / Shipped</td>
+</tr>
+<tr>
+<td><strong>Milestone</strong></td>
+<td>Leave blank until accepted</td>
+</tr>
+<tr>
+<td><strong>Last updated</strong></td>
+<td>YYYY-MM-DD</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Five-minute rule:</strong> A new reviewer should understand
+the problem, proposed experience, and approval criteria in five minutes.
+Link evidence and technical detail instead of pasting it here.</p>
+</blockquote>
+<h2 id="problem">1. Problem</h2>
+<h3 id="what-problem-are-we-solving">What problem are we solving?</h3>
+<p><em>In a short paragraph, explain who experiences the problem, what
+happens today, and why it matters. Include evidence naturally where it
+strengthens the explanation.</em></p>
+<p>[Describe the problem in clear prose.]</p>
+<h3 id="why-now">Why now?</h3>
+<p><em>What changed in customer need, technology, strategy, or
+risk?</em></p>
+<ul>
+<li></li>
+</ul>
+<h3 id="existing-alternatives">Existing alternatives</h3>
+<p><em>What do users do today, and why is it insufficient?</em></p>
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>What works</th>
+<th>Remaining gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="solution">2. Solution</h2>
+<h3 id="customer-messaging">Customer messaging</h3>
+<p><em>How would we explain the value in two sentences without
+implementation jargon?</em></p>
+<p><strong>[One-line promise.]</strong></p>
+<p>[Who it is for and what becomes possible.]</p>
+<h3 id="what-we-are-building">What we are building</h3>
+<p><em>What is the smallest complete product experience that solves the
+problem?</em></p>
+<p>Describe the user flow in 3–6 short paragraphs or bullets. Include
+commands only when they clarify the experience, and mark syntax as
+subject to change. Use one diagram only when it materially helps.</p>
+<h3 id="non-goals-and-rejected-options">Non-goals and rejected
+options</h3>
+<p><em>What are we deliberately not doing, and why?</em></p>
+<ul>
+<li><strong>Not building:</strong> [scope] — [reason]</li>
+<li><strong>Rejected:</strong> [option] — [reason]</li>
+</ul>
+<h2 id="usage-scenarios">3. Usage scenarios</h2>
+<p><em>Which two or three real situations must the product
+handle?</em></p>
+<h3 id="scenario-1-person-outcome">Scenario 1 — [person + outcome]</h3>
+<ul>
+<li><strong>Context:</strong></li>
+<li><strong>Trigger:</strong></li>
+<li><strong>Expected path:</strong></li>
+<li><strong>Hard case:</strong></li>
+</ul>
+<h3 id="scenario-2-person-outcome">Scenario 2 — [person + outcome]</h3>
+<ul>
+<li><strong>Context:</strong></li>
+<li><strong>Trigger:</strong></li>
+<li><strong>Expected path:</strong></li>
+<li><strong>Hard case:</strong></li>
+</ul>
+<h2 id="product-requirements">4. Product requirements</h2>
+<p><em>What must be true for the product direction to be
+accepted?</em></p>
+<p>Keep requirements user-visible and testable. Put architecture, APIs,
+storage, package formats, implementation tasks, and detailed test
+procedures in the linked technical proposal or Linear.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requirement</th>
+<th>Priority</th>
+<th>Proof</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>The product must…</td>
+<td>Must</td>
+<td>Demonstrated by…</td>
+</tr>
+<tr>
+<td>R2</td>
+<td>The product should…</td>
+<td>Should</td>
+<td>Measured by…</td>
+</tr>
+</tbody>
+</table>
+<h2 id="success-metrics">5. Success metrics</h2>
+<p><em>What observable results tell us this worked?</em></p>
+<p>Use 3–5 metrics. Each needs a target and measurement method.</p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th style="text-align: right;">Target</th>
+<th>How measured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="launch-guardrails">Launch guardrails</h3>
+<p><em>What must not regress while we pursue those outcomes?</em></p>
+<ul>
+<li><strong>Safety:</strong></li>
+<li><strong>Reliability:</strong></li>
+<li><strong>Compatibility / operations:</strong></li>
+</ul>
+<hr />
+<h2 id="optional-appendices">Optional appendices</h2>
+<p>Add only what reviewers need:</p>
+<ul>
+<li><strong>Dependencies and risks</strong> — what could prevent the
+product outcome</li>
+<li><strong>Open product questions</strong> — question, decider, and
+decision date</li>
+<li><strong>Decision log</strong> — what changed and why</li>
+<li><strong>Technical proposal</strong> — a separate, linked
+architecture document</li>
+</ul>
+<h2 id="after-acceptance">After acceptance</h2>
+<p>Review the PRD and technical proposal together before updating
+Linear. Once accepted, attach one Linear milestone. Keep the work
+breakdown outside the PRD.</p>
+</body>
+</html>

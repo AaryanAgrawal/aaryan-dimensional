@@ -22,10 +22,11 @@ Next actions.
    git clone https://github.com/AaryanAgrawal/aaryan-dimensional.git
    cd aaryan-dimensional
    ```
-2. **Clone `dimos` inside this repo root**, on Aaryan's fork, on the trial branch (run from the
-   repo root — `dimos/` is gitignored here, its own git repo, never tracked as content; nesting it
-   is what makes this file and `CLAUDE.md` govern dimos work too):
+2. **Clone `dimos` under `workspace/`** (run from the repo root — `workspace/` is gitignored in
+   full; each repo in it is its own git repo, never tracked as content here, and nesting them is
+   what makes this file and `CLAUDE.md` govern that work too):
    ```bash
+   mkdir -p workspace && cd workspace
    GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/dimensionalOS/dimos.git
    cd dimos
    git remote add fork https://github.com/AaryanAgrawal/dimos
@@ -77,18 +78,15 @@ Next actions.
 
 | What | Where |
 |---|---|
-| The module + all code changes | `dimos` (cloned inside this repo root, §0) — ONE working branch **`feat/fiducial-relocalization`** (local + fork, identical), all 16 commits: the reviewed marker-localization module + the verified Phase 1 priors system. The fork is the PR channel (fork-and-pull — standard practice, Aaryan confirmed keep, Jul 17; **never delete the fork**). The fork also still has `feat/marker-localization-core` (head of closed #2808) — delete only on Aaryan's word. |
+| The repos being worked on | `workspace/` — `dimos` (upstream + Aaryan's fork; the PR branch is `feat/relocalization-fiducial-prior`) and `dios` (`dimensionalOS/dios`, with worktrees `dios-3-recipe-doctor` and `dios-technical-spec`). Gitignored in full: each is its own git repo, never tracked as content here. **Never delete the fork** (fork-and-pull is the PR channel — Aaryan confirmed Jul 17). |
+| The open PRs | **#3162** fiducial relocalization prior + pre-map marker aggregation, draft — https://github.com/dimensionalOS/dimos/pull/3162. **#3161** `cameracalibrate` charuco + `--check`, draft. Superseded and closed: #3016, #3137. |
+| Trial material | Removed from the tree 2026-08-20 (Aaryan-authorized). The reasoning behind #3162 is preserved verbatim on the local dimos branch `context/fiducial-trial` — start at `trial-context/INDEX.md`. The harness code and result figures are in this repo's git history ≤ `c20f601`; everything including the 11 GB of eval output and the `.rrd` files sits on the dev box at `workspace/temp/trial`. |
 | Engineering v1 → Engineering v2 Linear migration | `linear-migration/HANDOFF.md` for decisions and continuation steps; `linear-migration/LINEAR_SNAPSHOT.json` for verified Linear IDs and URLs; `linear-migration/site-source/` for the review artifact source. |
-| The PR | **#3016** — https://github.com/dimensionalOS/dimos/pull/3016 (supersedes #2808, closed Jul 17 with a pointer — same history, correctly-named branch) |
 | The public presentation page | https://aaryanagrawal.me/dimensional |
-| Trial page source | **`site/` in THIS repo (canonical copy — window 2 owns the website lane, Aaryan Jul 17)**: `page.tsx` (route), `data-dimensional.ts` (content data, lives at `src/data/dimensional.ts` in the portfolio repo), `assets/` (`public/dimensional/` there). Deploy home stays github.com/AaryanAgrawal/portfolio — to ship: copy the three pieces into the portfolio checkout, `npx tsc --noEmit && next build`, `vercel --prod` (scope servicerobotco, project aaryan-portfolio). Edit here first, sync on deploy — keep both in step. |
-| This repo | context/plan/benchmark-protocol/history only — `dimos` sits inside this folder on disk but is its own git repo, gitignored, never tracked as content here |
-| The offline benchmark (sections harness; premap-scored) | `trial/harness/` in this repo — §6; tests: `cd dimos && uv run pytest ../trial/harness/tests/ -q` |
-| Instruments of the cut real-life benchmark (logger, bench runner, referee, overlay, survey dumper) | REMOVED from the tree, Jul 17 cleanup (Aaryan-authorized) — lived in `trial/scripts/`; code + full usage in git history ≤ 90c494a, one-line ledger in §8 |
-| Synthetic proof harness (real detector, rendered pixels, no hardware) | REMOVED from the tree, Jul 17 cleanup — lived in `demo/`; code in git history ≤ 90c494a. Its recorded numbers survive in §7 (SIMULATED ATE 1.75 → 0.26 m) and `trial/harness/PROVENANCE.md`, whose demo file:line citations resolve against that history |
-| Physical marker kit | `print/*.pdf` REMOVED from the tree, Jul 17 cleanup (tags long deployed in the office recordings; nothing prescribes those sheets — §8 regenerates any sheet via `dimos apriltag`); PDFs in git history ≤ 90c494a. `office_markers.yaml` KEPT at repo root: dimos' go2 visual-reloc blueprint defaults `marker_map_file` to that bare name and `resolve_named_path` checks the cwd first — see the file's header comment |
-| Real benchmark run output | `trial/results/` — generated, untracked; EXCEPT `trial/results/figures/*.png` (comparison graphs — tracked, shared between machines) |
-| Everything else from the trial (spec docs, research notes, day-by-day roadmap, PR drafts, page copy) | local disk only, untracked — folded into this doc's sections below where still load-bearing |
+| Page source | **`site/` in THIS repo (canonical copy)**: `page.tsx` (route), `data-dimensional.ts` (content data, lives at `src/data/dimensional.ts` in the portfolio repo), `assets/` (`public/dimensional/` there). Deploy home stays github.com/AaryanAgrawal/portfolio — to ship: copy the three pieces into the portfolio checkout, `npx tsc --noEmit && next build`, `vercel --prod` (scope servicerobotco, project aaryan-portfolio). Edit here first, sync on deploy — keep both in step. |
+| Robot setup | `G1_SETUP_GUIDE.md` (fresh unit → running dimos) and `G1_WIPE_AND_REINSTALL.md` (two wipe procedures; read its vendor-firmware warning first). `scripts/` holds `g1-bringup.sh` and the one-click guides. |
+| dios design docs | `dios/ARCHITECTURE.md` and `dios/DIOS-PRD.md`; `dios/render-review-docs.sh` renders them to styled HTML, which stays untracked. `templates/` holds the PRD template. |
+| Scratch, drafts, superseded docs, run output | `workspace/temp/` — untracked, on the dev box only. |
 
 ## Aug 7–9 — dimos-helm + dimos-infect: the setup stack, two repos, nothing pushed
 
@@ -244,6 +242,34 @@ The **runner** (nothing walks a recipe's phases; steps 3–5 of the testing doc 
 hand with `dios verb run`), `dios infect scan`, `recipe add|remove`, and exit code 2 — `--agent` is
 tested at the seam but no CLI path produces a real one, because no package-manager stage is declared
 critical and the runner that reads `critical` does not exist.
+
+## Aug 20 — repo cleaned to durable context only
+
+`aaryan-dimensional` tracked 103 files across a trial that ended on Aug 7; most of it described
+work that is finished or superseded. The tracked set is now the context that outlives any one
+project, and nothing else.
+
+    tracked now                          moved to workspace/temp/ (dev box only)
+    ───────────                          ──────────────────────────────────────
+    CLAUDE.md  AGENTS.md  README.md      trial/            (incl. 11 GB harness/out)
+    WORKSPACE.md                         office_markers.yaml
+    G1_SETUP_GUIDE.md                    astro_check_frames/  astro_check.json
+    G1_WIPE_AND_REINSTALL.md             data/
+    scripts/  templates/                 dios/*.html  dios/archive/
+    dios/*.md + render script + css      workspace's loose .md/.html plans
+    learn/  site/  linear-migration/      (temp/docs/)
+
+Nothing was deleted — untracked material moved to `workspace/temp/`, tracked material stays in git
+history at `c20f601`. `workspace/` is now gitignored in full, so every clone, agent scratch dir and
+run output is out of the tracked set by construction.
+
+Before the trial tree went, the writing behind PR #3162 — FINDINGS, both PR drafts, the prior-config
+design with Aaryan's four open questions, BENCHMARK_METHOD, PROVENANCE, the verified simplify patch —
+was committed verbatim to `trial-context/` on the dimos branch `context/fiducial-trial`, a sibling of
+the PR branch so #3162's diff is untouched. **That branch is local only**: the push failed on
+`lfs.dimensionalos.com` credentials. To back it up:
+
+    cd workspace/dimos && git push -u origin context/fiducial-trial
 
 ## 2. Next actions
 
