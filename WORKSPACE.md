@@ -166,6 +166,10 @@ psk across a reboot is unproven and is the one that would silently strand a robo
 
 ## Aug 10 — dios: one repo, one binary, four branches integrated (nothing pushed)
 
+> **Current location (2026-08-13):** the private repository is now
+> `dimensionalOS/dios`, with its local checkout at `workspace/dios`. The names below record the
+> historical Aug 10 state.
+
 **STATE 2026-08-10.** `dimos-helm` is now **`workspace/dimos-bios`**, the binary is **`dios`**, and
 `dimos-infect` has been merged into it with its history intact. Four overnight agents built on top
 of that merge; this session integrated all of them onto **`dios/5-integration`**. Local commits

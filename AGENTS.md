@@ -150,7 +150,31 @@ editing; introduce nothing new. An API with one caller is not a norm.
 
 ---
 
-## 6. Before you push
+## 6. Bank every language answer in `learn/`
+
+**Aaryan asks how Rust works → the concept behind it goes in `learn/rust.md`.** Same for
+`learn/python.md` and `learn/cpp.md`. These are recall decks, so file the general idea, never the
+question he happened to ask.
+
+- **One `##` heading per concept, a line or two of prose, then one example.** Longer means you are
+  writing a tutorial.
+- **Annotate the example where the shape is the lesson.** Box-drawing rules under the code, one
+  label per part — this is the format that works for him:
+
+      fn run(cli: &cli::Cli)
+             ───  ─ ─── ───
+              │   │  │   └── the type's name
+              │   └──┴────── borrowed, from module `cli`
+              └───────────── the parameter's name
+
+- **Teach the logic in plain English.** He reads these languages slowly, so "trait", "borrow" and
+  "generic" are words to explain, not words to use.
+- **Only concepts he actually raised.** Never pre-populate a deck. A concept that spans languages
+  goes in each one's deck, written from that language's side.
+
+---
+
+## 7. Before you push
 
 1. Magic numbers carry a unit or physical why on the same line; non-obvious ones carry a URL.
 2. Quantities carry units in the identifier; every pose names its frame.
