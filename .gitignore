@@ -1,8 +1,7 @@
-# Allowlist model: everything is ignored, then tracked paths are added back. This repo
-# tracks durable context only — how to work (CLAUDE/AGENTS), the working log (WORKSPACE),
-# robot setup, templates, dios design docs, the /dimensional page, and the learn decks.
-# Everything else — clones, agent scratch, run output, drafts — lives under workspace/,
-# untracked. Trial material was removed 2026-08-20; it is in git history <= c20f601.
+# Allowlist model: everything is ignored, then tracked paths are added back. The root holds how to
+# work (CLAUDE/AGENTS), the working log (WORKSPACE), the language decks, and the /dimensional page.
+# Everything else written goes in temp/, tracked. Clones, agent scratch and run output live under
+# workspace/, never tracked. Trial material was removed 2026-08-20; it is in history <= c20f601.
 
 # workspace/ holds the repo clones being worked on and all scratch — never tracked here
 workspace/
@@ -14,37 +13,21 @@ workspace/
 !/CLAUDE.md
 !/README.md
 !/WORKSPACE.md
-!/G1_SETUP_GUIDE.md
-!/G1_WIPE_AND_REINSTALL.md
-!/dios
 !/learn
-!/linear-migration
-!/scripts
 !/site
-!/templates
-
-# dios/ — our design docs and the script that renders them; generated HTML stays out
-/dios/*
-!/dios/*.md
-!/dios/render-review-docs.sh
-!/dios/review-document.css
+!/temp
 
 # learn/ — Q/A decks for spaced repetition, one file per language
 /learn/*
 !/learn/*.md
 
-# linear-migration/ — Engineering v1 -> v2 planning, Linear snapshot, review site
-!/linear-migration/**
-
-# scripts/ — robot bringup and one-click setup
-/scripts/*
-!/scripts/*.sh
-!/scripts/*.md
-
-# templates/ — the PRD template, markdown source + rendered form
-/templates/*
-!/templates/*.md
-!/templates/*.html
+# temp/ — everything written that is not WORKSPACE.md; text only, no artifacts
+!/temp/**
+/temp/**/*.pdf
+/temp/**/*.rrd
+/temp/**/*.db
+/temp/**/*.mp4
+/temp/**/*.webm
 
 # site/ — the /dimensional page source + assets (canonical copy; deploys from the portfolio repo)
 /site/*

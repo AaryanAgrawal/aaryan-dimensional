@@ -1,0 +1,498 @@
+<title>dimos-infect — the end state</title>
+<style>
+  :root {
+    --ground:#f6f6f4; --raised:#fff; --sunk:#ececeA;
+    --ink:#16181a; --ink2:#4a4e52; --steel:#6b7076; --rule:#dad9d4;
+    --helm:#1f5f7a; --helm-bg:#e4eff3;
+    --infect:#8a4a12; --infect-bg:#f7ece0;
+    --ok:#2b6a4a; --no:#96271f; --no-bg:#f8e8e6;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#131517; --raised:#1a1d20; --sunk:#0e1012;
+    --ink:#e6e8ea; --ink2:#a8adb2; --steel:#868c92; --rule:#2b2f33;
+    --helm:#6fb8d4; --helm-bg:#12262e;
+    --infect:#e0954f; --infect-bg:#2b1e11;
+    --ok:#6cb98f; --no:#e0776d; --no-bg:#2c1715;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#131517; --raised:#1a1d20; --sunk:#0e1012;
+    --ink:#e6e8ea; --ink2:#a8adb2; --steel:#868c92; --rule:#2b2f33;
+    --helm:#6fb8d4; --helm-bg:#12262e;
+    --infect:#e0954f; --infect-bg:#2b1e11;
+    --ok:#6cb98f; --no:#e0776d; --no-bg:#2c1715;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;
+       line-height:1.65;margin:0;padding:3rem 1.25rem 6rem;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:56rem;margin:0 auto;display:flex;flex-direction:column;gap:3rem}
+  header{display:flex;flex-direction:column;gap:.7rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--steel)}
+  h1{font-size:2.1rem;line-height:1.12;margin:0;letter-spacing:-.022em;text-wrap:balance}
+  .lede{color:var(--ink2);margin:0;max-width:44rem}
+  section{display:flex;flex-direction:column;gap:1rem}
+  h2{font-size:1.18rem;margin:0;letter-spacing:-.012em;padding-bottom:.5rem;border-bottom:1px solid var(--rule)}
+  h3{font-size:.97rem;margin:.5rem 0 0}
+  h3.f{font-family:var(--mono);font-size:.78rem;color:var(--steel);font-weight:500}
+  p{margin:0;color:var(--ink2)}
+  code{font-family:var(--mono);font-size:.855em;background:var(--sunk);padding:.1em .35em;border-radius:3px}
+  pre{font-family:var(--mono);font-size:.775rem;line-height:1.55;background:var(--sunk);color:var(--ink);
+      border:1px solid var(--rule);border-radius:4px;padding:.85rem 1rem;margin:0;overflow-x:auto}
+  pre b{color:var(--ok);font-weight:600}
+  pre i{color:var(--steel);font-style:normal}
+  pre .h{color:var(--helm);font-weight:600}
+  pre .n{color:var(--infect);font-weight:600}
+  pre .x{color:var(--no);font-weight:600}
+  .scroll{overflow-x:auto}
+  .gloss{font-size:.88rem;color:var(--ink2);border-left:2px solid var(--rule);padding:.1rem 0 .1rem .8rem;margin-top:-.35rem}
+  .note{border-left:2px solid var(--infect);background:var(--infect-bg);padding:.7rem .9rem;border-radius:0 4px 4px 0;font-size:.9rem}
+  .note.stop{border-left-color:var(--no);background:var(--no-bg)}
+  .note.helm{border-left-color:var(--helm);background:var(--helm-bg)}
+  .note b{display:block;margin-bottom:.15rem}
+  table{border-collapse:collapse;width:100%;font-size:.85rem}
+  th,td{text-align:left;padding:.42rem .6rem;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);font-weight:500}
+  td:first-child{font-family:var(--mono);font-size:.79rem}
+  .tag{font-family:var(--mono);font-size:.68rem;padding:.1em .45em;border-radius:3px;white-space:nowrap}
+  .t-h{background:var(--helm-bg);color:var(--helm)}
+  .t-i{background:var(--infect-bg);color:var(--infect)}
+  ul.p{margin:0;padding-left:1.15rem;color:var(--ink2);display:flex;flex-direction:column;gap:.35rem;font-size:.91rem}
+  ul.p b{color:var(--ink);font-weight:600}
+  ol.p{margin:0;padding-left:1.3rem;color:var(--ink2);display:flex;flex-direction:column;gap:.5rem;font-size:.91rem}
+  ol.p b{color:var(--ink);font-weight:600}
+  footer{color:var(--steel);font-size:.82rem;border-top:1px solid var(--rule);padding-top:1rem}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">End-state architecture · 2026-08-08</div>
+  <h1>dimos-infect</h1>
+  <p class="lede">Helm gutted down to platforms and nothing else. Infect owns every robot, with an app per robot and a framework for adding more. Two robots at launch: G1 and Go2. Designed as the destination rather than as a migration, since we build it next.</p>
+</header>
+
+<section>
+  <h2>The rule</h2>
+  <p><b>Helm knows platforms. Infect knows robots.</b> Nothing else is negotiable, and every ambiguous call resolves with one test: <em>does the compat engine need this fact to pick a wheel?</em> Yes means helm, no means infect.</p>
+  <p>That test does real work. CUDA passes it — you cannot choose between a CUDA and a CPU torch wheel without knowing. The Jetson's L4T version fails it, even though the two are found in the same place, because nothing about wheel resolution depends on whether this is L4T 35.3 or 36.2. Same directory, opposite sides of the line.</p>
+</section>
+
+<section>
+  <h2>Two identities</h2>
+  <p>The split reads better once each side has a name for what it grows into.</p>
+  <div class="scroll">
+  <pre><span class="h">dimos-helm</span>     THE PACKAGE MANAGER FOR DIMOS
+                 apt for robots. Resolves and installs packages against a platform.
+                 Grows toward: versions, dependency resolution, an index, updates.
+                 Stays small, stays universal, never fails.
+
+<span class="n">dimos-infect</span>   THE WAY YOU SET UP A ROBOT
+                 One app per robot. Identifies the machine, does the networking,
+                 installs payloads, calls helm for packages, and writes the dimos
+                 config that makes the robot actually run.
+                 Grows outward: more robots, third-party apps.</pre>
+  </div>
+  <p>Helm growing small and infect growing wide is the point. Every new robot is an app, and adds nothing to helm. Every new platform is a helm change, and adds nothing to any app.</p>
+  <div class="note helm">
+    <b>The package manager is already half-built.</b>
+    <code>dim install &lt;git-url-or-path&gt;</code> exists today. It records the source under <code>pkgs.installed.&lt;name&gt;</code>, places it in <code>pkgs.dir</code> — cloning a git URL, symlinking a local path so edits show live — and the desktop scans that directory to surface each package's apps. There are twelve references to that vocabulary in the source. <code>install</code>, <code>update</code> and <code>uninstall</code> are all already commands. Calling helm the dimos package manager is finishing what is there, not a new direction.
+  </div>
+</section>
+
+<section>
+  <h2>Three shapes, not two</h2>
+  <p>go2web changes the design. It is a Rust binary that runs on the Go2 and publishes odometry, point clouds and H.264 over Zenoh — so the robot does its own perception while dimos still runs on your laptop. That is a third deployment shape, and the framework has to express it as a first-class thing rather than a special case.</p>
+  <div class="scroll">
+  <pre>1  <b>HELM ON THE ROBOT</b>                       G1
+   ┌──────────┐              ┌────────────────────────┐
+   │ infect   │──ssh────────▶│ <span class="h">helm</span> → full dimos      │
+   │ (laptop) │              │ blueprint runs here    │
+   └──────────┘              └────────────────────────┘
+
+2  <b>HELM ON THE LAPTOP</b>                      Go2, WebRTC lane
+   ┌────────────────────────┐         ┌──────────┐
+   │ <span class="h">helm</span> → full dimos      │◀──WebRTC─│ robot    │   robot untouched,
+   │ incl. PointLio odom    │  :9991  │ (stock)  │   never receives code
+   └────────────────────────┘         └──────────┘
+
+3  <b>BRIDGE ON ROBOT + HELM ON LAPTOP</b>        Go2, Zenoh lane  ← go2web
+   ┌────────────────────────┐         ┌────────────────────┐
+   │ <span class="h">helm</span> → dimos:          │◀──Zenoh──│ <span class="n">go2web</span> bridge      │
+   │ mapping, planning,     │         │ PointLio + H.264   │
+   │ path following         │──cmd───▶│ onboard            │
+   └────────────────────────┘         └────────────────────┘</pre>
+  </div>
+  <p class="gloss">Shape 3 is the one worth designing for deliberately. It means an app can install a <b>robot-resident payload that is neither dimos nor helm</b> — a small native binary that does the latency-sensitive work onboard and speaks a wire protocol back. That is exactly how you support a robot too weak to run the full stack, and how you'd support a robot whose vendor OS you would rather not touch.</p>
+</section>
+
+<section>
+  <h2>Helm, after the deletion</h2>
+  <p>Everything robot-shaped leaves. What remains is a tool that takes an operating system and gives you a working DimOS on it, and knows nothing else about the world.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Deleted from helm</th><th>Lands in</th></tr></thead>
+    <tbody>
+      <tr><td>commands/bringup.rs</td><td>infect verb <code>net.wired-profile</code>; constants become app data</td></tr>
+      <tr><td>setup/boot.rs</td><td>infect verb <code>jetson.max-perf</code></td></tr>
+      <tr><td>setup/unitree.rs</td><td>unitree app scripts, pre- and post-helm</td></tr>
+      <tr><td>util/robot.rs</td><td>infect probe vocabulary (the disk check stays, relocated)</td></tr>
+      <tr><td>plan.rs robot half</td><td>infect app logic; the OS half becomes helm's real preflight</td></tr>
+      <tr><td>mod.rs stages 4, 10, 11</td><td>app steps wrapped around the helm call</td></tr>
+      <tr><td>CYCLONEDDS_HOME export</td><td>unitree app, post-helm</td></tr>
+      <tr><td>verify.rs hardcoded go2 smoke</td><td>parameterised <code>--smoke-blueprint</code>, infect supplies the name</td></tr>
+      <tr><td>service.rs robot env vars</td><td>infect passes <code>--env K=V</code> explicitly</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>What stays, and gets stronger: OS detection, wheel compatibility, uv and venv mechanics, system dependencies, sysctl tuning, the desktop, self-install, update. Plus the CUDA probe, because a developer with an NVIDIA workstation must get a CUDA install by running <code>dim setup</code> and nothing else.</p>
+  <div class="note helm">
+    <b>The invariant that decides every hard case.</b>
+    <b>Infect is never a prerequisite for helm.</b> Helm always works alone, on any machine, with no orchestrator. Infect may <em>override</em> a platform fact — and on a Tegra, where the generic probe is unreliable, it should. But override is not supply, and helm cannot depend on being supplied.
+  </div>
+
+  <h3>Universality work, which is the point of gutting it</h3>
+  <ul class="p">
+    <li><b>Parse <code>/etc/os-release</code> properly.</b> Today anything Linux that is not recognised falls through to Ubuntu. Add Debian, Fedora, Arch and a generic Linux, keyed on <code>ID</code> and <code>ID_LIKE</code>.</li>
+    <li><b>Detect musl</b> and skip the glibc wheel gates rather than computing nonsense.</li>
+    <li><b>A package-manager layer</b> over apt, dnf, pacman, apk and brew — and for anything unknown, print the commands a human would run and carry on. Degrade, never fail.</li>
+    <li><b>Wire up the preflight.</b> <code>plan.rs</code>'s <code>diagnose</code> and <code>blockers</code> are written, tested and currently dead code. They become the real gate.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>The blocker that must land first</h2>
+  <div class="note stop">
+    <b>Helm's exit code is meaningless today.</b>
+    <code>handle_stage</code> auto-continues every non-critical failure when non-interactive, and all thirteen stages pass <code>critical=false</code> — including "install DimOS" and "verify install". A completely failed install exits 0.
+  </div>
+  <p>Infect reads that exit code to decide whether to run its post-helm steps. Until it means something, a helm failure surfaces as the wrong error: infect blames its own step for a venv that helm silently failed to create. One accumulator in <code>run_setup</code> fixes it, and nothing else should be built first.</p>
+</section>
+
+<section>
+  <h2>The contract</h2>
+  <div class="scroll">
+  <pre><span class="h">dim doctor --json</span>
+  → {"os":"ubuntu","os_version":"20.04","arch":"aarch64","glibc":"2.31",
+     "gpu":"tegra","cuda":"11.4","python":"3.10.12","ram_gb":15,"disk_gb":98,
+     "findings":[{"check":"disk","severity":"info|warn|block","detail":"…","fix":"…"}]}
+
+<span class="h">dim plan --json --extras &lt;csv&gt; --mode &lt;library|dev&gt;</span>
+  → {"resolved":["base","unitree"],"excluded":[{"extra":"cuda","reason":"no NVIDIA gpu"}]}
+
+<span class="h">dim setup --non-interactive --mode dev --extras unitree --smoke-blueprint unitree-g1</span>
+  → exit 0   install verified
+    exit 1   {"failed_stages":["install DimOS"]}</pre>
+  </div>
+  <p class="gloss">Infect never parses helm's human output — only JSON and exit codes. That is what lets helm change its prompts, spinners and stage names freely without breaking every app in the field.</p>
+</section>
+
+<section>
+  <h2>The app model</h2>
+  <p>An app is a directory: a manifest, optional scripts, assets. Three layers.</p>
+  <div class="scroll">
+  <pre>1  MANIFEST   app.toml — probes, params, lanes, steps, payloads, helm call, notes
+              core reads it without executing anything
+
+2  VERBS      core-implemented, idempotent, check/apply/verify
+              net.wired-profile · wifi.join · ssh.install-key · jetson.max-perf
+              payload.deliver · helm.deliver · sysctl.apply · port.sweep
+              the dangerous operations written ONCE — a manifest line inherits the
+              WPA2 fix, dry-run and the failure menu for free
+
+3  SCRIPTS    escape hatch for the long tail (the CycloneDDS build)
+              timeout-bounded, declared verify, failures enter the standard menu
+
+4  PAYLOADS   a robot-resident binary that is neither dimos nor helm
+              go2web today; any vendor bridge tomorrow
+              payload.deliver: fetch for the robot's arch, install, register a
+              service, verify it is PUBLISHING — not merely that a file exists
+
+5  CONFIG     what the robot should RUN once it is set up
+              blueprint, transport, env; written into dimos config so that
+              `dimos run` works with no arguments afterwards</pre>
+  </div>
+  <p>Pure manifest becomes a Turing tarpit. Pure scripts are unreviewable, with no dry-run or resume. Compiled-in Rust traits force a third party to fork the tool, which kills sharing outright. First-party apps use the same external format, so the format is dogfooded from day one.</p>
+
+  <div class="note">
+    <b>Steps carry a phase, and the code forces it.</b>
+    The Unitree Python bindings depend on the venv helm creates, so they cannot run before it. An app is not "set up, then install" — it is pre-helm steps, then helm, then post-helm steps. Any simpler model cannot express the G1.
+  </div>
+  <div class="scroll">
+  <pre>bringup → match → confirm → params → <b>pre-helm</b> → <span class="h">HELM</span> → <b>post-helm</b> → verify</pre>
+  </div>
+</section>
+
+<section>
+  <h2>Entitlements — an app declares what it will touch</h2>
+  <p>Taken from WendyOS, where an app is scaffolded with <code>--entitlement gpu,usb,persist</code> and the runtime knows what it asked for. An infect app does the same: it declares, in data, everything it intends to touch on your machine and on the robot.</p>
+  <div class="scroll">
+  <pre>[entitlements]
+laptop = ["sudo", "net.configure"]      <i># will create an nmcli profile, needs root once</i>
+robot  = ["ssh", "sudo", "systemd"]     <i># will log in, run sudo, register a service</i>
+network = { subnets = ["192.168.123.0/24"], ports = [22, 9991] }
+writes  = ["~/dimos", "~/cyclonedds", "/etc/systemd/system"]</pre>
+  </div>
+  <p>Two things this buys, and the second is the one that matters.</p>
+  <ul class="p">
+    <li><b>The operator sees it before trusting it.</b> Installing a third-party app shows the declaration: <em>this app wants root on your laptop, ssh to the robot, and writes to three paths</em>. That is a decision a person can actually make, unlike "run this script".</li>
+    <li><b>The core can enforce it.</b> A step whose verb needs an entitlement the app never declared is refused before it runs — so the manifest is not documentation that drifts, it is the permission set. An app that quietly grows a new capability fails rather than succeeding silently.</li>
+  </ul>
+  <div class="note helm">
+    <b>Does helm have anything like this today? No.</b>
+    Grepping for entitlements, capabilities or declared permissions turns up nothing — the only hits are a systemd availability message and file-mode constants. Helm asks for sudo at the moment it needs it and that is the whole model. Which is correct for helm: it is one program with a fixed job, and there is no third party to constrain. Entitlements exist because <em>apps</em> are the thing strangers write.
+  </div>
+</section>
+
+<section>
+  <h2>The real output is a configured robot</h2>
+  <p>An install that finishes and leaves you working out which blueprint to run, with which transport, against which IP, has not finished. So the last thing an app does is write the robot's dimos configuration — and the measure of success is that <code>dimos run</code> then works with no arguments.</p>
+  <div class="scroll">
+  <pre><i># G1 — the robot runs its own stack</i>
+[config]
+blueprint = "unitree-g1"
+transport = "lcm"
+
+<i># Go2, webrtc lane — the laptop drives, and needs to know where the robot is</i>
+[lane.webrtc.config]
+blueprint = "unitree-go2"
+env       = { ROBOT_IP = "{robot_ip}" }
+
+<i># Go2, zenoh lane — no address at all; zenoh discovers the bridge</i>
+[lane.zenoh.config]
+blueprint = "go2-zenoh-nav"
+transport = "zenoh"</pre>
+  </div>
+  <p class="gloss">Those three blocks are the difference between the lanes, stated once. The WebRTC lane needs a robot IP because it dials a specific machine; the zenoh lane needs none because go2web announces itself and the laptop finds it. An operator does not have to know that — they pick a lane, and the app knows what configuration that lane implies.</p>
+  <p>This is also what makes infect the way you set up <em>any</em> robot rather than a bring-up script that happens to run an installer. Setting up a robot means: reach it, identify it, give it what it needs, and leave it configured to run. The install is one step of four.</p>
+</section>
+
+<section>
+  <h2>The G1 app</h2>
+  <h3 class="f">apps/g1/app.toml</h3>
+  <div class="scroll">
+  <pre>infect_api = 1
+
+[app]
+name="unitree-g1"  extends="unitree"  target="robot"      <i># shape 1: helm on the Jetson</i>
+
+[params]
+wifi_ssid     = { prompt="Office wifi name",     type="string" }
+wifi_password = { prompt="Office wifi password", type="secret" }
+
+[match]
+threshold = 60
+[[match.probe]] kind="ping"        addr="192.168.123.164" transport="wired"  weight=50
+[[match.probe]] kind="remote-glob" glob="~/*_unitree_install" capture="model" weight=40
+[[match.probe]] kind="remote-file" path="~/unitree_sdk2-main/example/humanoid" weight=30
+[[match.probe]] kind="ping"        addr="192.168.123.120"                    weight=10
+
+[network]
+wired = { laptop_addr="192.168.123.100/24", robot_addr="192.168.123.164" }
+hint_on_no_reply = "the G1 has two ethernet jacks, try the other one"
+
+[ssh]
+user="unitree"  password="123"  install_key=true
+
+[[step]] id="wifi" phase="pre-helm" on="robot" verb="wifi.join"
+args   = { iface="wlan0", ssid="{wifi_ssid}", psk="{wifi_password}", key_mgmt="wpa-psk" }
+verify = { verb="net.has-inet" }
+
+[[step]] id="jetson-perf" phase="pre-helm" on="robot" verb="jetson.max-perf"
+verify = { shell="nvpmodel -q | grep -q 'NV Power Mode: MAXN'" }
+
+[[step]] id="cyclonedds" phase="pre-helm" on="robot"
+script="unitree:steps/cyclonedds_build.sh"  timeout_s=1800
+verify = { shell="test -d ~/cyclonedds/install" }
+
+[helm]
+mode="dev"  extras=["unitree"]  smoke_blueprint="unitree-g1"
+
+[[step]] id="unitree-python" phase="post-helm" on="robot"
+script="unitree:steps/unitree_python.sh"
+verify = { shell="…/.venv/bin/python3 -c 'import unitree_sdk2py'", fresh_shell=true }</pre>
+  </div>
+  <p class="gloss">Read top to bottom, this is Krishna's bring-up guide as data. The probes are how infect recognises a G1 — pinging the Jetson is worth 50, the vendor install directory another 40, and 60 clears the bar. Each step carries a machine-checkable proof rather than a claim. His WPA3 workaround stops being a paragraph someone must remember and becomes <code>key_mgmt = "wpa-psk"</code>, where the verb consuming it makes the failure impossible rather than documented. The <code>fresh_shell</code> on the last verify encodes the guide's known ordering trap: the installer exports <code>CYCLONEDDS_HOME</code> after its own check, so the import only succeeds in a shell started afterwards.</p>
+</section>
+
+<section>
+  <h2>The Go2 app, both lanes</h2>
+  <p>One app, two lanes, because it is one robot the operator has to choose a stack for. The lane decides where helm runs and whether a payload is delivered.</p>
+  <div class="scroll">
+  <pre>infect_api = 1
+
+[app]
+name="unitree-go2"  extends="unitree"
+
+[match]
+threshold = 50
+[[match.probe]] kind="port-sweep" subnet="{subnet}" port=9991 capture="robot_ip"
+                for_match=true  weight=50                <i># WebRTC control port</i>
+[[match.probe]] kind="remote-glob" glob="~/*_unitree_install" capture="model" weight=30
+
+[lane.webrtc]                                            <i># shape 2 — the default</i>
+target = "laptop"                                        <i># robot never receives code</i>
+description = "laptop runs everything; robot is a peripheral"
+[lane.webrtc.helm]
+mode="dev"  extras=["unitree"]  smoke_blueprint="unitree-go2"
+[[lane.webrtc.step]] id="robot-ip" phase="post-helm" on="laptop" verb="env.set"
+args = { key="ROBOT_IP", value="{robot_ip}" }
+
+[lane.zenoh]                                             <i># shape 3 — go2web</i>
+target = "laptop"
+description = "go2web bridge onboard: PointLio + H.264 on the robot, dimos plans on the laptop"
+[[lane.zenoh.step]] id="bridge" phase="pre-helm" on="robot" verb="payload.deliver"
+args = { payload="go2web", arch="aarch64", service=true }
+verify = { verb="zenoh.has-topic", args={ key="dimos/odom/*" } }
+[lane.zenoh.helm]
+mode="dev"  extras=["unitree"]  smoke_blueprint="go2-zenoh-basic"</pre>
+  </div>
+  <p class="gloss">The zenoh lane is where the third shape earns its keep. <code>payload.deliver</code> is a core verb that puts a native binary on the robot and registers it as a service — the same machinery for go2web, for a future bridge on another vendor's robot, or for anything too latency-sensitive to run off-board. The verify is not "did the file copy" but "is the bridge publishing" — <code>zenoh.has-topic</code> against <code>dimos/odom/*</code>, which is the wire contract the dimos module already declares.</p>
+  <div class="note">
+    <b>What the zenoh lane confirms about the design.</b>
+    go2web is a Rust binary on the Go2's own computer that runs Point-LIO and encodes H.264 onboard, then publishes over zenoh. leshy's PR calls it the "dimos-helper" and notes it replaces WebRTC, the Jetson <em>and</em> Unitree's own services — so the robot needs no add-on compute at all. Zenoh auto-discovers, so this lane needs no networking step and no robot IP: <code>dimos --transport=zenoh --dtop run go2-zenoh-nav</code>. Source lives at <code>github.com/dimensionalOS/go2web</code>, tracked as DIM-1406; how a payload is built and fetched is the one part of shape 3 still open.
+  </div>
+  <div class="note">
+    <b>Unverified.</b>
+    Which extras the WebRTC lane needs. The compat engine excludes the driver on old aarch64, and what the Mac that drove greenwald actually had installed is recorded nowhere.
+  </div>
+</section>
+
+<section>
+  <h2>Match engine</h2>
+  <h3 class="f">infect/src/identify.rs</h3>
+  <div class="scroll">
+  <pre>#[serde(tag = "kind")]
+pub enum Probe {                        <i>// closed set — read-only by construction</i>
+    Ping       { addr: String, transport: Transport, weight: u32 },
+    TcpPort    { addr: String, port: u16, weight: u32 },
+    PortSweep  { subnet: String, port: u16, capture: Option&lt;String&gt;, weight: u32 },
+    RemoteFile { path: String, weight: u32 },
+    RemoteGlob { glob: String, capture: Option&lt;String&gt;, weight: u32 },
+    SshBanner  { addr: String, contains: String, weight: u32 },
+}
+
+pub fn identify(apps: &[AppManifest], facts: &Facts) -> Identified {
+    let mut out = Vec::new();
+    for app in apps {
+        let mut c = Candidate::new(&app.app.name);
+        for probe in app.matcher.ordered_probes(facts) {
+            if let Some(hit) = probe.run_readonly(facts) {
+                c.score += hit.weight;
+                c.evidence.push(hit.describe());   <i>// "ping 192.168.123.164: 1.2ms"</i>
+                c.captures.extend(hit.captures);   <i>// model = "g1plus_pc4"</i>
+            }
+        }
+        if c.score > 0 { out.push(c); }
+    }
+    out.sort_by_key(|c| Reverse(c.score));
+    match out.first() {
+        Some(best) if best.score >= threshold_of(apps, best) && unambiguous(&out)
+            =&gt; Identified::Proposed(best.clone()),  <i>// still confirm before acting</i>
+        _   =&gt; Identified::NeedsPicker(out),
+    }
+}</pre>
+  </div>
+  <p class="gloss">Every app scores itself against the machine in front of you; the highest wins if it clears its own threshold and nothing else is close. Two properties matter. The probe list is a <em>closed set of read-only operations</em>, so no app author can smuggle a state change into identification. And every probe that fires records its evidence in words, so the operator sees why infect thinks this is a G1 instead of being asked to trust it.</p>
+</section>
+
+<section>
+  <h2>The operator's experience</h2>
+  <div class="scroll">
+  <pre>$ <span class="n">infect</span>
+  Scanning… wired carrier detected on enp0s31f6
+  Matching apps:
+    unitree-g1   score 90   ✓ ping 192.168.123.164 (wired)
+                            ✓ ~/g1plus_pc4_unitree_install
+  → This looks like a Unitree G1 (model g1plus_pc4). Proceed? [Y/n/other]
+
+  Office wifi name: ████████
+  Office wifi password: ****
+
+  [1/8] network      laptop static 192.168.123.100/24 ......... ok (2s)
+  [2/8] ssh          key installed for unitree@.164 ........... ok
+  [3/8] wifi         joined 'office-5g' (wpa-psk profile) ..... ok
+                     untethered ssh proven — safe to unplug
+  [4/8] jetson-perf  nvpmodel MAXN + jetson_clocks ............ ok
+  [5/8] cyclonedds   building 0.10.x (~15 min) ................ ok (14m)
+  [6/8] <span class="h">helm</span>         dim setup --non-interactive --mode dev
+                     --extras unitree --smoke-blueprint unitree-g1
+                     ▸ streaming helm's stage output ........... exit 0
+  [7/8] unitree-py   sdk2py into helm venv, numpy&lt;2 ........... ok
+  [8/8] verify       dim doctor --json — 0 blockers ........... ok
+
+  Done. Check: head camera USB-C plugged? Controller in hand before first stand.
+  Next: ssh unitree@192.168.123.164 'dimos run unitree-g1'</pre>
+  </div>
+  <p>Every step ends in something a machine checked — carrier up, ping answered, unit active, helm exit 0 — never in a claim. A journal per robot means a re-run resumes rather than restarting.</p>
+
+  <h3>When a step fails</h3>
+  <div class="scroll">
+  <pre>  <span class="x">✗</span> [3/8] wifi failed: nmcli: Secrets were required (7)
+    1) retry   2) fix manually (shell)   3) get help   <span class="n">4) let the agent try</span></pre>
+  </div>
+  <p>The first three are helm's existing recovery menu, which drops you into a shell and resumes afterwards. The fourth is new, and it obeys one rule: <b>the manifest's verify is ground truth, never the agent's claim.</b> The agent proposes into the same machinery the operator uses and gets no private path.</p>
+  <ul class="p">
+    <li><b>Ambiguous match</b> — it receives the fact table and every app's probes and notes, may compose more probes only from the read-only vocabulary, and proposes a candidate with evidence for the operator to confirm.</li>
+    <li><b>Step failure</b> — it receives the step, the transcript, and the app's <code>[notes]</code>, which is the guide's troubleshooting table as structured data. Destructive commands are shown before running. Success means the step's own verify passes on re-run.</li>
+    <li><b>No app exists</b> — <code>infect app new --assist</code> drafts a manifest from a live session against an unknown robot.</li>
+  </ul>
+  <p>With no model configured the menu loses item four and everything else works unchanged. That is the test of whether the agentic part is real or decorative.</p>
+</section>
+
+<section>
+  <h2>Adding a robot</h2>
+  <div class="scroll">
+  <pre>$ infect app new my-robot          scaffolds app.toml + steps/ + README
+$ infect app test my-robot         probes against a live device, no state change
+$ infect app run my-robot --dry-run
+$ infect app publish               opens a PR to the apps repo</pre>
+  </div>
+  <p>Apps live in a git repository, not a registry — lightest thing that supports sharing and review. <code>infect app add &lt;git-url&gt;</code> installs a third-party app with a trust prompt, because an app runs shell on your robot as a sudo-capable user. That is the honest scope of the sandbox: a bad app cannot corrupt infect's core or another app, but it can certainly damage the robot it was pointed at.</p>
+</section>
+
+<section>
+  <h2>How we test it</h2>
+  <ol class="p">
+    <li><b>Contract tests, no hardware.</b> Assert <code>dim doctor --json</code> and <code>dim plan --json</code> shapes, and that a forced stage failure exits 1. Seconds to run, and it is the test that catches the exit-code bug.</li>
+    <li><b>Manifest and match tests, no hardware.</b> Probe scoring against recorded fact tables is a pure function — the same trick that got <code>plan.rs</code> thirteen tests covering hardware nobody owns. Assert that G1 facts pick the G1 app, that Go2 facts never do, that ambiguity reaches the picker, and that no probe variant can mutate.</li>
+    <li><b>The fake robot.</b> Helm already ships a Dockerfile impersonating a Jetson — fake <code>nvidia-smi</code>, fake <code>/etc/nv_tegra_release</code>, fake <code>nvpmodel</code>. Add the vendor directories and the whole pre-helm and post-helm sequence runs against a target that cannot be damaged. Highest-value thing to build.</li>
+    <li><b>The real G1, in order.</b> First settle whether the <code>ros:foxy(1) noetic(2)</code> login selector is interactivity-guarded — if it is not, every non-interactive ssh step hangs and the verb layer is invalid. Then dry-run end to end. Then run to the helm hand-off and stop. Then let helm run, and measure it, because a 3.7 GB venv over office wifi is unmeasured and a timeout mid-<code>uv sync</code> is the one failure a journal cannot resume. Then re-run on an already-infected robot: every step must skip.</li>
+    <li><b>The Go2, which tests the architecture rather than the code.</b> It inverts every G1 assumption — wifi instead of ethernet, helm on the laptop, no CycloneDDS, and in the zenoh lane a resident payload instead of an install. If both robots work without helm learning anything about either, the boundary is right.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Build order</h2>
+  <ol class="p">
+    <li><b>Helm exit-code accumulator.</b> Hours. Everything is built on it.</li>
+    <li><b><code>doctor --json</code> and <code>plan --json</code>.</b> The contract. Days.</li>
+    <li><b>Helm universality</b> — os-release parsing, musl, the package-manager layer, preflight wired up. This is what earns the word.</li>
+    <li><b>Infect skeleton</b> — manifest, probes, match, journal. No hardware needed.</li>
+    <li><b>The verb layer</b>, ported from the code being deleted: <code>net.wired-profile</code>, <code>wifi.join</code>, <code>ssh.install-key</code>, <code>jetson.max-perf</code>, <code>helm.deliver</code>, <code>payload.deliver</code>.</li>
+    <li><b>The G1 app</b> — fake robot first, then the real one.</li>
+    <li><b>The Go2 app</b>, both lanes. The boundary test.</li>
+    <li><b>Delete from helm.</b> Last, and only once infect demonstrably replaces each piece.</li>
+  </ol>
+  <div class="note helm">
+    <b>Nothing is deleted until it is replaced.</b>
+    At every point in this sequence, a robot can still be brought up with the tool that exists today. The deletion is the reward for infect working, not a step on the way there.
+  </div>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <ul class="p">
+    <li><b>How a payload is built and fetched.</b> go2web's source is located — <code>github.com/dimensionalOS/go2web</code>, with a README documenting deployment — but it is private and unread from here. <code>payload.deliver</code> needs its build, version and fetch story. Tracked as DIM-1406.</li>
+    <li><b>Contract drift</b> is the top long-term risk. Two repos shipping separately, with no contract test in infect's CI against a pinned helm, and the JSON shapes rot exactly as the exit code already has.</li>
+    <li><b>Which extras each Go2 lane needs.</b> Currently a guess.</li>
+    <li><b>Large asset delivery.</b> The Go2 replay smoke wants a multi-GB recording that exists only on your machines.</li>
+    <li><b>How <code>extends</code> merges</b> — whether base probes add to both children's scores, and how steps and blueprint maps compose.</li>
+  </ul>
+</section>
+
+<footer>
+  Designed against dimos-helm at <code>6d3a472</code>, <code>G1_SETUP_GUIDE.md</code>, <code>WORKSPACE.md</code>, the dimos go2 zenoh blueprints, and the wendy CLI. Six research agents plus an adversarial pass; six problems found and folded in. Nothing built; the helm stack is untouched.
+</footer>
+
+</div>

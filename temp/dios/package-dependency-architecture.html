@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>DIOS Package Dependency Architecture</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">:root {
+--ground: #eef2f3;
+--paper: #ffffff;
+--ink: #10191c;
+--muted: #53666d;
+--line: #d5e0e3;
+--soft: #f3f7f8;
+--accent: #08758d;
+}
+* { box-sizing: border-box; }
+body {
+max-width: 840px;
+margin: 28px auto 70px;
+padding: 38px 44px;
+background: var(--paper);
+color: var(--ink);
+border: 1px solid var(--line);
+border-radius: 8px;
+font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+html { background: var(--ground); }
+h1 { margin-top: 0; font-size: 30px; line-height: 1.12; letter-spacing: -.03em; }
+h2 { margin-top: 30px; padding-top: 17px; border-top: 1px solid var(--line); font-size: 20px; }
+h3 { margin-top: 22px; font-size: 16px; }
+p, ul, ol { margin-top: 0; }
+li { margin-bottom: 4px; }
+a { color: var(--accent); }
+code { padding: 2px 5px; background: var(--soft); border-radius: 3px; font: .88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+pre { padding: 14px 16px; overflow: auto; background: var(--soft); border: 1px solid var(--line); border-radius: 5px; }
+pre code { padding: 0; background: none; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px; }
+th, td { padding: 7px 9px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: var(--soft); }
+blockquote { margin-left: 0; padding-left: 16px; border-left: 4px solid var(--accent); color: var(--muted); }
+hr { margin: 28px 0; border: 0; border-top: 1px solid var(--line); }
+@media (max-width: 600px) {
+body { margin: 0; padding: 25px 20px; border: 0; border-radius: 0; }
+}
+@media print {
+html { background: white; }
+body { max-width: none; margin: 0; border: 0; }
+}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">DIOS Package Dependency Architecture</h1>
+</header>
+<h1 id="dios-package-dependency-architecture">DIOS Package Dependency
+Architecture</h1>
+<p><strong>Private technical proposal for team review</strong></p>
+<p><strong>Product requirements:</strong> <a href="DIOS-PRD.md">DIOS
+PRD</a></p>
+<p>This document follows the shape of the Dimos Web proposal in issue
+#2710: establish the base flow, compare the meaningful alternatives,
+recommend one, and provide a code skeleton that makes the boundaries
+concrete.</p>
+<h2 id="base-flow">Base flow</h2>
+<p>Every runnable DimOS module is a directory containing
+<code>module.py</code> and <code>info.yaml</code>. The YAML file is
+general module metadata, beginning with dependency information but able
+to grow as new metadata is needed. Existing package files remain the
+version authorities: <code>pyproject.toml</code> and
+<code>uv.lock</code> for Python, Cargo files for Rust, CMake files for
+C++, and Nix flakes for Nix.</p>
+<pre class="text"><code>blueprint
+   │ resolves to runnable modules
+   ▼
+adjacent module.py + info.yaml pairs
+   │ merge and deduplicate
+   ▼
+DIOS plan ── review ── install ── verify
+   │
+   └── local JSON receipt
+
+DIOS Doctor ── diagnose release requirements ── ready, or recommended next action</code></pre>
+<p>The metadata supplies the information the existing language build
+files cannot: which operating system packages provide native libraries
+and which external runtime capabilities must be ready. It never contains
+arbitrary shell commands.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">schema</span><span class="kw">:</span><span class="at"> </span><span class="dv">1</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">package_managers</span><span class="kw">:</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">apt</span><span class="kw">:</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> libeigen3-dev</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">brew</span><span class="kw">:</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> eigen</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">nix</span><span class="kw">:</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> eigen</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">custom_dependencies</span><span class="kw">:</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">lcm_network</span><span class="kw">:</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">receive_buffer_bytes</span><span class="kw">:</span><span class="at"> </span><span class="dv">67108864</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">loopback_multicast</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">rust</span><span class="kw">:</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">installer</span><span class="kw">:</span><span class="at"> rustup</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.93.1</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">components</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">rustfmt</span><span class="kw">,</span><span class="at"> clippy</span><span class="kw">]</span></span></code></pre></div>
+<p><code>schema: 1</code> is the only field required in every
+<code>info.yaml</code>. Readers reject unsupported schema versions; all
+other fields may evolve compatibly within the schema through optional
+additions and validation. Module identity comes from the directory path
+beneath the DimOS module root and is not repeated inside the file. CI
+rejects <code>module.py</code> without adjacent <code>info.yaml</code>,
+and <code>info.yaml</code> without adjacent <code>module.py</code>. Use
+a strict, portable YAML subset: mappings, lists, strings, numbers,
+booleans, and comments only. Do not allow anchors, aliases, custom tags,
+merge keys, or executable extensions. Validate every file against the
+schema in CI before it ships.</p>
+<p>DimOS has one root <code>pyproject.toml</code>, not one per module.
+Its broad optional-dependency groups, such as <code>sim</code>,
+<code>mapping</code>, and <code>unitree</code>, remain owned by
+<code>pyproject.toml</code> and <code>uv.lock</code>.
+<code>info.yaml</code> does not repeat or infer Python packages,
+versions, or extras.</p>
+<p>Each <code>custom_dependencies</code> entry is a dictionary of
+declarative data. Its shape belongs to a named, trusted DIOS handler.
+The LCM handler understands network buffer and multicast fields; the
+Rust handler understands rustup, toolchain version, and components.
+Metadata may never contain shell commands, scripts, or install/check
+commands. DIOS handlers own privileged operations, version checks,
+validation, and recommendations.</p>
+<p>If multiple selected modules declare the same custom dependency,
+their dictionaries must be identical in schema 1. A mismatch is a
+resolution conflict shown before setup or update changes the
+machine.</p>
+<h2 id="architecture-alternatives">Architecture alternatives</h2>
+<h3 id="who-owns-the-dependency-inventory">1. Who owns the dependency
+inventory?</h3>
+<h4 id="a.-central-dios-catalog">A. Central DIOS catalog</h4>
+<p>DIOS owns a catalog that maps logical package names to apt, Brew, and
+Nix packages.</p>
+<p><strong>Advantages:</strong> one controlled list; aliases can hide
+platform naming differences.</p>
+<p><strong>Disadvantages:</strong> creates a new package database,
+duplicates module knowledge, and requires DIOS changes whenever a DimOS
+module adds a dependency.</p>
+<h4 id="b.-module-owned-metadata-recommended">B. Module-owned metadata —
+recommended</h4>
+<p>Each runnable module owns its operating-system packages and named
+runtime requirements.</p>
+<p><strong>Advantages:</strong> dependency changes travel with code; CI
+can review both in the same PR; no separate registry drifts from
+DimOS.</p>
+<p><strong>Disadvantages:</strong> provider names repeat when multiple
+modules use the same native library.</p>
+<h4 id="c.-infer-everything-from-imports-and-build-files">C. Infer
+everything from imports and build files</h4>
+<p>DIOS scans Python imports, CMake, Cargo, and Nix automatically.</p>
+<p><strong>Advantages:</strong> little authoring work.</p>
+<p><strong>Disadvantages:</strong> an import does not identify its apt
+or Brew provider; optional and runtime-only dependencies are ambiguous;
+inference cannot be a reliable installation contract.</p>
+<h3 id="how-are-missing-dependencies-diagnosed">2. How are missing
+dependencies diagnosed?</h3>
+<h4 id="a.-automatically-install-missing-packages">A. Automatically
+install missing packages</h4>
+<p>Convenient, but startup unexpectedly mutates a workstation or a
+physical target and may require privilege, network access, or a
+restart.</p>
+<h4 id="b.-dios-doctor-recommended-for-the-mvp">B. DIOS Doctor —
+recommended for the MVP</h4>
+<p>DIOS Doctor resolves the selected DimOS release’s module set, checks
+its requirements, diagnoses what is missing or incompatible, and
+recommends the next action. It remains read-only.</p>
+<p>This replaces today’s incomplete behavior, where
+<code>dimos run</code> catches a short hard-coded list of missing Python
+imports and installs the corresponding extra.</p>
+<h4 id="c.-do-nothing-at-runtime">C. Do nothing at runtime</h4>
+<p>Setup stays simple, but dependency failures remain late import,
+linker, daemon, or hardware errors.</p>
+<h2 id="execution-modes">Execution modes</h2>
+<p>Every mutating DIOS flow—local setup, robot preparation, and
+update—uses the same execution contract. DIOS Doctor uses the same
+reporting contract but is always read-only.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default interactive</td>
+<td>Explain the plan, request required values, ask for approval before
+mutation, and show proofs as steps finish.</td>
+</tr>
+<tr>
+<td>Verbose</td>
+<td>Include every resolved action, provider decision, target, proof, and
+observed version without exposing secrets.</td>
+</tr>
+<tr>
+<td>Dry run</td>
+<td>Resolve and display the complete plan and diagnostics without
+changing files, packages, services, local state, or the target.</td>
+</tr>
+<tr>
+<td>Non-interactive</td>
+<td>Never prompt; use explicit inputs and documented defaults, and fail
+when a required human decision is missing.</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>Non-interactive plus stable machine-readable results containing the
+failed step, reason, and required human decision.</td>
+</tr>
+</tbody>
+</table>
+<p>These modes compose: verbose can be used with interactive, dry-run,
+non-interactive, or agent runs. Dry-run and Doctor produce zero
+mutations. Secrets never appear in output, logs, process arguments,
+receipts, or machine-readable errors.</p>
+<h3 id="where-does-state-live">3. Where does state live?</h3>
+<h4 id="a.-local-json-only-recommended-for-the-mvp">A. Local JSON only —
+recommended for the MVP</h4>
+<p>Module metadata ships with DimOS. DIOS writes installation receipts
+under its local data directory. Setup and DIOS Doctor work offline.</p>
+<h4 id="b.-cloud-authoritative-dependency-service">B.
+Cloud-authoritative dependency service</h4>
+<p>A service owns manifests, policy, resolution, and receipts.</p>
+<p>This provides centralized policy and fleet visibility, but makes
+installation depend on identity, availability, synchronization, and an
+API before the local contract is proven.</p>
+<h4 id="c.-local-authority-with-an-optional-cloud-control-plane-future-recommendation">C.
+Local authority with an optional cloud control plane — future
+recommendation</h4>
+<p>The local engine remains authoritative. A cloud service may
+distribute signed policy/catalog snapshots and accept receipts. Losing
+the network never prevents a known local setup or diagnosis.</p>
+<pre class="text"><code>               future, optional
+┌───────────────────────────────────────┐
+│ API + signed catalog + receipt ingest │
+│ object storage + relational metadata  │
+└──────────────────┬────────────────────┘
+                   │ sync
+                   ▼
+┌───────────────────────────────────────┐
+│ DIOS local engine                     │
+│ info files → plan → providers → receipt│
+└───────────────────────────────────────┘</code></pre>
+<p>The cloud API should exchange versioned catalogs and receipts, not
+remote shell commands. A simple future stack could use a stateless HTTP
+API, object storage for signed catalog artifacts, and a relational
+database for catalog metadata and receipt indexing. This is deliberately
+outside the MVP.</p>
+<p>Proposed future cloud skeleton:</p>
+<pre class="text"><code>cloud/dependencies/
+├── api/                 stateless authenticated HTTP service
+├── catalog/             signing and compatibility validation
+├── migrations/          catalog metadata and receipt index
+└── openapi.yaml         versioned API contract
+
+GET  /v1/catalogs/{dimos_release}      → signed catalog artifact
+POST /v1/receipts                      → accept an installation receipt
+GET  /v1/targets/{target_id}/receipts  → installation history</code></pre>
+<p>The local <code>ReceiptStore</code> trait in the skeleton is the seam
+for an optional cloud receipt sink. A cloud implementation queues
+locally first and uploads later; it never replaces the local receipt.
+Catalog downloads are immutable, signed inputs cached on disk. They may
+add organization policy, but cannot add executable commands to module
+metadata.</p>
+<h2 id="recommended-mvp">Recommended MVP</h2>
+<ol type="1">
+<li>Put one <code>module.py</code> and one <code>info.yaml</code>
+together in every runnable module directory, beginning each metadata
+file with <code>schema: 1</code>.</li>
+<li>Add a DimOS CI validator and Greptile review rule that reject
+missing pairs, unsupported YAML, executable fields, unknown custom
+handlers, and conflicting selected requirements.</li>
+<li>Package the metadata files with DimOS releases.</li>
+<li>Add DIOS metadata parsing, merge, provider planning, diagnosis, and
+a local JSON receipt.</li>
+<li>Extend DIOS Doctor to diagnose the selected release’s complete
+dependency set and recommend the next action.</li>
+<li>Keep Python packages and extras in the root
+<code>pyproject.toml</code> and <code>uv.lock</code>; do not duplicate
+or infer them from module metadata.</li>
+<li>Add no cloud dependency, account system, or remote state to
+setup.</li>
+</ol>
+<h2 id="ownership-and-versioning">Ownership and versioning</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Owner</th>
+<th>Version source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python package or extra</td>
+<td>DimOS repository</td>
+<td>Root <code>pyproject.toml</code> and <code>uv.lock</code></td>
+</tr>
+<tr>
+<td>Rust crate</td>
+<td>Native module</td>
+<td><code>Cargo.toml</code> and <code>Cargo.lock</code></td>
+</tr>
+<tr>
+<td>C++ build relationship</td>
+<td>Native module</td>
+<td><code>CMakeLists.txt</code></td>
+</tr>
+<tr>
+<td>Nix closure</td>
+<td>DimOS release</td>
+<td><code>flake.nix</code> and <code>flake.lock</code></td>
+</tr>
+<tr>
+<td>apt/Brew package name</td>
+<td>Module <code>info.yaml</code></td>
+<td>Native repository resolves; receipt records observed version</td>
+</tr>
+<tr>
+<td>LCM network config, Rust/rustup, ROS, CUDA, Docker, JetPack,
+Deno</td>
+<td>Named DIOS handler</td>
+<td>Declarative metadata plus observed machine capability</td>
+</tr>
+</tbody>
+</table>
+<p>DIOS package providers own generic commands for install, query, and
+verification. Modules cannot provide commands. Manufacturer SDK,
+firmware, and robot service requirements live in the separate
+manufacturer repository and use the same contract.</p>
+<h2 id="code-boundary">Code boundary</h2>
+<p>The skeleton under <code>src/pkg/dependencies/</code> defines four
+separable parts:</p>
+<ul>
+<li><code>info</code>: the parser for the checked-in
+<code>info.yaml</code> module contract;</li>
+<li><code>plan</code>: deterministic merge and deduplication;</li>
+<li><code>provider</code>: trusted apt/Brew/Nix adapters and named
+custom-dependency handlers;</li>
+<li><code>receipt</code>: local, replaceable persistence.</li>
+</ul>
+<p>The engine depends on provider and receipt traits. A future signed
+catalog or cloud receipt sink can implement an additional boundary
+without changing module metadata or the local setup flow.</p>
+<h2 id="decisions-requested-from-the-team">Decisions requested from the
+team</h2>
+<h3 id="accepted">Accepted</h3>
+<ol type="1">
+<li>Each runnable module is a directory containing adjacent
+<code>module.py</code> and <code>info.yaml</code> files.</li>
+<li>The file uses a strict YAML 1.2 subset.</li>
+<li><code>schema: 1</code> is the only universally required field.</li>
+<li>Operating-system package lists live under
+<code>package_managers</code>.</li>
+<li>Dependencies that package managers cannot fully represent live under
+<code>custom_dependencies</code>. Each entry is an open dictionary
+interpreted by its trusted DIOS handler.</li>
+<li>LCM system configuration and Rust installed through rustup are
+custom dependencies.</li>
+<li>Module identity comes from the directory path and is not repeated in
+the YAML.</li>
+<li>Module metadata is declarative and cannot contain executable
+commands at any nesting level.</li>
+<li>Conflicting definitions of the same custom dependency block planning
+before mutation.</li>
+</ol>
+<h3 id="still-to-approve">Still to approve</h3>
+<ol type="1">
+<li>Approve direct apt/Brew/Nix names in the MVP instead of a central
+alias catalog.</li>
+<li>Approve DIOS Doctor as the single read-only diagnostic and
+recommendation experience.</li>
+<li>Approve local JSON as authoritative state, with cloud
+synchronization deferred and optional.</li>
+</ol>
+<hr />
+<p>Keep this document and the <a href="DIOS-PRD.md">product PRD</a>
+updated together. Product behavior belongs in the PRD; implementation
+alternatives, interfaces, storage, and cloud design belong here.</p>
+</body>
+</html>

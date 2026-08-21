@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Better Package Dependency System for DimOS</title>
+  <style>
+    :root { --bg:#eef2f3; --paper:#fff; --ink:#111a1d; --muted:#607177; --line:#d5dfe2; --old:#6a777b; --oldbg:#f2f4f5; --new:#176d42; --newbg:#edf8f1; --blue:#096b82; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(780px,calc(100% - 28px)); margin:28px auto; padding:36px 40px; background:var(--paper); border:1px solid var(--line); border-radius:8px; }
+    h1 { margin:7px 0 8px; font-size:28px; line-height:1.1; letter-spacing:-.03em; }
+    h2 { margin:23px 0 8px; padding-top:17px; border-top:1px solid var(--line); font-size:17px; }
+    p { margin:0 0 10px; }
+    .eyebrow { color:var(--blue); font:700 10px ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase; }
+    .lead { color:var(--muted); font-size:17px; }
+    .tag { display:inline-block; margin-right:5px; padding:2px 7px; border-radius:10px; font:700 10px ui-monospace,monospace; text-transform:uppercase; }
+    .old { color:var(--old); background:var(--oldbg); border:1px solid #d7dddf; }
+    .new { color:var(--new); background:var(--newbg); border:1px solid #b9ddc8; }
+    pre { margin:9px 0; padding:14px 16px; overflow:auto; background:#f5f7f8; border:1px solid var(--line); border-radius:5px; font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    code { font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace; background:#f3f6f7; padding:2px 4px; border-radius:3px; }
+    ul { margin:7px 0; padding-left:20px; }
+    li { margin:4px 0; }
+    .green { color:var(--new); font-weight:700; }
+    footer { margin-top:22px; padding:13px 15px; border-left:4px solid var(--blue); background:#eef7f9; }
+    @media (max-width:560px) { main { margin:12px auto; padding:25px 21px; } }
+    @media print { body { background:#fff; } main { width:100%; margin:0; border:0; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">DIOS · Package dependencies · MVP for review</div>
+  <h1>A Better Package Dependency System for DimOS</h1>
+  <p class="lead">Today <code>dimos run</code> can react to a few missing Python imports, but it cannot determine all Python, system, native, or runtime dependencies for a blueprint. This MVP gives DIOS that information without creating a second package database.</p>
+
+  <h2>Keep what already owns versions</h2>
+  <ul>
+    <li><span class="tag old">Existing</span> Python packages: <code>pyproject.toml</code> and <code>uv.lock</code></li>
+    <li><span class="tag old">Existing</span> Rust crates: <code>Cargo.toml</code> and <code>Cargo.lock</code></li>
+    <li><span class="tag old">Existing</span> C++ build dependencies: <code>CMakeLists.txt</code></li>
+    <li><span class="tag old">Existing</span> Nix versions: <code>flake.nix</code> and <code>flake.lock</code></li>
+  </ul>
+
+  <h2>Add beside each runnable module</h2>
+  <pre>fastlio/
+├── module.py
+├── cpp/CMakeLists.txt
+<span class="green">└── dependencies.toml   ← NEW</span></pre>
+  <pre><span class="green">schema = 1
+module = "dimos.hardware.fastlio"
+
+[system]
+apt  = ["libeigen3-dev"]
+brew = ["eigen"]
+nix  = ["eigen"]
+
+[requires]
+ros = "humble"</span></pre>
+  <p>The module name selects its matching Python extra in <code>pyproject.toml</code>.</p>
+
+  <h2>How it works</h2>
+  <pre><span class="green">module dependencies.toml</span>
+          ↓
+DIOS combines + installs with uv / apt / brew / nix
+          ↓
+DIOS records observed versions locally
+          ↓
+dimos run checks readiness before starting</pre>
+  <p>Runtime checks are read-only. If something is missing, DimOS prints the exact DIOS repair command instead of installing unexpectedly.</p>
+
+  <h2>Enforcement</h2>
+  <p><span class="tag new">New</span> A dependency is declared in the same PR that first uses it. Greptile flags omissions and CI validates the TOML. Manifests cannot contain arbitrary shell commands.</p>
+
+  <footer><strong>Review decision:</strong> should this be the dependency contract for every runnable DimOS module?</footer>
+</main>
+</body>
+</html>

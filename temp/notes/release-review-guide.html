@@ -1,0 +1,1012 @@
+<title>Reviewing a Large Change for Release</title>
+
+<style>
+  :root {
+    --paper:   #EBEBE6;
+    --surface: #F5F5F1;
+    --sunk:    #E2E2DA;
+    --ink:     #171A1F;
+    --muted:   #585F69;
+    --faint:   #838A93;
+    --rule:    #D6D6CE;
+    --rule-hi: #BFC0B6;
+    --red:     #A32A1D;
+    --red-bg:  rgba(163,42,29,0.07);
+    --blue:    #26588A;
+    --blue-bg: rgba(38,88,138,0.07);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:   #131518;
+      --surface: #1A1D22;
+      --sunk:    #0E1013;
+      --ink:     #E2E1DC;
+      --muted:   #949BA6;
+      --faint:   #6E757F;
+      --rule:    #2B2F36;
+      --rule-hi: #3D434C;
+      --red:     #E1745F;
+      --red-bg:  rgba(225,116,95,0.10);
+      --blue:    #7DB0DD;
+      --blue-bg: rgba(125,176,221,0.10);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:   #131518;
+    --surface: #1A1D22;
+    --sunk:    #0E1013;
+    --ink:     #E2E1DC;
+    --muted:   #949BA6;
+    --faint:   #6E757F;
+    --rule:    #2B2F36;
+    --rule-hi: #3D434C;
+    --red:     #E1745F;
+    --red-bg:  rgba(225,116,95,0.10);
+    --blue:    #7DB0DD;
+    --blue-bg: rgba(125,176,221,0.10);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 1.5rem 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 1180px; margin: 0 auto; }
+
+  /* ---------- masthead ---------- */
+
+  .mast { padding: 4.5rem 0 2rem; border-bottom: 2px solid var(--ink); }
+
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.4rem;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2.3rem, 6vw, 3.5rem);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.1rem;
+    text-wrap: balance;
+    max-width: 20ch;
+  }
+
+  .standfirst {
+    font-size: 1.16rem;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0 0 2.4rem;
+  }
+
+  .vitals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-bottom: 1.6rem;
+  }
+  .vitals div { background: var(--paper); padding: 0.8rem 0.95rem; }
+  .vitals dt {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 0.35rem;
+  }
+  .vitals dd {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+    margin: 0;
+    color: var(--ink);
+  }
+  .vitals dd small { color: var(--muted); font-size: 0.8rem; }
+
+  /* ---------- contents ---------- */
+
+  .toc { margin: 2.2rem 0 0; }
+  .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+    gap: 0.1rem 2rem;
+    counter-reset: toc;
+  }
+  .toc li { counter-increment: toc; }
+  .toc a {
+    display: flex;
+    gap: 0.85rem;
+    align-items: baseline;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 0.34rem 0;
+    border-bottom: 1px solid transparent;
+  }
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--faint);
+    flex: 0 0 auto;
+  }
+  .toc a:hover, .toc a:focus-visible { border-bottom-color: var(--rule-hi); color: var(--blue); }
+
+  /* ---------- sections ---------- */
+
+  .sec {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 68ch) minmax(0, 16.5rem);
+    column-gap: 2rem;
+    row-gap: 1.05rem;
+    align-items: start;
+    padding: 3.4rem 0 0.6rem;
+    border-top: 1px solid var(--rule);
+    margin-top: 3.2rem;
+  }
+  .sec > * { grid-column: 2; min-width: 0; }
+
+  .sec > h2 {
+    grid-column: 1 / 3;
+    display: flex;
+    gap: 2rem;
+    align-items: baseline;
+    font-size: 1.72rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.16;
+    margin: 0 0 0.4rem;
+    text-wrap: balance;
+  }
+  .sec > h2 .n {
+    flex: 0 0 3.25rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--red);
+    letter-spacing: 0.05em;
+    position: relative;
+    top: -0.35rem;
+  }
+
+  h3 {
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: 0.005em;
+    margin: 1.5rem 0 -0.2rem;
+  }
+
+  p { margin: 0; max-width: 68ch; }
+  p + p { margin-top: -0.1rem; }
+
+  a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  ul.plain { margin: 0; padding-left: 1.15rem; }
+  ul.plain li { margin-bottom: 0.45rem; }
+  ul.plain li::marker { color: var(--faint); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.855em;
+    background: var(--sunk);
+    padding: 0.1em 0.34em;
+    border-radius: 2px;
+    word-break: break-word;
+  }
+
+  /* ---------- command blocks ---------- */
+
+  .cmd {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--rule-hi);
+  }
+  .cmd pre {
+    margin: 0;
+    padding: 0.95rem 1.05rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.795rem;
+    line-height: 1.72;
+    tab-size: 2;
+  }
+  .cmd .cap {
+    font-family: var(--mono);
+    font-size: 0.665rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 0.5rem 1.05rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .cmd .out { color: var(--muted); }
+  .cmd .cm { color: var(--faint); font-style: italic; }
+  .cmd .hit { color: var(--red); }
+
+  .copy {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0.22rem 0.5rem;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.12s ease, color 0.12s ease;
+  }
+  .cmd:hover .copy, .copy:focus-visible { opacity: 1; color: var(--ink); }
+  .cmd.hascap .copy { top: 0.36rem; }
+
+  /* ---------- verdict blocks ---------- */
+
+  .verdict {
+    margin: 0.5rem 0;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+  }
+  .verdict .row { padding: 0.85rem 1.1rem; border-left: 3px solid transparent; }
+  .verdict .filed { border-left-color: var(--red); background: var(--red-bg); }
+  .verdict .held  { border-left-color: var(--blue); background: var(--blue-bg); border-top: 1px solid var(--rule); }
+  .verdict .lbl {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .verdict .filed .lbl { color: var(--red); }
+  .verdict .held .lbl { color: var(--blue); }
+  .verdict p { font-size: 0.965rem; }
+
+  /* severity encoded in form, not extra hue */
+  .sev {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.14em 0.5em;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .sev.blocker { background: var(--ink); color: var(--paper); }
+  .sev.major   { background: transparent; color: var(--ink); }
+  .sev.minor   { border-color: var(--rule-hi); color: var(--muted); }
+  .sev.nit     { border-color: transparent; color: var(--faint); padding-left: 0; }
+  .arrow { font-family: var(--mono); color: var(--faint); margin: 0 0.45em; }
+
+  /* ---------- margin notes ---------- */
+
+  aside.note {
+    grid-column: 3;
+    font-size: 0.845rem;
+    line-height: 1.5;
+    color: var(--muted);
+    border-top: 1px solid var(--rule-hi);
+    padding-top: 0.55rem;
+  }
+  aside.note .lbl {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.35rem;
+  }
+  aside.note.b .lbl { color: var(--blue); }
+  aside.note code { font-size: 0.8em; background: none; padding: 0; }
+
+  /* ---------- pull statement ---------- */
+
+  .pull {
+    font-size: 1.16rem;
+    line-height: 1.45;
+    font-style: italic;
+    color: var(--ink);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 1.1rem 0;
+    margin: 0.6rem 0;
+    max-width: 60ch;
+  }
+
+  /* ---------- closing card ---------- */
+
+  .card {
+    grid-column: 2 / 4;
+    border: 2px solid var(--ink);
+    padding: 1.6rem 1.7rem;
+    background: var(--surface);
+  }
+  .card h3 {
+    margin: 0 0 1rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .card ol { margin: 0; padding: 0; list-style: none; counter-reset: pass; }
+  .card li {
+    counter-increment: pass;
+    display: grid;
+    grid-template-columns: 2.1rem 1fr;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--rule);
+    font-size: 0.955rem;
+  }
+  .card li:first-child { border-top: none; padding-top: 0; }
+  .card li::before {
+    content: counter(pass, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--faint);
+    padding-top: 0.28em;
+  }
+  .card li b { font-weight: 600; }
+  .card li span { color: var(--muted); }
+
+  .colophon {
+    grid-column: 2;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: var(--faint);
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+    margin-top: 2rem;
+  }
+
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  @media (max-width: 1080px) {
+    .sec { grid-template-columns: 2.6rem minmax(0, 1fr); }
+    .sec > * { grid-column: 2; }
+    .sec > h2 { grid-column: 1 / 3; gap: 1rem; }
+    .sec > h2 .n { flex-basis: 2.6rem; }
+    aside.note {
+      grid-column: 2;
+      border-top: none;
+      border-left: 2px solid var(--red);
+      padding: 0.1rem 0 0.1rem 1rem;
+      margin: 0.3rem 0;
+    }
+    aside.note.b { border-left-color: var(--blue); }
+    .card { grid-column: 2; }
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; padding: 0 1.1rem 4rem; }
+    .sec { grid-template-columns: 1fr; padding-top: 2.6rem; margin-top: 2.4rem; }
+    .sec > *, .card, aside.note { grid-column: 1; }
+    .sec > h2 { grid-column: 1; display: block; }
+    .sec > h2 .n { display: block; top: 0; margin-bottom: 0.3rem; }
+    .cmd pre { font-size: 0.735rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="page">
+
+<header class="mast">
+  <p class="kicker">Field guide &middot; code review</p>
+  <h1>Reviewing a Large Change for Release</h1>
+  <p class="standfirst">Five people reviewed 213 commits of a robot installer before tagging it. This is what they ran, what they found, and — more usefully — which of their findings did not survive being argued with.</p>
+
+  <dl class="vitals">
+    <div><dt>Range</dt><dd>c26f534..main</dd></div>
+    <div><dt>Commits</dt><dd>213 <small>/ 4.5 mo</small></dd></div>
+    <div><dt>Lines written</dt><dd>40,748</dd></div>
+    <div><dt>Lines landed</dt><dd>14,216</dd></div>
+    <div><dt>Filed blocker</dt><dd>3 <small>&rarr; 0 held</small></dd></div>
+    <div><dt>Filed major</dt><dd>22 <small>&rarr; 4 held</small></dd></div>
+  </dl>
+
+  <p class="standfirst" style="margin-bottom:0">The product is <code>dim</code>: a single binary that provisions robots, installed by a public one-line <code>curl</code>. It runs unattended on machines nobody is watching. That last fact decides almost every severity call below.</p>
+
+  <nav class="toc">
+    <ol>
+      <li><a href="#shape">Establish the shape first</a></li>
+      <li><a href="#passes">The passes that find shipping-grade problems</a></li>
+      <li><a href="#run">Build it and run it, in a sandbox</a></li>
+      <li><a href="#reach">Reachability: finding vs. noise</a></li>
+      <li><a href="#pre">Pre-existing is not a blocker</a></li>
+      <li><a href="#tests">Test coverage, honestly</a></li>
+      <li><a href="#surface">The public surface and its documentation</a></li>
+      <li><a href="#writeup">Writing it up so it gets fixed</a></li>
+      <li><a href="#unsure">When you are not sure</a></li>
+    </ol>
+  </nav>
+</header>
+
+<!-- ============================================================ -->
+<section class="sec" id="shape">
+  <h2><span class="n">01</span>Establish the shape first</h2>
+
+  <p>You cannot read 213 commits. You can read the <em>shape</em> of them in about ten minutes, and the shape tells you where to spend the rest of the day. Do this before you form any opinion about quality, because your first opinion will otherwise be about whichever file you happened to open.</p>
+
+  <p>Start with volume, dates, and how much of the log is real work:</p>
+
+  <div class="cmd hascap">
+    <div class="cap">the ten-minute orientation</div>
+    <pre><code>BASE=c26f534; HEAD=origin/main
+
+<span class="cm"># how many commits, over what period</span>
+git log --oneline $BASE..$HEAD | wc -l
+git log --format='%ad' --date=short $BASE..$HEAD | sort | sed -n '1p;$p'
+
+<span class="cm"># how many are bare version bumps with no code</span>
+git log --oneline $BASE..$HEAD | grep -icE ' (release|bump) '
+
+<span class="cm"># net change: what actually landed</span>
+git diff --numstat $BASE..$HEAD |
+  awk '{a+=$1; d+=$2} END {print a" added, "d" deleted, "a-d" net"}'
+
+<span class="cm"># gross change: what was written along the way</span>
+git log --numstat --format= $BASE..$HEAD |
+  awk '{a+=$1} END {print a" lines written across all commits"}'</code></pre>
+  </div>
+
+  <p>Those last two commands are the ones people skip, and they were the most informative in this review. Commits wrote <strong>40,748</strong> lines to land <strong>14,216</strong>. Roughly 65% of everything written in the range was also deleted inside the range. A number like that is not a code-quality signal, it is a <em>history</em> signal: something was built and rebuilt.</p>
+
+  <aside class="note">
+    <span class="lbl">Why churn matters</span>
+    Net diff tells you what you are shipping. Gross churn tells you how confidently it was arrived at. A 65% churn ratio means most of the diff you are about to read is archaeology.
+  </aside>
+
+  <p>Next, find out <em>which parts of the system</em> moved, and what is new:</p>
+
+  <div class="cmd hascap">
+    <div class="cap">where the change actually landed</div>
+    <pre><code><span class="cm"># group the diff by top-level area</span>
+git diff --numstat $BASE..$HEAD |
+  awk '{split($3,p,"/"); k=p[1]"/"p[2]; a[k]+=$1; d[k]+=$2}
+       END {for (x in a) printf "%-30s +%-7d -%d\n", x, a[x], d[x]}' |
+  sort -k2 -r | head -20
+
+<span class="cm"># biggest files that did not exist at BASE</span>
+git diff --numstat --diff-filter=A $BASE..$HEAD | sort -rn | head -15
+
+<span class="cm"># files added inside the range that are already gone again</span>
+git log --diff-filter=A --name-only --format= $BASE..$HEAD | sort -u |
+  while read -r f; do
+    git cat-file -e "$HEAD:$f" 2>/dev/null || echo "added then deleted: $f"
+  done</code></pre>
+  </div>
+
+  <p>That last loop is the churn detector in concrete form. It listed a desktop application that had been built in the repository three separate times — <code>dashboard/</code>, then <code>src/dashboard/</code>, then <code>src/desktop/</code> — before being extracted to a different repository entirely. Everything left behind from those three attempts was, by definition, dead.</p>
+
+  <p>Two findings came directly out of that one observation, before anyone had read a line of the language: about 700 lines of code that no longer compiles but had still been receiving maintenance commits, and a 145 KB minified JavaScript bundle committed to git for a template nothing references.</p>
+
+  <p>The same pass named the two biggest new files — one at 1,998 lines, one at 899 — which is where you read carefully. Two of the four findings that survived to the end of the review live in those two files. And it identified the one area genuinely <em>reworked</em> rather than accreted (the installer core, +2,692/&minus;1,277), which is the part a release actually turns on.</p>
+
+  <p class="pull">The shape is not a preamble to the review. It is the reason you look where you look.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="passes">
+  <h2><span class="n">02</span>The passes that find shipping-grade problems</h2>
+
+  <p>These run in seconds and each covers a category of thing that is expensive to ship. Point them at the lines the range <em>added</em>, not the whole tree — you are reviewing a change, not auditing a codebase, and the difference is usually a factor of ten in noise.</p>
+
+  <h3>Secrets and personal paths</h3>
+
+  <div class="cmd">
+    <pre><code>git diff $BASE..$HEAD | grep '^+' | grep -inE \
+  'AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|xox[baprs]-|ghp_[A-Za-z0-9]{36}|(api[_-]?key|secret|passwd|password|token)[[:space:]]*[:=]'
+
+git diff $BASE..$HEAD | grep '^+' | grep -nE '/home/[a-z]+/|/Users/[a-z]+/'</code></pre>
+  </div>
+
+  <p>The second one catches a real and common embarrassment: a hard-coded path to somebody's laptop that works on exactly one machine. Both returned nothing here, which is worth reporting — a review that only lists defects tells the reader nothing about what was checked and cleared.</p>
+
+  <h3>Debug leftovers</h3>
+
+  <div class="cmd">
+    <pre><code>git diff $BASE..$HEAD -- '*.rs' | grep '^+' |
+  grep -nE 'dbg!|TODO|FIXME|XXX|HACK|eprintln!\("DEBUG'
+
+<span class="cm"># code that was commented out rather than deleted</span>
+grep -rn '^[[:space:]]*//[[:space:]]*println!' src/
+
+<span class="cm"># and just look at the repository root</span>
+git ls-tree $HEAD --name-only</code></pre>
+  </div>
+
+  <p>All three found something. Exactly one <code>TODO</code> in the added code: <code>// TODO: check me for escaping issues</code>, sitting above a line that interpolates environment values into a systemd unit — inside a commit whose message was &ldquo;fix all shell escaping holes.&rdquo; The commented-out <code>println!</code> pass found fourteen lines in <code>verify.rs</code>: the block that used to tell the user, at the end of a long install, the command to actually run their robot. And plainly listing the root turned up <code>test_sudo_env.rs</code> and <code>test_sudo_env.sh</code>, two scratch probes committed months ago, which are the first thing anyone cloning the repository sees.</p>
+
+  <aside class="note">
+    <span class="lbl">Cheap and high yield</span>
+    <code>git ls-tree $HEAD --name-only</code> is a one-second command that reads the repository the way a stranger does. Run it every time.
+  </aside>
+
+  <h3>Crash surface</h3>
+
+  <p>In Rust, <code>.unwrap()</code> and <code>.expect()</code> mean &ldquo;if this fails, kill the process.&rdquo; Fine in a test; bad in an installer that is halfway through modifying somebody's machine. Every language has the equivalent — an unchecked index, a bare <code>!</code>, a cast that throws.</p>
+
+  <div class="cmd">
+    <pre><code>git diff $BASE..$HEAD -- '*.rs' | grep '^+' |
+  grep -cE '\.unwrap\(\)|\.expect\(|panic!|unreachable!|todo!'
+
+<span class="cm"># then check the biggest new files specifically</span>
+grep -cE '\.unwrap\(\)|\.expect\(|panic!' src/commands/desktop.rs src/commands/webserver.rs</code></pre>
+  </div>
+
+  <p>Twenty across 14,000 added lines, and both of the largest new files contained none at all. That is a genuinely good result and it belongs in the summary next to the problems.</p>
+
+  <h3>Privilege and destruction</h3>
+
+  <div class="cmd">
+    <pre><code>grep -rn 'sudo' src/ --include=*.rs | wc -l
+grep -rn 'remove_dir_all\|remove_file\|fs::write\|fs::copy' src/ --include=*.rs
+grep -rn 'temp_dir()\|"/tmp' src/ --include=*.rs</code></pre>
+  </div>
+
+  <p>The temp-directory grep is worth explaining, because it finds a specific and classic shape: download a file to a fixed, predictable path, then run it with elevated privilege. On a machine with a second user account, that user can create the file first and rewrite its contents in the window between the download and the <code>sudo</code>. This review found four installers and three service files staged that way.</p>
+
+  <h3>Dry-run violations</h3>
+
+  <p><code>--dry-run</code> is a promise: print what you would do, change nothing. In most codebases it is kept by threading a boolean down through every layer, which means the failure mode is <em>structural</em> — a function that never receives the parameter cannot possibly honor it. So don't grep for bugs. Grep for the shape.</p>
+
+  <div class="cmd hascap">
+    <div class="cap">the tell is a literal in the flag's position</div>
+    <pre><code><span class="cm"># every function that knows about dry-run</span>
+grep -rn 'fn .*dry_run' src/ --include=*.rs
+
+<span class="cm"># every call site that hard-codes it off</span>
+grep -rn 'spin_cmd(\|spin_cmd_with_tail(' src/ | grep 'false'
+
+<span class="cm"># and every unconditional write, which no dry run should reach</span>
+grep -rn 'fs::write' src/setup/</code></pre>
+  </div>
+
+  <p>That found three separate violations, including one where <code>--dry-run</code> genuinely ran <code>sudo apt-get install</code> and another where it rewrote the user's global Nix configuration. Reading the code was enough to suspect it. Proving it took the next section.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="run">
+  <h2><span class="n">03</span>Build it and run it, in a sandbox</h2>
+
+  <p>Static reading gets you suspicions. Running the thing gets you findings. Most reviewers skip this because they are afraid of wrecking their machine, and they are right to be — an installer will genuinely install things. The answer is a sandbox you can throw away, built from three pieces: an isolated <code>$HOME</code>, a directory of fake commands first on <code>$PATH</code>, and a scratch build directory.</p>
+
+  <div class="cmd hascap">
+    <div class="cap">a disposable machine, in twelve lines</div>
+    <pre><code>SANDBOX=$(mktemp -d)
+mkdir -p "$SANDBOX/home" "$SANDBOX/shim"
+
+<span class="cm"># fake anything that would touch the real system; log its arguments</span>
+for c in sudo apt-get systemctl launchctl brew; do
+  cat &gt; "$SANDBOX/shim/$c" &lt;&lt;EOF
+#!/bin/sh
+echo "SHIM $c \$*" &gt;&gt; "$SANDBOX/shim.log"
+exit 0
+EOF
+  chmod +x "$SANDBOX/shim/$c"
+done
+
+env HOME="$SANDBOX/home" PATH="$SANDBOX/shim:$PATH" \
+    ./target/debug/dim setup --dry-run --non-interactive &lt;/dev/null
+echo "exit=$?"
+
+cat "$SANDBOX/shim.log"          <span class="cm"># what it tried to run</span>
+find "$SANDBOX/home" -type f     <span class="cm"># what it wrote</span></code></pre>
+  </div>
+
+  <p>This is the single highest-value technique in the review. Reading the source told you that <code>install_apt_deps</code> takes no dry-run parameter. Running it under the shim produced this, from a command the user typed <code>--dry-run</code> on:</p>
+
+  <div class="cmd">
+    <pre><code><span class="out">SHIM sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get update -qq</span>
+<span class="out">SHIM sudo apt-get install -y -qq portaudio19-dev python3-dev libgl1 libegl1</span></code></pre>
+  </div>
+
+  <p>Nobody argues with a transcript. The <code>find</code> on the isolated home did the same job for the second violation: before the run, <code>~/.config/nix/</code> did not exist; after it, <code>nix.conf</code> was there with a rewritten configuration line.</p>
+
+  <aside class="note b">
+    <span class="lbl">Why the isolated HOME</span>
+    It is not only safety. It is the only way to see the complete set of files a run creates, because a real home directory is full of files you cannot attribute.
+  </aside>
+
+  <h3>Build the ref you are shipping, not your working tree</h3>
+
+  <p>This is easy to get wrong and one reviewer did. They ran the test suite in the checkout as handed to them and reported 40 passing tests. The checkout was ten commits ahead of <code>origin/main</code> on an unmerged branch. The real number for the release was <strong>23</strong> — a 43% overstatement, and the two best-tested new modules in that count did not exist in the release at all.</p>
+
+  <div class="cmd">
+    <pre><code><span class="cm"># first: is your working tree even the thing being released?</span>
+git log --oneline origin/main..HEAD
+git status --short
+
+<span class="cm"># extract the release ref to a scratch dir and build it there</span>
+mkdir -p /tmp/rel &amp;&amp; git archive origin/main | tar -x -C /tmp/rel
+cd /tmp/rel &amp;&amp; CARGO_TARGET_DIR=/tmp/rel-target cargo test
+CARGO_TARGET_DIR=/tmp/rel-target cargo clippy --all-targets; echo "clippy=$?"</code></pre>
+  </div>
+
+  <p>Once you have a binary, the cheapest evidence in the world is running commands. Every new subcommand's <code>--help</code>. Every command the README tells a user to type. The tool's own status and health checks, pointed at a fake server so you can control what they see. In this review, <code>dim webserver status</code> and <code>dim desktop status</code> both printing <code>http://127.0.0.1:1024/</code> — two services claiming the same port — was found by typing both commands one after the other.</p>
+
+  <h3>Say what your experiments did to the machine</h3>
+
+  <p>One verifier ran <code>cat install.sh | bash</code> as a control experiment to check how the installer behaves with a piped standard input. That is the real installer, and it really did rewrite a systemd unit on the host. They reported exactly that, in the verdict, including what was and was not modified. A review is a document about evidence; concealing how the evidence was obtained damages all of it.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="reach">
+  <h2><span class="n">04</span>Reachability: finding vs. noise</h2>
+
+  <p>Here is the part that separates a review from a list of complaints. For every observation, answer one question before you write it up: <strong>what does a real user do, and what happens to them?</strong> A person, an action, an outcome. If you cannot supply all three, you have a curiosity.</p>
+
+  <p>The clearest example from this review looked, on paper, like one of the worst things in it.</p>
+
+  <figure class="verdict">
+    <div class="row filed">
+      <span class="lbl">Filed &mdash; <span class="sev major">major</span></span>
+      <p>The platform-compatibility table is a five-month-old snapshot. Every &ldquo;this dependency won't work on your platform&rdquo; decision the installer makes on a robot is decided by a package-index snapshot taken in March, against a project file that has moved since. It degrades quietly: dependencies missing from the cache are assumed compatible, so the failure is the package manager exploding mid-install with no prior warning — exactly the case this table exists to prevent.</p>
+    </div>
+    <div class="row held">
+      <span class="lbl">Held &mdash; <span class="sev major">major</span> <span class="arrow">&rarr;</span> <span class="sev nit">nit</span></span>
+      <p>Every stated fact is true. The table is never consulted, for two independent reasons, so regenerating it would change no behavior at all.</p>
+    </div>
+  </figure>
+
+  <p>The two reasons took four minutes to find, and they are the whole method:</p>
+
+  <div class="cmd hascap">
+    <div class="cap">trace from the code to the user, not the reverse</div>
+    <pre><code>grep -rn 'check_extras_compat' src/ --include=*.rs
+grep -rn 'PYCHECK' src/</code></pre>
+  </div>
+
+  <p>The first grep showed that the only production caller sits <em>after</em> an early return that hard-codes the answer for unattended runs — so the robot path, the one the finding was built around, never arrives. The second showed three hits in the entire repository, all in the same file: the whole check is behind an environment variable that defaults to off. The commit that added the gate is titled &ldquo;disable the complex pip checking system.&rdquo;</p>
+
+  <p>So the reading was accurate and the conclusion was wrong. That happens constantly. The fix is mechanical: after you find something in a function, walk <em>upward</em> to its callers, and at each level look for the three things that stop execution getting there — an early return, a feature flag, and a branch on a mode the user is actually in.</p>
+
+  <h3>A reproduction is not a reachability proof</h3>
+
+  <p>The subtler case is worth more, because here the reviewer <em>did</em> run it.</p>
+
+  <figure class="verdict">
+    <div class="row filed">
+      <span class="lbl">Filed &mdash; <span class="sev blocker">blocker</span></span>
+      <p>Output truncation slices text by byte position rather than character position, so any long line containing a multi-byte character can be cut in the middle of one and crash the process. Reproduced: a fake <code>sudo</code> on the path printing 68 letters, a check-mark, then 40 more letters, and <code>dim setup</code> died with <code>byte index 69 is not a char boundary</code>, exit 101. The tools this streams — the package installers, the build system — all emit box-drawing characters in long progress lines.</p>
+    </div>
+    <div class="row held">
+      <span class="lbl">Held &mdash; <span class="sev blocker">blocker</span> <span class="arrow">&rarr;</span> <span class="sev minor">minor</span></span>
+      <p>The bug is real. The named tools cannot reach it. Verification ran them: <code>uv pip install</code> wrote 0 bytes to standard output and 334 to standard error; the build tool wrote 0 and 1,017. Only standard output goes through the truncating path — standard error is drained untouched. And because the tool captures output rather than handing over a terminal, those programs switch their progress rendering off entirely, so the decorated lines the finding blamed never exist.</p>
+    </div>
+  </figure>
+
+  <p>The reproduction was real, and it proved the code can break. It did not prove anything reaches it — because the reviewer had written the offending line themselves, into a fake command they had put on the path. Both halves need separate evidence: <em>this input crashes it</em>, and <em>something produces this input</em>.</p>
+
+  <aside class="note">
+    <span class="lbl">The cheapest counter-test</span>
+    When a finding names the programs that trigger it, run those programs and look at what they actually emit, and on which stream. Two minutes.
+  </aside>
+
+  <h3>Grep for the guard before you claim its absence</h3>
+
+  <p>One finding asserted a path-traversal risk in a hand-rolled web server, reasoning from &ldquo;this file has no tests.&rdquo; The router turned out to match a fixed list of exact strings, so no URL ever reaches the filesystem — and in the one place a user-supplied string <em>did</em> become a filename, there was a validator four lines above the call rejecting anything outside <code>[a-z0-9-]</code>. Absence of a test is not evidence about behavior. Before you claim a class of vulnerability, grep for its usual mitigation.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="pre">
+  <h2><span class="n">05</span>Pre-existing is not a blocker</h2>
+
+  <p>A release review has a range. Everything you find is either something these commits did, or something that was already true and has already shipped — here, through roughly eighty tagged releases. That distinction is not bureaucratic. It is the difference between &ldquo;this change broke it&rdquo; and &ldquo;we have had this for a year,&rdquo; and only the first is an argument for holding a tag. The second is a backlog item, and filing it as a blocker is how a review loses its authority.</p>
+
+  <p>Check before you write, not after:</p>
+
+  <div class="cmd hascap">
+    <div class="cap">three ways to ask &ldquo;did this range touch it?&rdquo;</div>
+    <pre><code><span class="cm"># whole file: identical blob hashes means byte-identical</span>
+git rev-parse $BASE:.github/workflows/release.yml
+git rev-parse $HEAD:.github/workflows/release.yml
+git log --oneline $BASE..$HEAD -- .github/          <span class="cm"># empty = untouched</span>
+
+<span class="cm"># specific lines: -L follows a line range through history</span>
+git log -L 84,92:src/setup/mod.rs $BASE..$HEAD
+
+<span class="cm"># is the file new at all? non-zero exit means it did not exist</span>
+git cat-file -e $BASE:src/commands/desktop.rs; echo "existed=$?"
+
+<span class="cm"># read the old version of a hunk directly</span>
+git show $BASE:src/util/cmd.rs | sed -n '200,215p'</code></pre>
+  </div>
+
+  <p>The blob-hash comparison killed a finding outright. &ldquo;CI runs no tests and no lint&rdquo; was filed as major by three separate reviewers — and the workflow file has the same hash at both ends of the range, last modified two days <em>before</em> the range began. True observation, real problem, wrong document.</p>
+
+  <p><code>git log -L</code> is the most useful command in a release review and the least known. It takes a line range in a file and shows you only the commits that changed those lines, with their diffs. It is how you answer &ldquo;who did this and when&rdquo; in one command instead of a bisect.</p>
+
+  <aside class="note b">
+    <span class="lbl">Syntax</span>
+    <code>git log -L &lt;start&gt;,&lt;end&gt;:&lt;file&gt; &lt;range&gt;</code> — no <code>--</code> before the path, and the line numbers come first.
+  </aside>
+
+  <h3>Trap one: &ldquo;pre-existing&rdquo; is itself a claim</h3>
+
+  <p>One reviewer wrote &ldquo;this is pre-existing (the same loop is present at <code>c26f534</code>)&rdquo; about a lint failure, and used it to soften their own finding. The loop was indeed present. But the linter exits <strong>0</strong> at the base commit and <strong>101</strong> at the head, because a commit inside the range changed one branch of that loop from falling through to calling <code>exit(1)</code> — which is exactly what made the loop vestigial and the lint fire. It was a regression, introduced here, and the reviewer had talked themselves out of it by eyeballing the code instead of running the check at both ends.</p>
+
+  <div class="cmd">
+    <pre><code>mkdir -p /tmp/base &amp;&amp; git archive $BASE | tar -x -C /tmp/base
+(cd /tmp/base &amp;&amp; CARGO_TARGET_DIR=/tmp/t-base cargo clippy --all-targets); echo "base=$?"
+(cd /tmp/rel  &amp;&amp; CARGO_TARGET_DIR=/tmp/t-rel  cargo clippy --all-targets); echo "head=$?"</code></pre>
+  </div>
+
+  <p>Two checkouts, one command each, and the question stops being a matter of opinion. Do this for anything mechanical: a test suite, a linter, a build for each target platform.</p>
+
+  <h3>Trap two: pre-existing is about behavior, not lines</h3>
+
+  <p>The strongest finding in the whole review sits on a line that is byte-identical at the base commit.</p>
+
+  <figure class="verdict">
+    <div class="row filed">
+      <span class="lbl">Filed &mdash; <span class="sev major">major</span></span>
+      <p>The installer copies its own binary over <code>~/.local/bin/dim</code>. Copying over a file that is currently being executed fails with &ldquo;Text file busy.&rdquo; The self-install stage is non-critical, so it logs the failure and carries on; the update command prints &ldquo;updated&rdquo; and leaves the old binary in place.</p>
+    </div>
+    <div class="row held">
+      <span class="lbl">Held &mdash; <span class="sev major">major</span></span>
+      <p>The copy line is unchanged from the base commit. It is still a new defect, because the thing that holds that file open continuously — a background desktop service, enabled by default — did not exist before this range. Reproduced both halves directly: copy returns error 26, rename into the same path succeeds.</p>
+    </div>
+  </figure>
+
+  <p>An old line plus a new condition is a new defect. The question is not &ldquo;did this line change&rdquo; but <strong>&ldquo;what changed such that this line now fails?&rdquo;</strong> Usually the answer is a new caller, a new default, or a new process that outlives the old one.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="tests">
+  <h2><span class="n">06</span>Test coverage, honestly</h2>
+
+  <p>Coverage invites two opposite dishonesties, and you should refuse both. The first is overclaiming — counting tests on the wrong ref, as in section 3. The second is treating &ldquo;untested&rdquo; as if it meant &ldquo;broken.&rdquo;</p>
+
+  <p>Get the real numbers first:</p>
+
+  <div class="cmd hascap">
+    <div class="cap">counted against the release ref</div>
+    <pre><code><span class="cm"># which files have any tests at all, and how many</span>
+git ls-tree -r $HEAD --name-only | grep '\.rs$' | while read -r f; do
+  n=$(git show "$HEAD:$f" | grep -c '#\[test\]')
+  [ "$n" -gt 0 ] &amp;&amp; echo "$n  $f"
+done | sort -rn
+
+<span class="cm"># how many added lines went into files with no tests</span>
+git diff --numstat $BASE..$HEAD -- '*.rs' |
+  awk '$3 !~ /compat\.rs|setup\/install\.rs/ {s+=$1} END {print s" untested added lines"}'
+
+<span class="cm"># how long it runs — a suspiciously fast suite is a shallow one</span>
+cd /tmp/rel &amp;&amp; cargo test 2&gt;&amp;1 | tail -3</code></pre>
+  </div>
+
+  <p>The answer here: 23 tests, 0.06 seconds, in 2 of 29 source files. 5,880 of the 7,054 added lines went into files with no tests, including both of the largest new ones. Every test exercises a pure function — building a command string, parsing a dependency expression. Nothing in the suite writes a file, starts a process, or opens a socket. And one of the 23 asserts nothing at all: it prints a table describing whatever machine it runs on, and its own comment says it is &ldquo;for human inspection.&rdquo; So the honest headline is 22 asserting tests, not 23.</p>
+
+  <aside class="note">
+    <span class="lbl">Runtime is a coverage signal</span>
+    0.06 seconds cannot include a filesystem, a subprocess, or a socket. The wall-clock time of a suite tells you what class of thing it can possibly be testing.
+  </aside>
+
+  <p>Then look for the <em>structural</em> reason, because it turns a complaint into a proposal. Here, the crate declares a binary and no library — which in Rust means integration tests cannot be written at all without restructuring first. Coverage is not shaped this way because people were lazy. It is shaped this way because the only tests that <em>can</em> be written are inline unit tests, which biases everything toward whatever is already a pure function.</p>
+
+  <h3>What &ldquo;no tests on the two biggest files&rdquo; actually means</h3>
+
+  <p>Precisely this: <strong>there is no automated evidence those features work, so your confidence has to come from somewhere else.</strong> It does not mean they are broken, and it is not itself a defect you can point a user at.</p>
+
+  <p>The review demonstrated the failure mode. One reviewer built a security case on top of the coverage gap — path traversal, malformed requests, network exposure — and three of the four claims were wrong: the traversal surface did not exist, the parser was already total, and the server binds to localhost by default. Reasoning downward from &ldquo;nobody tested this&rdquo; produced confident, checkable, incorrect statements. The one real bug in that file was found by reading it: an unbounded allocation sized directly from a client-supplied header.</p>
+
+  <p>Put the number in context, too. At the base commit the suite was 19 tests in a single file. This range added the only tests that exist outside that file. Absolute coverage went up while the ratio got much worse. Both are true, and a review that reports only the second one is arguing rather than describing.</p>
+
+  <p>The finding worth writing is not &ldquo;coverage is 4%.&rdquo; It is: the two largest new features ship with no automated evidence they work, nothing runs the suite before a release anyway, so the release's actual quality gate is a person watching a terminal — and here is the fifteen-line job that would change that.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="surface">
+  <h2><span class="n">07</span>The public surface and its documentation</h2>
+
+  <p>Two different questions live here, and they get conflated constantly.</p>
+
+  <h3>Does anything that used to work stop working?</h3>
+
+  <p>Mechanical and checkable. Diff the argument definitions and look for removals and renames:</p>
+
+  <div class="cmd">
+    <pre><code>git diff $BASE..$HEAD -- src/cli.rs |
+  grep '^[+-]' | grep -E 'Subcommand|#\[arg|#\[command|long =|about ='</code></pre>
+  </div>
+
+  <p>Five new commands, three new flags, nothing removed and nothing renamed: no existing invocation stops parsing. That is a clean result and worth stating plainly, because it is the question a release manager actually asks.</p>
+
+  <h3>Does anything that used to work now do something different?</h3>
+
+  <p>This is where the damage was, and no diff of the argument definitions can show it. A run with no terminal attached — a provisioning script, a CI job, a piped installer — used to install the product. It now installs the launcher, prints a success line, and exits <strong>0</strong>. Nothing errors. Nothing in the README or a changelog mentions it; the only place it is written down is inside a help blob you have to already know to ask for.</p>
+
+  <p class="pull">A parse error announces itself. A silent change of meaning, with a zero exit code, is what reaches a field site.</p>
+
+  <p>That is the shape to hunt: behavior that changed while the interface stayed identical. Find them by diffing the entry point — the function that decides what the program does — rather than the flag definitions, and by asking what each new conditional is gating.</p>
+
+  <h3>Read the documentation against the code</h3>
+
+  <p>Documentation drift is not a soft finding. On the day of the tag, the README <em>is</em> the interface. The method has two halves and both are mechanical.</p>
+
+  <p><strong>First, extract every command the docs tell a user to type, and type them.</strong></p>
+
+  <div class="cmd">
+    <pre><code>grep -ohE '\bdim [a-z][a-z-]*([[:space:]]+--?[a-z-]+)*' README.md docs/*.md | sort -u</code></pre>
+  </div>
+
+  <p>Then run each one in the sandbox from section 3. <code>dim desktop --port 8088</code>, straight out of a copy-paste block in the README, exits with <code>error: unexpected argument '--port' found</code>. The flag is real, but only on two subcommands the README never mentions.</p>
+
+  <p><strong>Second, extract every literal the docs assert — paths, config keys, filenames — and grep the code for it.</strong> Zero hits in the code for something the documentation names is drift, every time.</p>
+
+  <div class="cmd">
+    <pre><code>grep -ohE '~/[A-Za-z0-9_./-]+' README.md AGENTS.md docs/*.md | sort -u
+grep -rn 'webserver\.' src/ --include=*.rs</code></pre>
+  </div>
+
+  <p>That pass found a support-facing log path that had moved (<code>~/.local/share/dim/actions.log</code> is now <code>~/.dimos/data/actions.log</code> — the file you ask a field user to send you after a failed install), an install directory written without its leading dot, and four help strings documenting configuration keys that no code anywhere reads, on the same help screen as a correct list of the real ones.</p>
+
+  <p>The worst one was found by reading a single line. An install guide written specifically for AI agents pipes the installer to <code>sh</code>. The installer's first line is <code>#!/usr/bin/env bash</code> and its ninth is <code>set -euo pipefail</code>, which <code>dash</code> — <code>/bin/sh</code> on Debian and Ubuntu — rejects outright:</p>
+
+  <div class="cmd">
+    <pre><code>head -1 install.sh                       <span class="cm"># #!/usr/bin/env bash</span>
+sh -c 'set -euo pipefail; echo ok'
+<span class="out">sh: 1: set: Illegal option -o pipefail</span></code></pre>
+  </div>
+
+  <h3>Most doc bugs are minor, and the reason is instructive</h3>
+
+  <p>It is tempting to file every one of these as major. Verification put nearly all of them at minor, on a consistent principle: <strong>they fail loudly.</strong> The <code>--port</code> example prints a usage error and exits non-zero before doing anything. The stale log path fails with &ldquo;No such file or directory,&rdquo; and four runtime surfaces print the correct path anyway. Documentation that is wrong in a way the user notices immediately is far cheaper than documentation that is wrong quietly — which is exactly why the silent zero-exit behavior change above stayed major while a dozen wrong paths did not.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="writeup">
+  <h2><span class="n">08</span>Writing it up so it gets fixed</h2>
+
+  <p>All of the above is wasted if the write-up is not read and acted on. Four rules, each of which this review demonstrates by violating it somewhere.</p>
+
+  <h3>Severity has to cost you something</h3>
+
+  <p>Of the twenty-five findings filed at blocker or major, three were blockers. After a skeptical second pass: <strong>zero blockers and four majors.</strong> Everything else was minor, a nit, or wrong.</p>
+
+  <p>That is not a failure of the reviewers — it is what a second pass is for. But it is the number to internalize: your first instinct about severity will be too high roughly five times out of six. Definitions that hold up under argument:</p>
+
+  <ul class="plain">
+    <li><span class="sev blocker">blocker</span> &nbsp;The default path is broken. Someone following the documented instructions on a supported machine ends up worse off. Hold the tag.</li>
+    <li><span class="sev major">major</span> &nbsp;A real user, on a documented path, hits this and it costs them real time or trust. Fix before tagging, or ship it written down.</li>
+    <li><span class="sev minor">minor</span> &nbsp;Real, but narrow, loud, or recoverable. Backlog.</li>
+    <li><span class="sev nit">nit</span> &nbsp;Hygiene. Free to fix, costs nothing to defer.</li>
+  </ul>
+
+  <p>What separates major from minor is never how ugly the code is. It is <em>how many users, on what path, with what recovery.</em> The unauthenticated configuration-write endpoint stayed major because it is reachable and chains into running arbitrary code; the same server has to be turned on by hand and does not listen outside localhost by default, which is precisely why it is not a blocker. Write that reasoning into the finding. A severity is an argument, so show it.</p>
+
+  <h3>File, line, and the command you ran</h3>
+
+  <p>Every finding here carried a location (<code>src/commands/webserver.rs:816</code>) and a &ldquo;how I found it.&rdquo; The second is what makes a finding cheap to act on: the person fixing it re-runs your command, sees what you saw, and starts from there instead of from scratch. It is also what keeps you honest — writing down how you know forces you to notice when you don't.</p>
+
+  <h3>State the failure, not the property</h3>
+
+  <p>Compare these two descriptions of the same defect:</p>
+
+  <figure class="verdict">
+    <div class="row filed">
+      <span class="lbl">The property</span>
+      <p>There is a configuration namespace collision between the webserver and desktop modules, and both define the same default port constant.</p>
+    </div>
+    <div class="row held">
+      <span class="lbl">The failure</span>
+      <p>An operator runs <code>dim webserver enable</code> and gets a service that can never start, because the desktop already owns port 1024. If they run <code>dim webserver disable</code> to clean up, it silently switches off the desktop's own start-on-boot. Neither prints a message that explains itself.</p>
+    </div>
+  </figure>
+
+  <p>Same facts. Only the second tells anybody what to fix or how much to care. And if you cannot write the second version, treat that as a signal: you may not actually know that anyone hits it.</p>
+
+  <h3>Check your numbers, then check them again</h3>
+
+  <p>Every wrong number discounts every right one. Collected from this review, each inside a finding whose central point was correct:</p>
+
+  <ul class="plain">
+    <li>&ldquo;+121 lines&rdquo; was <strong>+51</strong> — the reviewer read a diffstat histogram instead of running <code>--numstat</code>.</li>
+    <li>&ldquo;40 tests&rdquo; was <strong>23</strong> — wrong ref, per section 3.</li>
+    <li>&ldquo;5 maintenance commits&rdquo; was <strong>4</strong>, plus a repo-wide mechanical rename that touched one line.</li>
+    <li>&ldquo;Every HTTP response with a Date header is treated as success&rdquo; was really <em>some servers, depending on header ordering</em> — and the application's own error response was exactly 64 bytes long, so it did not trigger at all.</li>
+  </ul>
+
+  <p>None of those errors changed whether the finding was real. All of them made it easier to dismiss.</p>
+
+  <h3>Lead with a summary that is honest in both directions</h3>
+
+  <p>The strongest summary in this review opened &ldquo;Clean enough to ship, with reservations,&rdquo; listed what it had looked for and not found — no secrets, no personal paths, a genuinely small crash surface, safe defaults — and then named the two things it would fix before tagging. A reviewer who reports only defects has told you nothing about the parts they checked and cleared, which is most of their work.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="sec" id="unsure">
+  <h2><span class="n">09</span>When you are not sure</h2>
+
+  <p>You will run out of time, hardware, or nerve. The correct move is to file the finding and state plainly what you did not do. &ldquo;Unverified&rdquo; is a first-class answer, not an admission.</p>
+
+  <p>The findings in this review carried an explicit flag, and the honest ones read like this: <em>&ldquo;Not exercised against a live robot.&rdquo; &ldquo;No Jetson available to run it on.&rdquo; &ldquo;Not exploited.&rdquo; &ldquo;Not reproduced — I did not construct a hostile PATH.&rdquo;</em> Three things that bought:</p>
+
+  <p><strong>It let the second pass triage.</strong> Verified findings can be argued with; unverified ones can be reproduced or dropped. Without the distinction the two look identical and everything has to be redone.</p>
+
+  <p><strong>It protected the confident findings.</strong> When every sentence in a document is hedged, the unhedged ones stop meaning anything.</p>
+
+  <p><strong>It did not cost the finding its life.</strong> The strongest security result in the review — an unauthenticated endpoint that writes arbitrary configuration, which chains into running arbitrary code — was filed <code>verified: false</code> with the note &ldquo;read the full route table; no auth check exists on any branch. Not exercised against a live robot.&rdquo; Someone later ran it end to end. It held at major. Marking it unverified is what got it verified.</p>
+
+  <p>What &ldquo;unverified&rdquo; should mean is specific: <em>I believe this from reading, here is the experiment that would confirm or kill it, and I did not run that experiment.</em> Naming the missing experiment is the useful half. &ldquo;I could not test the Intel Mac path because I do not have one&rdquo; tells your reader exactly who to hand it to.</p>
+
+  <p>The one thing not to do is quietly promote a suspicion to a claim because it makes a better paragraph. Two of the three blockers in this review were written in the voice of certainty about consequences that had not been checked, and both ended up minor. Written as &ldquo;the code is definitely wrong; I have not established that anything reaches it,&rdquo; they would have cost nothing and been exactly right.</p>
+
+  <div class="card">
+    <h3>The pass, in order</h3>
+    <ol>
+      <li><b>Shape.</b> <span>Commit count, date span, churn ratio, diff grouped by directory, biggest new files, added-then-deleted list. Ten minutes, before any judgment.</span></li>
+      <li><b>Greps.</b> <span>Against added lines only: secrets, personal paths, debug leftovers, crash calls, privilege and temp-file staging, dry-run threading.</span></li>
+      <li><b>Sandbox.</b> <span>Isolated <code>$HOME</code>, shimmed <code>sudo</code> on <code>$PATH</code>, the release ref extracted with <code>git archive</code>. Then run it.</span></li>
+      <li><b>Reachability.</b> <span>For each observation: a person, an action, an outcome. Walk upward through callers looking for early returns and feature gates.</span></li>
+      <li><b>Range.</b> <span>Blob hashes, <code>git log -L</code>, and the mechanical check run at both ends. Ask what changed such that this now fails.</span></li>
+      <li><b>Evidence.</b> <span>Count tests on the shipping ref. Note the suite's runtime. Say what untested means and what it does not.</span></li>
+      <li><b>Surface.</b> <span>What stops parsing, what silently changed meaning, and every command and path the docs promise, typed and grepped.</span></li>
+      <li><b>Write-up.</b> <span>Severity you can defend, file and line, the command you ran, the failure a user hits, and an explicit unverified flag where it belongs.</span></li>
+    </ol>
+  </div>
+
+  <p class="colophon">Source material: a release review of <code>dimos-helm</code>, range <code>c26f534..origin/main</code> — 213 commits, 2026-03-09 to 2026-07-22. Five review lenses, 25 findings filed at blocker or major, each one then re-derived by a verification pass that attempted to refute it. Every command, number, and quotation above comes from that review.</p>
+</section>
+
+</div>
+
+<script>
+  document.querySelectorAll('.cmd').forEach(function (block) {
+    var btn = document.createElement('button');
+    btn.className = 'copy';
+    btn.type = 'button';
+    btn.textContent = 'copy';
+    btn.addEventListener('click', function () {
+      var code = block.querySelector('code');
+      navigator.clipboard.writeText(code.innerText).then(function () {
+        btn.textContent = 'copied';
+        setTimeout(function () { btn.textContent = 'copy'; }, 1400);
+      }, function () {
+        btn.textContent = 'select it';
+        setTimeout(function () { btn.textContent = 'copy'; }, 1400);
+      });
+    });
+    block.appendChild(btn);
+  });
+</script>

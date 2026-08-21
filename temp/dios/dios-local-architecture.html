@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>dios — Proposed Architecture</title>
+<style>
+:root{--bg:#edf1f4;--paper:#fff;--ink:#18232d;--muted:#64717d;--line:#d5dde4;--blue:#225f8a;--blue2:#eaf4fa;--green:#2c7551;--green2:#edf8f2;--amber:#9a640d;--amber2:#fff7e8;--dark:#172633}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}.page{max-width:980px;margin:30px auto;background:var(--paper);padding:56px 68px 80px;box-shadow:0 3px 20px #17212b17}h1,h2,h3{line-height:1.2}h1{font-size:42px;margin:0 0 8px}h2{font-size:24px;margin-top:44px;padding-top:18px;border-top:1px solid var(--line)}h3{font-size:18px;margin-top:26px}.meta,.lede{color:var(--muted)}.lede{font-size:19px}.callout{border-left:4px solid var(--blue);background:var(--blue2);padding:15px 19px;margin:22px 0}.repos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:22px 0}.box{border:1px solid var(--line);border-radius:8px;padding:17px;background:#fafbfc}.box.core{border-color:#a9c9df;background:var(--blue2)}.box.vendor{border-color:#acd4be;background:var(--green2)}.box.upstream{border-color:#e2c68f;background:var(--amber2)}.box h3{margin:0 0 8px}.box ul{padding-left:19px;margin-bottom:0}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}code{background:#eff2f4;padding:2px 5px;border-radius:4px}pre{background:var(--dark);color:#edf5fa;padding:20px;border-radius:7px;overflow:auto;line-height:1.48}.steps{counter-reset:s}.step{position:relative;margin:12px 0 12px 46px;padding:13px 16px;border:1px solid var(--line);border-radius:7px}.step:before{counter-increment:s;content:counter(s);position:absolute;left:-46px;top:9px;width:30px;height:30px;border-radius:50%;background:var(--blue);color:white;text-align:center;line-height:30px;font-weight:700}.owner{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:11px 8px}th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}li{margin:6px 0}@media(max-width:760px){.page{margin:0;padding:30px 22px;box-shadow:none}.repos{grid-template-columns:1fr}h1{font-size:33px}}
+</style>
+</head>
+<body><main class="page">
+<p class="meta">Dimensional · Proposed architecture</p>
+<h1>How dios works</h1>
+<p class="lede">Keep the existing DimOS Helm experience in dios core. Put every manufacturer's robot knowledge and wizard in that manufacturer's own repository.</p>
+
+<div class="callout"><strong>The central rule:</strong> <code>dios setup</code> installs DimOS on the machine where it runs. It works the same way on a developer workstation and on a robot target. A manufacturer wizard gets the target ready, invokes that standard setup, then performs manufacturer-specific finishing and verification.</div>
+
+<h2>1. Three repository types</h2>
+<div class="repos">
+<section class="box core"><h3>dios core</h3><ul>
+<li>Existing Helm commands</li>
+<li><code>dios setup</code></li>
+<li>doctor, update, service, logs</li>
+<li>DimOS installation UX</li>
+<li>Local target/version history</li>
+<li>Manufacturer wizard launcher</li>
+</ul></section>
+<section class="box vendor"><h3>Manufacturer repo</h3><ul>
+<li>Its setup wizard</li>
+<li>Robot models</li>
+<li>Discovery and identification</li>
+<li>Network bring-up</li>
+<li>Firmware checks</li>
+<li>Manufacturer-specific setup</li>
+</ul></section>
+<section class="box upstream"><h3>DimOS repo</h3><ul>
+<li>DimOS package</li>
+<li>Modules and extras</li>
+<li>Runtime requirements</li>
+<li>Blueprints</li>
+<li>Release versions</li>
+</ul></section>
+</div>
+
+<p>Examples of manufacturer repositories:</p>
+<pre>dios                         generic core
+dios-unitree                 Unitree wizard, G1, Go2, B2, ...
+dios-agilex                  AgileX wizard and models
+dios-universal-robots        UR wizard and models</pre>
+
+<h2>2. User-facing commands</h2>
+<table><thead><tr><th>Command</th><th>What happens</th><th>Owner</th></tr></thead><tbody>
+<tr><td><code>dios setup</code></td><td>Install DimOS on this machine using the familiar Helm flow.</td><td>dios core</td></tr>
+<tr><td><code>dios doctor</code></td><td>Check whether this machine is ready for DimOS.</td><td>dios core</td></tr>
+<tr><td><code>dios update</code></td><td>Update dios safely.</td><td>dios core</td></tr>
+<tr><td><code>dios seed unitree</code></td><td>Download or load the Unitree integration and open its wizard.</td><td>dios launches; Unitree owns experience</td></tr>
+<tr><td><code>dios target list</code></td><td>Show targets previously seeded from this workstation.</td><td>dios core</td></tr>
+</tbody></table>
+
+<h2>3. Installing DimOS on a workstation</h2>
+<p>This remains close to Helm today:</p>
+<pre># Install dios itself
+bash &lt;(curl -fsSL https://dim.bot/install.sh)
+
+# Install DimOS on this workstation
+dios setup
+
+# Existing choices remain available
+dios setup --mode library
+dios setup --mode dev</pre>
+<p>No manufacturer integration is involved. dios detects the workstation, presents the existing setup choices, installs DimOS, configures it, and verifies the local installation.</p>
+
+<h2>4. Seeding a robot</h2>
+<div class="steps">
+<div class="step"><span class="owner">dios core</span><br>The operator runs <code>dios seed unitree</code>. dios resolves a pinned, verified Unitree integration.</div>
+<div class="step"><span class="owner">Unitree repository</span><br>The Unitree wizard opens. It discovers Unitree targets, identifies the model, and lets the operator choose the robot.</div>
+<div class="step"><span class="owner">Unitree repository</span><br>The wizard establishes access, handles Unitree networking, checks firmware, and prepares the target for a generic DimOS installation.</div>
+<div class="step"><span class="owner">dios core on the target</span><br>The wizard transfers or installs dios on the target and runs the standard <code>dios setup</code> flow there. This is the same setup engine used on a workstation.</div>
+<div class="step"><span class="owner">Unitree repository</span><br>The wizard performs any Unitree-only post-setup configuration and selects the correct Unitree blueprint.</div>
+<div class="step"><span class="owner">dios + Unitree wizard</span><br>The target runs a bounded headless blueprint test. The wizard reports success only if the robot-specific outcome is proven.</div>
+<div class="step"><span class="owner">dios core</span><br>The workstation records the target name, identity, last address, manufacturer integration version, and installed versions locally.</div>
+</div>
+
+<h2>5. Runtime relationship</h2>
+<pre>WORKSTATION                                     TARGET
+
+dios seed unitree
+       │
+       ▼
+verified Unitree wizard
+       │  discover / identify / connect
+       ├──────────────────────────────────────▶ Unitree robot
+       │
+       │  install or transfer dios
+       ├──────────────────────────────────────▶ dios setup
+       │                                        └─ standard DimOS install
+       │
+       │  Unitree post-setup + blueprint proof
+       ├──────────────────────────────────────▶ ready target
+       │
+       ▼
+local target + version history</pre>
+
+<h2>6. What stays from Helm</h2>
+<ul>
+<li>The <code>setup</code> command and its main user journey.</li>
+<li>Platform detection and compatibility checks.</li>
+<li>Library versus development installation.</li>
+<li>Dependency and extras selection.</li>
+<li>DimOS installation, doctor, service, update, logs, and uninstall.</li>
+<li>Interactive, unattended, and agent-driven modes.</li>
+<li>Step-level failure handling and clear recovery instructions.</li>
+</ul>
+<p>The work is a refactor and cleanup of this experience—not a replacement.</p>
+
+<h2>7. What leaves dios core</h2>
+<ul>
+<li>Unitree, Go2, G1, and other manufacturer names.</li>
+<li>Manufacturer discovery probes and network assumptions.</li>
+<li>Manufacturer passwords, firmware rules, and setup guides.</li>
+<li>Robot-model-specific dependency steps.</li>
+<li>Manufacturer-specific wizard screens and questions.</li>
+<li>Manufacturer-specific blueprint selection and final checks.</li>
+</ul>
+
+<h2>8. Integration contract</h2>
+<p>dios only needs a small contract with a manufacturer repository:</p>
+<table><thead><tr><th>Manufacturer provides</th><th>dios provides</th></tr></thead><tbody>
+<tr><td>Name, version, supported models, and verified source</td><td>Installation and update of the integration</td></tr>
+<tr><td>Wizard entry point</td><td>Consistent launch and mode handling</td></tr>
+<tr><td>Discovery and target-selection experience</td><td>Local target records</td></tr>
+<tr><td>Pre-setup and post-setup work</td><td>The standard <code>dios setup</code> engine</td></tr>
+<tr><td>Target-specific final proof</td><td>Common result and action logging</td></tr>
+</tbody></table>
+
+<h2>9. Local state</h2>
+<p>For now, dios stores only local JSON configuration and history on the workstation:</p>
+<ul>
+<li>known target name and stable identity;</li>
+<li>last-known addresses;</li>
+<li>manufacturer integration and version;</li>
+<li>dios and DimOS versions installed;</li>
+<li>last seed result and timestamp.</li>
+</ul>
+<p>No cloud database, account, licensing, or fleet backend is part of this architecture.</p>
+
+<h2>10. Decisions still needed</h2>
+<ul>
+<li>Final command form: <code>dios seed unitree</code> versus <code>dios unitree seed</code>.</li>
+<li>How manufacturer repositories are named and indexed.</li>
+<li>Whether integrations run as downloaded executables or a defined dios plugin format.</li>
+<li>How much generic SSH and file-transfer behavior remains in dios versus a shared integration SDK.</li>
+<li>How the existing <code>dios infect</code> implementation migrates without breaking current work.</li>
+</ul>
+</main></body></html>

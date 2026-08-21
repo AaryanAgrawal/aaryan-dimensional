@@ -1,0 +1,426 @@
+<title>PM trial</title>
+<style>
+:root {
+  --ground:#F3F6F7; --paper:#FFFFFF; --tint:#EAF0F2; --ink:#0E1618; --ink-2:#3B4A50;
+  --ask:#6E8188; --rule:#D6E0E3; --rule-2:#BDCBD0; --accent:#0E6C82;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground:#0A1012; --paper:#111B1E; --tint:#17252A; --ink:#E5EDEF; --ink-2:#AABCC2;
+  --ask:#8399A0; --rule:#223238; --rule-2:#33474F; --accent:#4FB3CF;
+} }
+:root[data-theme="dark"] {
+  --ground:#0A1012; --paper:#111B1E; --tint:#17252A; --ink:#E5EDEF; --ink-2:#AABCC2;
+  --ask:#8399A0; --rule:#223238; --rule-2:#33474F; --accent:#4FB3CF;
+}
+body { background:var(--ground); color:var(--ink); font-family:var(--sans); font-size:16px;
+  line-height:1.6; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:720px; margin:0 auto; padding:46px 22px 90px; display:flex;
+  flex-direction:column; gap:20px; }
+@media (max-width:560px){ .wrap{ padding:30px 14px 60px; } }
+.banner { font-family:var(--mono); font-size:10.5px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--ask); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.paper { background:var(--paper); border:1px solid var(--rule); border-radius:5px;
+  padding:40px 44px 44px; box-shadow:0 1px 2px rgba(14,22,24,.04), 0 12px 32px -24px rgba(14,22,24,.3); }
+@media (max-width:560px){ .paper{ padding:26px 20px 30px; } }
+.paper > :first-child { margin-top:0; }
+h1 { font-size:1.72rem; line-height:1.14; letter-spacing:-.028em; font-weight:700; margin:0 0 .7em; }
+h2 { font-size:1.16rem; letter-spacing:-.015em; font-weight:680; margin:1.9em 0 .5em;
+  padding-top:.7em; border-top:1px solid var(--rule); }
+h3 { font-size:1rem; font-weight:660; letter-spacing:-.008em; margin:1.5em 0 .25em; }
+h4 { font-size:.9rem; font-weight:640; margin:1.15em 0 .2em; color:var(--ink); }
+p { margin:0 0 .85em; }
+p em:only-child { color:var(--ask); }
+ul, ol { margin:0 0 .9em; padding-left:22px; }
+li { margin-bottom:.3em; line-height:1.5; }
+hr { border:0; border-top:1px solid var(--rule); margin:2em 0; }
+table { border-collapse:collapse; width:100%; font-size:14px; margin:0 0 1em; }
+th, td { text-align:left; padding:8px 11px; border:1px solid var(--rule); vertical-align:top; }
+thead th { background:var(--tint); font-weight:620; font-size:13px; }
+table.kv tr > td:first-child { background:var(--tint); font-weight:620; white-space:nowrap; width:28%; }
+code { font-family:var(--mono); font-size:.87em; background:var(--tint); padding:1px 5px;
+  border-radius:2px; }
+details { border:1px solid var(--rule); border-radius:5px; background:var(--paper); overflow:hidden; }
+summary { padding:12px 16px; cursor:pointer; list-style:none; font-family:var(--mono);
+  font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-2);
+  font-weight:600; display:flex; align-items:center; gap:9px; }
+summary::-webkit-details-marker { display:none; }
+summary::before { content:"+"; color:var(--accent); font-weight:700; }
+details[open] summary { border-bottom:1px solid var(--rule); }
+details[open] summary::before { content:"\2212"; }
+pre { margin:0; padding:16px; overflow-x:auto; background:var(--ground); font-family:var(--mono);
+  font-size:12px; line-height:1.6; color:var(--ink-2); }
+pre.block { border:1px solid var(--rule); border-radius:4px; margin:0 0 1em; font-size:12.5px;
+  line-height:1.65; color:var(--ink); }
+.copywrap { position:relative; }
+button.copy { position:absolute; top:10px; right:10px; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; font-weight:600; color:var(--accent);
+  background:var(--paper); border:1px solid var(--rule-2); border-radius:3px; padding:5px 10px;
+  cursor:pointer; }
+button.copy:hover { border-color:var(--accent); }
+button.copy:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+button.copy[data-done="1"] { color:var(--paper); background:var(--accent); border-color:var(--accent); }
+a { color:var(--accent); }
+a:focus-visible, summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+@media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="banner">
+    <span>Dimensional</span>
+    <span>Copy, then paste into Linear</span>
+  </div>
+
+  <div class="paper">
+<h1>PM trial</h1>
+<h2>Terms</h2>
+<ul><li><strong>DimOS</strong> — the software platform that runs robot applications.</li><li><strong>dios</strong> — the tool that installs DimOS and prepares robots to run it.</li><li><strong>Workstation</strong> — the operator&#x27;s laptop or desktop where dios runs.</li><li><strong>Target</strong> — the robot or computer dios is preparing.</li><li><strong>Seed</strong> — the dios workflow that discovers, identifies, and configures a target.</li><li><strong>Wizard</strong> — the per-robot instructions describing how dios recognises, reaches, and configures</li></ul>
+<p>one type of target.</p>
+<ul><li><strong>Workspace</strong> — the personal or organisational home that owns robots, members, and licenses.</li><li><strong>Release artifact</strong> — a versioned downloadable binary, wizard, or software package.</li></ul>
+<p><code>dios</code> installs DimOS and configures a robot. Its PRD is included below. This trial covers the product layer around dios: accounts, robot records, licensing, versions, releases, and updates.</p>
+<p>Do not redesign the dios installer or wizard engine; use the existing PRD below as context. Assume the system described below exists and works, including installation, wizards, package dependencies, target discovery, and seeding.</p>
+<p>Every developer should have a Dimensional account with a personal workspace, so an individual can use dios without creating a fake organisation. A person may also join one or more organisation workspaces. Robots and licenses belong to a workspace: personal for an independent developer, or organisational for a team. Organisation administrators manage members and licenses, and ownership can be transferred without losing the robot&#x27;s history.</p>
+<p>Robots need to be registered when they are seeded and found again later even when their network address changes. The registration experience, identity model, retained data, storage boundaries, ownership rules, and reconciliation model need to be defined.</p>
+<p>Robots are frequently offline. The system needs defined offline behaviour, including what remains available, where that information lives, and what happens when connectivity returns.</p>
+<p>We need to define what is licensed, whether licenses belong to users, workspaces, or robots, and how they are verified. The design should address offline use, expiry, revocation, transfers, and the safety implications of enforcing a license on a physical robot.</p>
+<p>Every dios, DimOS, firmware, and wizard version must be recorded. Installs should be pinnable and reproducible. Before an install or update, the system should check that the whole combination is compatible and explain any refusal.</p>
+<p>Release artifacts need versions, checksums or signatures, compatibility metadata, and release notes. dios should report compatible updates, but the operator chooses when to apply them. Nothing silently updates a robot.</p>
+<p>The system must support regional artifact mirrors, including China. It must also retain an audit trail showing who seeded each robot, which versions and license were used, and what later changed.</p>
+<h2>Deliverables</h2>
+<p>Produce two documents:</p>
+<ol><li>A <strong>PRD</strong> defining the users, problems, first useful release, delivery order, and measurable</li></ol>
+<p>success criteria.</p>
+<ol><li>A <strong>technical architecture document</strong> defining the components, data model, local and cloud</li></ol>
+<p>boundaries, APIs, security model, and online/offline behaviour.</p>
+<hr>
+<h1>dios — PRD</h1>
+<h2>Problem</h2>
+<p>Setting up DimOS is driven by a fragile script and differs across robots and boards. FDEs are integrating new platforms quickly, recording the work in floating Markdown guides and personal notes. The guides drift, important steps are easy to miss, and every new platform repeats work that should be reusable.</p>
+<h2>Why now</h2>
+<p>The number of platforms is growing faster than the manual process can support. There is no reliable versioning across dios, DimOS, per-robot wizards, firmware, or installed targets, so a working setup cannot be reproduced confidently or compared with another robot. Continuing with scripts and guides makes each integration more fragile and support harder.</p>
+<p>FDEs have already been testing a curl command that provides a better DimOS installation path. This release turns that tested entry point into a supported dios product and adds substantially more: per-robot wizards, target discovery, repeatable verification, versioned artifacts, safe re-runs, and a record of what was installed.</p>
+<h2>Solution</h2>
+<p>One static binary, two capabilities.</p>
+<p><strong>Package manager.</strong> Given a machine, install DimOS correctly for its platform.</p>
+<p><strong>Provisioner.</strong> Given a robot, identify it, reach it, install what it requires, leave it configured to run.</p>
+<p>Principles:</p>
+<ol><li>The package manager knows platforms; the provisioner knows robots. Neither crosses over.</li><li>The package manager works standalone.</li><li>Every step states what proves it succeeded. A proven step is skipped, so a re-run resumes.</li><li>Degrade rather than fail. An unsupported platform gets instructions.</li></ol>
+<h2>Wizards</h2>
+<p>A wizard is data for one type of robot: how to recognise it, reach it, and configure it. Anyone can author and share one without modifying the tool. A wizard declares the permissions it needs, so an operator can review it before trusting it.</p>
+<p>One static JSON index maps a wizard name to a pinned git revision and a hash. <code>dios wizard add unitree-g1</code> installs by name, and adding a board is a PR against the index, never against dios. The index URL is configurable, which is also how a mirror or a company index works.</p>
+<h2>Interface</h2>
+<p>The product interface is:</p>
+<ul><li><code>dios setup</code> — full install on this machine</li><li><code>dios doctor</code> — diagnostics; <code>--wizard &lt;name&gt;|all</code> checks wizard files with no robot present</li><li><code>dios update</code>, <code>service</code>, <code>restart</code>, <code>log</code>, <code>config</code>, <code>uninstall</code> — care and feeding</li><li><code>dios webserver</code>, <code>install</code>, <code>desktop</code> — management server and desktop packages</li><li><code>dios seed</code> — set up a target; <code>--with &lt;wizard&gt;</code> skips the match step</li><li><code>dios seed scan</code> — find candidates on Ethernet, USB, Wi-Fi, and Bluetooth</li><li><code>dios seed check</code> — judge each step live as holds, would run, or done; apply nothing</li><li><code>dios seed bringup</code> — reach a fresh target over the cable</li><li><code>dios wizard new|list|show|test|add|remove|search|update</code> — work with wizards, no target needed</li><li><code>dios verb list|run</code> — one operation against one machine</li></ul>
+<p><code>wizard add &lt;name&gt;</code> is index-resolved, revision-pinned, and hash-checked. <code>wizard search</code>, <code>wizard update</code>, and <code>dios config set wizards.index &lt;url&gt;</code> support discovery and mirrors. <code>wizard add &lt;git-url&gt;</code> remains the explicit escape hatch.</p>
+<p>Modes are interactive, unattended (<code>--non-interactive</code>), and agent (<code>--agent</code>). Agent mode never prompts; a critical failure exits 2 with a JSON block saying what a human has to decide.</p>
+<h2>Technical boundaries</h2>
+<p>dios has two layers. The package manager knows operating systems, architectures, package providers, and DimOS requirements. It must not contain robot manufacturers, models, protocols, or wizard logic. The seeding layer knows targets and wizards and may call the package manager. The package manager never calls upward into seeding.</p>
+<p>The workstation runs discovery and orchestration. The target runs the installed dios binary, DimOS, manufacturer configuration, and the final blueprint proof. A wizard may prepare a target and then invoke the standard <code>dios setup</code> flow there; it does not implement a second DimOS installer.</p>
+<h2>Installation pipeline</h2>
+<p>The bootstrap detects the workstation platform, downloads the matching static binary, makes it executable, and starts setup. Supported release targets include macOS ARM64, Linux x86-64 musl, and Linux ARM64 musl. Exact versions can be selected through an environment variable; otherwise the bootstrap requests the default release.</p>
+<p><code>dios setup</code> then detects the operating system, architecture, GPU, Jetson hardware, Python version, RAM, disk, libc, and existing tools. It checks compatibility, installs itself under the user&#x27;s local binary directory, configures PATH, and applies platform setup where supported.</p>
+<p>The operator chooses library or development mode. Library mode creates an application directory and installs a released DimOS package. Development mode clones the DimOS repository and performs an editable installation. Both use a virtual environment and support optional feature groups.</p>
+<p>System packages come from apt, dnf, pacman, apk, Homebrew, or Nix depending on the platform. Native runtime libraries are verified separately because a successful Python install does not prove that OpenGL, EGL, camera, audio, or vendor SDK libraries can load.</p>
+<p>Setup finishes by checking the virtual environment, importing DimOS, locating its CLI, and checking GPU support when requested. When setup is part of a robot wizard, final success belongs to the wizard&#x27;s later headless blueprint test, not to package installation alone.</p>
+<h2>Wizard contract</h2>
+<p>Each wizard is specific to a robot family or manufacturer and supplies:</p>
+<ol><li>its name, immutable version, and supported models;</li><li>discovery probes and identity evidence;</li><li>requested permissions;</li><li>initial network and access steps;</li><li>parameters passed to the standard setup engine;</li><li>target-specific work before and after setup;</li><li>runtime configuration;</li><li>a final target-specific blueprint proof;</li><li>a structured result containing identity evidence, versions, and step outcomes.</li></ol>
+<p>Wizard steps declare where they run, whether they are critical, what permissions they require, and what command proves completion. Steps are ordered by phase. A re-run checks the proof first and skips work that already holds.</p>
+<p>The wizard index is static JSON. It maps a name to a source repository, immutable revision, path, hash, minimum supported API version, and maintainer. dios verifies the downloaded content before it runs. An unknown maintainer requires explicit approval and cannot be silently accepted by an agent.</p>
+<h2>Target discovery and seeding result</h2>
+<p>Discovery can observe Ethernet, USB networking, Wi-Fi, and Bluetooth. Evidence is scored against wizard declarations. A close match may be suggested automatically; ambiguous matches require the operator to choose.</p>
+<p>Seeding produces a structured result containing the selected target, identity evidence, observed addresses, wizard, installed versions, step outcomes, and time. This is the input available to the product layer for robot registration. The product-layer PRD and architecture must decide where it is stored, how records are matched, which system owns each field, and how offline changes reconcile.</p>
+<p>A run journal allows a failed seed to retry only unfinished work. Passwords, Wi-Fi secrets, and private keys never appear in the structured result, command arguments, or logs.</p>
+<h2>Execution and failure model</h2>
+<p>Every operation is first represented as a plan. Dry-run prints that plan and cannot touch either machine. The executor applies one operation at a time and runs its proof afterward. A failed operation whose proof now holds is treated as complete; otherwise its criticality decides whether the run stops or continues.</p>
+<p>Interactive mode may ask a person to repair a problem. Unattended mode takes defaults and stops on a critical failure. Agent mode never prompts; a decision that requires a person exits with code 2 and structured <code>needs_human</code> output. Ordinary failure exits 1, interruption exits 130, and success exits 0.</p>
+<p>Remote work uses non-interactive SSH after initial key installation. Passwords reach privileged commands through stdin or a temporary askpass file rather than command-line arguments. Temporary secret files are permission-restricted and removed after use.</p>
+<h2>Package dependency design</h2>
+<p>Every DimOS module has a checked-in dependency manifest containing Python requirements and abstract system keys such as <code>opengl.runtime</code> or <code>audio.portaudio</code>.</p>
+<p>A versioned catalog maps those abstract keys to apt, Homebrew, Nix, dnf, pacman, or apk packages for each supported platform. Package authors declare requirements but do not provide arbitrary install commands. dios owns generic provider adapters that query installed state, compare native versions, install missing packages, and verify the result.</p>
+<p>Release tooling aggregates the standard profile, optional profiles, wizard requirements, module manifests, Python lock, Nix lock, and provider catalog. Conflicting constraints or missing platform mappings fail before mutation. A receipt records the selected profiles, catalog digest, lock digests, requested constraints, provider, and versions actually observed.</p>
+<p>Version guarantees differ by provider. Python uses PEP 508 constraints and a uv lock. Nix uses pinned inputs and realised store paths. apt uses Debian version ordering and needs a repository snapshot for exact replay. Homebrew is rolling and normally guarantees compatibility rather than an arbitrary historical version. Drivers, firmware, kernels, and vendor SDKs are host capabilities verified by explicit probes rather than silently replaced.</p>
+<h2>Success criteria</h2>
+<ul><li>A fresh robot reaches running DimOS in one <code>dios seed</code> workflow, and the run proves it by running</li></ul>
+<p>a blueprint.</p>
+<ul><li>A re-run changes nothing.</li><li>A new robot needs no change to the tool: a wizard and an index entry.</li></ul>
+  </div>
+
+  <details>
+    <summary>Copy as Markdown</summary>
+    <div class="copywrap">
+      <button class="copy" type="button" data-target="md">Copy</button>
+      <pre id="md"># PM trial
+
+## Terms
+
+- **DimOS** — the software platform that runs robot applications.
+- **dios** — the tool that installs DimOS and prepares robots to run it.
+- **Workstation** — the operator&#x27;s laptop or desktop where dios runs.
+- **Target** — the robot or computer dios is preparing.
+- **Seed** — the dios workflow that discovers, identifies, and configures a target.
+- **Wizard** — the per-robot instructions describing how dios recognises, reaches, and configures
+  one type of target.
+- **Workspace** — the personal or organisational home that owns robots, members, and licenses.
+- **Release artifact** — a versioned downloadable binary, wizard, or software package.
+
+`dios` installs DimOS and configures a robot. Its PRD is included below. This trial covers the
+product layer around dios: accounts, robot records, licensing, versions, releases, and updates.
+
+Do not redesign the dios installer or wizard engine; use the existing PRD below as context. Assume
+the system described below exists and works, including installation, wizards, package dependencies,
+target discovery, and seeding.
+
+Every developer should have a Dimensional account with a personal workspace, so an individual can
+use dios without creating a fake organisation. A person may also join one or more organisation
+workspaces. Robots and licenses belong to a workspace: personal for an independent developer, or
+organisational for a team. Organisation administrators manage members and licenses, and ownership
+can be transferred without losing the robot&#x27;s history.
+
+Robots need to be registered when they are seeded and found again later even when their network
+address changes. The registration experience, identity model, retained data, storage boundaries,
+ownership rules, and reconciliation model need to be defined.
+
+Robots are frequently offline. The system needs defined offline behaviour, including what remains
+available, where that information lives, and what happens when connectivity returns.
+
+We need to define what is licensed, whether licenses belong to users, workspaces, or robots, and how
+they are verified. The design should address offline use, expiry, revocation, transfers, and the
+safety implications of enforcing a license on a physical robot.
+
+Every dios, DimOS, firmware, and wizard version must be recorded. Installs should be pinnable and
+reproducible. Before an install or update, the system should check that the whole combination is
+compatible and explain any refusal.
+
+Release artifacts need versions, checksums or signatures, compatibility metadata, and release notes.
+dios should report compatible updates, but the operator chooses when to apply them. Nothing silently
+updates a robot.
+
+The system must support regional artifact mirrors, including China. It must also retain an audit
+trail showing who seeded each robot, which versions and license were used, and what later changed.
+
+## Deliverables
+
+Produce two documents:
+
+1. A **PRD** defining the users, problems, first useful release, delivery order, and measurable
+   success criteria.
+2. A **technical architecture document** defining the components, data model, local and cloud
+   boundaries, APIs, security model, and online/offline behaviour.
+
+---
+
+# dios — PRD
+
+## Problem
+
+Setting up DimOS is driven by a fragile script and differs across robots and boards. FDEs are
+integrating new platforms quickly, recording the work in floating Markdown guides and personal
+notes. The guides drift, important steps are easy to miss, and every new platform repeats work that
+should be reusable.
+
+## Why now
+
+The number of platforms is growing faster than the manual process can support. There is no reliable
+versioning across dios, DimOS, per-robot wizards, firmware, or installed targets, so a working setup
+cannot be reproduced confidently or compared with another robot. Continuing with scripts and guides
+makes each integration more fragile and support harder.
+
+FDEs have already been testing a curl command that provides a better DimOS installation path. This
+release turns that tested entry point into a supported dios product and adds substantially more:
+per-robot wizards, target discovery, repeatable verification, versioned artifacts, safe re-runs, and
+a record of what was installed.
+
+## Solution
+
+One static binary, two capabilities.
+
+**Package manager.** Given a machine, install DimOS correctly for its platform.
+
+**Provisioner.** Given a robot, identify it, reach it, install what it requires, leave it configured
+to run.
+
+Principles:
+
+1. The package manager knows platforms; the provisioner knows robots. Neither crosses over.
+2. The package manager works standalone.
+3. Every step states what proves it succeeded. A proven step is skipped, so a re-run resumes.
+4. Degrade rather than fail. An unsupported platform gets instructions.
+
+## Wizards
+
+A wizard is data for one type of robot: how to recognise it, reach it, and configure it. Anyone can
+author and share one without modifying the tool. A wizard declares the permissions it needs, so an
+operator can review it before trusting it.
+
+One static JSON index maps a wizard name to a pinned git revision and a hash.
+`dios wizard add unitree-g1` installs by name, and adding a board is a PR against the
+index, never against dios. The index URL is configurable, which is also how a mirror or a company
+index works.
+
+## Interface
+
+The product interface is:
+
+- `dios setup` — full install on this machine
+- `dios doctor` — diagnostics; `--wizard &lt;name&gt;|all` checks wizard files with no robot present
+- `dios update`, `service`, `restart`, `log`, `config`, `uninstall` — care and feeding
+- `dios webserver`, `install`, `desktop` — management server and desktop packages
+- `dios seed` — set up a target; `--with &lt;wizard&gt;` skips the match step
+- `dios seed scan` — find candidates on Ethernet, USB, Wi-Fi, and Bluetooth
+- `dios seed check` — judge each step live as holds, would run, or done; apply nothing
+- `dios seed bringup` — reach a fresh target over the cable
+- `dios wizard new|list|show|test|add|remove|search|update` — work with wizards, no target needed
+- `dios verb list|run` — one operation against one machine
+
+`wizard add &lt;name&gt;` is index-resolved, revision-pinned, and hash-checked. `wizard search`,
+`wizard update`, and `dios config set wizards.index &lt;url&gt;` support discovery and mirrors.
+`wizard add &lt;git-url&gt;` remains the explicit escape hatch.
+
+Modes are interactive, unattended (`--non-interactive`), and agent (`--agent`). Agent mode never
+prompts; a critical failure exits 2 with a JSON block saying what a human has to decide.
+
+## Technical boundaries
+
+dios has two layers. The package manager knows operating systems, architectures, package providers,
+and DimOS requirements. It must not contain robot manufacturers, models, protocols, or wizard
+logic. The seeding layer knows targets and wizards and may call the package manager. The package
+manager never calls upward into seeding.
+
+The workstation runs discovery and orchestration. The target runs the installed dios binary,
+DimOS, manufacturer configuration, and the final blueprint proof. A wizard may prepare a target and
+then invoke the standard `dios setup` flow there; it does not implement a second DimOS installer.
+
+## Installation pipeline
+
+The bootstrap detects the workstation platform, downloads the matching static binary, makes it
+executable, and starts setup. Supported release targets include macOS ARM64, Linux x86-64 musl, and
+Linux ARM64 musl. Exact versions can be selected through an environment variable; otherwise the
+bootstrap requests the default release.
+
+`dios setup` then detects the operating system, architecture, GPU, Jetson hardware, Python version,
+RAM, disk, libc, and existing tools. It checks compatibility, installs itself under the user&#x27;s local
+binary directory, configures PATH, and applies platform setup where supported.
+
+The operator chooses library or development mode. Library mode creates an application directory and
+installs a released DimOS package. Development mode clones the DimOS repository and performs an
+editable installation. Both use a virtual environment and support optional feature groups.
+
+System packages come from apt, dnf, pacman, apk, Homebrew, or Nix depending on the platform. Native
+runtime libraries are verified separately because a successful Python install does not prove that
+OpenGL, EGL, camera, audio, or vendor SDK libraries can load.
+
+Setup finishes by checking the virtual environment, importing DimOS, locating its CLI, and checking
+GPU support when requested. When setup is part of a robot wizard, final success belongs to the
+wizard&#x27;s later headless blueprint test, not to package installation alone.
+
+## Wizard contract
+
+Each wizard is specific to a robot family or manufacturer and supplies:
+
+1. its name, immutable version, and supported models;
+2. discovery probes and identity evidence;
+3. requested permissions;
+4. initial network and access steps;
+5. parameters passed to the standard setup engine;
+6. target-specific work before and after setup;
+7. runtime configuration;
+8. a final target-specific blueprint proof;
+9. a structured result containing identity evidence, versions, and step outcomes.
+
+Wizard steps declare where they run, whether they are critical, what permissions they require, and
+what command proves completion. Steps are ordered by phase. A re-run checks the proof first and skips
+work that already holds.
+
+The wizard index is static JSON. It maps a name to a source repository, immutable revision, path,
+hash, minimum supported API version, and maintainer. dios verifies the downloaded content before it
+runs. An unknown maintainer requires explicit approval and cannot be silently accepted by an agent.
+
+## Target discovery and seeding result
+
+Discovery can observe Ethernet, USB networking, Wi-Fi, and Bluetooth. Evidence is scored against
+wizard declarations. A close match may be suggested automatically; ambiguous matches require the
+operator to choose.
+
+Seeding produces a structured result containing the selected target, identity evidence, observed
+addresses, wizard, installed versions, step outcomes, and time. This is the input available to the
+product layer for robot registration. The product-layer PRD and architecture must decide where it is
+stored, how records are matched, which system owns each field, and how offline changes reconcile.
+
+A run journal allows a failed seed to retry only unfinished work. Passwords, Wi-Fi secrets, and
+private keys never appear in the structured result, command arguments, or logs.
+
+## Execution and failure model
+
+Every operation is first represented as a plan. Dry-run prints that plan and cannot touch either
+machine. The executor applies one operation at a time and runs its proof afterward. A failed
+operation whose proof now holds is treated as complete; otherwise its criticality decides whether
+the run stops or continues.
+
+Interactive mode may ask a person to repair a problem. Unattended mode takes defaults and stops on a
+critical failure. Agent mode never prompts; a decision that requires a person exits with code 2 and
+structured `needs_human` output. Ordinary failure exits 1, interruption exits 130, and success exits
+0.
+
+Remote work uses non-interactive SSH after initial key installation. Passwords reach privileged
+commands through stdin or a temporary askpass file rather than command-line arguments. Temporary
+secret files are permission-restricted and removed after use.
+
+## Package dependency design
+
+Every DimOS module has a checked-in dependency manifest containing Python requirements and abstract
+system keys such as `opengl.runtime` or `audio.portaudio`.
+
+A versioned catalog maps those abstract keys to apt, Homebrew, Nix, dnf, pacman, or apk packages for
+each supported platform. Package authors declare requirements but do not provide arbitrary install
+commands. dios owns generic provider adapters that query installed state, compare native versions,
+install missing packages, and verify the result.
+
+Release tooling aggregates the standard profile, optional profiles, wizard requirements,
+module manifests, Python lock, Nix lock, and provider catalog. Conflicting constraints or missing
+platform mappings fail before mutation. A receipt records the selected profiles, catalog digest,
+lock digests, requested constraints, provider, and versions actually observed.
+
+Version guarantees differ by provider. Python uses PEP 508 constraints and a uv lock. Nix uses
+pinned inputs and realised store paths. apt uses Debian version ordering and needs a repository
+snapshot for exact replay. Homebrew is rolling and normally guarantees compatibility rather than an
+arbitrary historical version. Drivers, firmware, kernels, and vendor SDKs are host capabilities
+verified by explicit probes rather than silently replaced.
+
+## Success criteria
+
+- A fresh robot reaches running DimOS in one `dios seed` workflow, and the run proves it by running
+  a blueprint.
+- A re-run changes nothing.
+- A new robot needs no change to the tool: a wizard and an index entry.
+</pre>
+    </div>
+  </details>
+</div>
+
+<script>
+document.querySelectorAll("button.copy").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var text = document.getElementById(btn.dataset.target).textContent;
+    var done = function (label) {
+      btn.textContent = label; btn.dataset.done = "1";
+      setTimeout(function () { btn.textContent = "Copy"; btn.dataset.done = "0"; }, 1800);
+    };
+    // the clipboard API is often blocked inside the artifact frame, so keep a fallback
+    var fallback = function () {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", "");
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      done(ok ? "Copied" : "Press \u2318C");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done("Copied"); }, fallback);
+    } else { fallback(); }
+  });
+});
+</script>

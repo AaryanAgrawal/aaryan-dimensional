@@ -1,0 +1,692 @@
+<title>dios — Product Requirements</title>
+<style>
+:root {
+  --ground:#F3F6F7; --paper:#FFFFFF; --tint:#EAF0F2; --ink:#0E1618; --ink-2:#3B4A50;
+  --ask:#6E8188; --rule:#D6E0E3; --rule-2:#BDCBD0; --accent:#0E6C82;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground:#0A1012; --paper:#111B1E; --tint:#17252A; --ink:#E5EDEF; --ink-2:#AABCC2;
+  --ask:#8399A0; --rule:#223238; --rule-2:#33474F; --accent:#4FB3CF;
+} }
+:root[data-theme="dark"] {
+  --ground:#0A1012; --paper:#111B1E; --tint:#17252A; --ink:#E5EDEF; --ink-2:#AABCC2;
+  --ask:#8399A0; --rule:#223238; --rule-2:#33474F; --accent:#4FB3CF;
+}
+body { background:var(--ground); color:var(--ink); font-family:var(--sans); font-size:16px;
+  line-height:1.6; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:720px; margin:0 auto; padding:46px 22px 90px; display:flex;
+  flex-direction:column; gap:20px; }
+@media (max-width:560px){ .wrap{ padding:30px 14px 60px; } }
+.banner { font-family:var(--mono); font-size:10.5px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--ask); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.paper { background:var(--paper); border:1px solid var(--rule); border-radius:5px;
+  padding:40px 44px 44px; box-shadow:0 1px 2px rgba(14,22,24,.04), 0 12px 32px -24px rgba(14,22,24,.3); }
+@media (max-width:560px){ .paper{ padding:26px 20px 30px; } }
+.paper > :first-child { margin-top:0; }
+h1 { font-size:1.72rem; line-height:1.14; letter-spacing:-.028em; font-weight:700; margin:0 0 .7em; }
+h2 { font-size:1.16rem; letter-spacing:-.015em; font-weight:680; margin:1.9em 0 .5em;
+  padding-top:.7em; border-top:1px solid var(--rule); }
+h3 { font-size:1rem; font-weight:660; letter-spacing:-.008em; margin:1.5em 0 .25em; }
+h4 { font-size:.9rem; font-weight:640; margin:1.15em 0 .2em; color:var(--ink); }
+p { margin:0 0 .85em; }
+p em:only-child { color:var(--ask); }
+ul, ol { margin:0 0 .9em; padding-left:22px; }
+li { margin-bottom:.3em; line-height:1.5; }
+hr { border:0; border-top:1px solid var(--rule); margin:2em 0; }
+table { border-collapse:collapse; width:100%; font-size:14px; margin:0 0 1em; }
+th, td { text-align:left; padding:8px 11px; border:1px solid var(--rule); vertical-align:top; }
+thead th { background:var(--tint); font-weight:620; font-size:13px; }
+table.kv tr > td:first-child { background:var(--tint); font-weight:620; white-space:nowrap; width:28%; }
+code { font-family:var(--mono); font-size:.87em; background:var(--tint); padding:1px 5px;
+  border-radius:2px; }
+details { border:1px solid var(--rule); border-radius:5px; background:var(--paper); overflow:hidden; }
+summary { padding:12px 16px; cursor:pointer; list-style:none; font-family:var(--mono);
+  font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-2);
+  font-weight:600; display:flex; align-items:center; gap:9px; }
+summary::-webkit-details-marker { display:none; }
+summary::before { content:"+"; color:var(--accent); font-weight:700; }
+details[open] summary { border-bottom:1px solid var(--rule); }
+details[open] summary::before { content:"\2212"; }
+pre { margin:0; padding:16px; overflow-x:auto; background:var(--ground); font-family:var(--mono);
+  font-size:12px; line-height:1.6; color:var(--ink-2); }
+pre.block { border:1px solid var(--rule); border-radius:4px; margin:0 0 1em; font-size:12.5px;
+  line-height:1.65; color:var(--ink); }
+.copywrap { position:relative; }
+button.copy { position:absolute; top:10px; right:10px; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; font-weight:600; color:var(--accent);
+  background:var(--paper); border:1px solid var(--rule-2); border-radius:3px; padding:5px 10px;
+  cursor:pointer; }
+button.copy:hover { border-color:var(--accent); }
+button.copy:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+button.copy[data-done="1"] { color:var(--paper); background:var(--accent); border-color:var(--accent); }
+a { color:var(--accent); }
+a:focus-visible, summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+@media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="banner">
+    <span>Dimensional</span>
+    <span>Copy, then paste into Linear</span>
+  </div>
+
+  <div class="paper">
+<h1>dios — Product Requirements</h1>
+<p><strong>Status:</strong> Draft <strong>Scope:</strong> Installing DimOS on the current machine, manufacturer-owned robot wizards, and local target history <strong>Architecture:</strong> [dios-architecture.md](dios-architecture.md)</p>
+<h2>Customer message</h2>
+<p><strong>Install DimOS here with <code>dios setup</code>. Prepare a robot with <code>dios seed &lt;manufacturer&gt;</code>.</strong></p>
+<p>dios keeps the familiar Helm setup experience for any machine. Robot-specific discovery and setup live in separate manufacturer integrations, so each manufacturer can own its complete wizard.</p>
+<h2>Problem</h2>
+<p>Installing DimOS and preparing a robot currently requires platform knowledge, setup guides, remembered addresses, and manufacturer-specific commands. A package installation can finish even when the robot cannot start a blueprint.</p>
+<p>Robot-specific knowledge also accumulates in the core installer. This makes the generic DimOS setup flow harder to maintain and forces every manufacturer change through the same repository.</p>
+<h2>Goals</h2>
+<ol><li>Preserve and refactor the existing Helm setup experience as <code>dios setup</code>.</li><li>Allow DimOS to be installed directly on a workstation or any other supported machine.</li><li>Give every manufacturer its own repository and setup wizard.</li><li>Let a manufacturer wizard reuse the same <code>dios setup</code> engine on a target.</li><li>Prove that a seeded target can start its intended blueprint.</li><li>Remember target identity and installed versions locally on the workstation.</li></ol>
+<h2>Product shape</h2>
+<p>dios has two equally important capabilities:</p>
+<h3>Setup this machine</h3>
+<pre class="block">dios setup</pre>
+<p>Install and verify DimOS on the machine where dios is running. This is the direct successor to the existing Helm product and is a complete standalone experience. A user does not need a robot or a manufacturer integration to use it.</p>
+<h3>Seed a target</h3>
+<pre class="block">dios seed &lt;manufacturer&gt;</pre>
+<p>Launch a manufacturer-owned wizard that prepares a robot target. The wizard reuses <code>dios setup</code> on the target rather than implementing a second DimOS installer.</p>
+<p>Neither capability is secondary: setup serves local DimOS users directly and is also the reusable installation foundation used by seed.</p>
+<h2>User experience</h2>
+<h3>Install dios</h3>
+<pre class="block">bash &lt;(curl -fsSL https://dim.bot/install.sh)</pre>
+<p>The bootstrap selects and verifies the correct dios binary, installs it, and prints the next step.</p>
+<h3>Install DimOS on this machine</h3>
+<pre class="block">dios setup</pre>
+<p>This is the current Helm setup experience, retained and cleaned up. It works on a workstation or on a target because it installs DimOS on whichever machine runs the command.</p>
+<p>Existing choices remain:</p>
+<pre class="block">dios setup --mode library
+dios setup --mode dev</pre>
+<h3>Prepare a robot</h3>
+<pre class="block">dios seed unitree</pre>
+<p>dios loads the verified Unitree integration and opens the Unitree-owned wizard. The wizard:</p>
+<ol><li>discovers Unitree targets;</li><li>identifies the model and asks the operator to choose;</li><li>establishes access and performs Unitree-specific preparation;</li><li>installs or transfers dios to the target;</li><li>invokes the standard <code>dios setup</code> flow on the target;</li><li>performs Unitree-specific finishing work;</li><li>starts the correct headless blueprint as the final proof;</li><li>records the target and versions locally on the workstation.</li></ol>
+<p>Other manufacturers follow the same user journey through their own integrations.</p>
+<h3>Return to a known target</h3>
+<pre class="block">dios target list
+dios target show lab-g1</pre>
+<p>dios remembers target identity, previous addresses, manufacturer integration, installed versions, and the last seed result. A DHCP address change updates the known target rather than creating a new one.</p>
+<h2>User stories</h2>
+<h3>Install DimOS on a workstation</h3>
+<p>As a robotics engineer, I want to run <code>dios setup</code> on my workstation so that I can install and use DimOS without following a manual dependency guide.</p>
+<h3>Seed a new robot</h3>
+<p>As a deployment operator, I want to launch the robot manufacturer&#x27;s wizard so that I can discover, configure, and verify a target without knowing its IP address or internal setup steps.</p>
+<h3>Resume a failed setup</h3>
+<p>As an operator, I want to rerun a failed seed safely so that completed work is preserved and only unfinished or failed steps run again.</p>
+<h3>Return to a known target</h3>
+<p>As a robotics engineer, I want dios to recognize a previously seeded target after its IP address changes so that I can reconnect without scanning the network manually.</p>
+<h3>Automate routine deployment</h3>
+<p>As an automation agent, I want a non-interactive seed flow with structured failures so that I can complete routine work and clearly escalate decisions that require a person.</p>
+<h3>Build a manufacturer integration</h3>
+<p>As a manufacturer integration developer, I want to own my models, discovery logic, setup wizard, and final verification in a separate repository so that I can release changes without modifying dios core.</p>
+<h3>Diagnose a deployment</h3>
+<p>As a support engineer, I want to see which target was configured, which versions were used, which steps passed, and where a run stopped so that I can diagnose a failure without repeating the setup.</p>
+<h2>Commands</h2>
+<table><thead><tr><th>Command</th><th>Purpose</th></tr></thead><tbody><tr><td><code>dios setup</code></td><td>Install DimOS on the current machine.</td></tr><tr><td><code>dios doctor</code></td><td>Diagnose the current machine.</td></tr><tr><td><code>dios update</code></td><td>Update dios safely.</td></tr><tr><td><code>dios seed &lt;manufacturer&gt;</code></td><td>Launch that manufacturer&#x27;s robot wizard.</td></tr><tr><td><code>dios target list</code></td><td>List locally known targets.</td></tr><tr><td><code>dios target show &lt;name&gt;</code></td><td>Show target identity, addresses, versions, and last result.</td></tr><tr><td><code>dios target rename &lt;old&gt; &lt;new&gt;</code></td><td>Rename a target locally.</td></tr><tr><td><code>dios uninstall</code></td><td>Remove dios and choose whether to keep target history.</td></tr></tbody></table>
+<h2>Requirements</h2>
+<ol><li><strong>Preserve Helm behavior.</strong> <code>dios setup</code> retains current working setup behavior wherever it is</li></ol>
+<p>still correct. The work is a refactor, not a rewrite.</p>
+<ol><li><strong>Run anywhere supported.</strong> <code>dios setup</code> installs DimOS on a workstation or target using the same</li></ol>
+<p>core flow.</p>
+<ol><li><strong>Keep dios generic.</strong> dios core contains no Unitree, Go2, G1, or other manufacturer-specific</li></ol>
+<p>behavior.</p>
+<ol><li><strong>Manufacturer ownership.</strong> Each manufacturer repository owns its models, discovery, networking,</li></ol>
+<p>firmware rules, wizard screens, special setup, and final robot-specific proof.</p>
+<ol><li><strong>Verified integrations.</strong> A manufacturer integration resolves to an immutable version and</li></ol>
+<p>verified artifact before it runs.</p>
+<ol><li><strong>Review before mutation.</strong> The wizard shows the selected target, versions, and requested</li></ol>
+<p>permissions before making changes.</p>
+<ol><li><strong>Safe re-runs.</strong> Work whose proof already holds is skipped. Failed work can be retried.</li><li><strong>Real success.</strong> A robot is ready only after its intended headless blueprint runs successfully</li></ol>
+<p>for a bounded period.</p>
+<ol><li><strong>Local memory.</strong> Target identity and version information remain available with no internet.</li><li><strong>No secrets in history.</strong> Passwords and private keys never appear in local target records,</li></ol>
+<p>logs, or command arguments.</p>
+<ol><li><strong>Agent-safe behavior.</strong> Agent mode never prompts or guesses; it reports when a human decision</li></ol>
+<p>is required.</p>
+<ol><li><strong>Physical safety.</strong> No setup or version check may stop a robot already performing physical</li></ol>
+<p>work.</p>
+<h2>Issues</h2>
+<p>The delivery plan is the ordered issue list below. Each issue is a product milestone: it should leave the user with a complete new capability that can be demonstrated and accepted.</p>
+<h3>Issue 1 — Refactor Helm into <code>dios setup</code></h3>
+<p>Preserve the existing user journey while making the setup engine cleanly reusable on both workstations and targets. This is a standalone product milestone, not merely supporting work for robot seeding.</p>
+<p><strong>Success criteria</strong></p>
+<ul><li><code>dios setup</code> installs DimOS on a supported workstation.</li><li>Library and development modes retain their current working behavior.</li><li>The same setup flow can run unattended on a target.</li><li>Existing Helm users have a documented migration path.</li></ul>
+<h3>Issue 2 — Define the manufacturer integration contract</h3>
+<p>Specify how dios finds, verifies, launches, and receives results from a manufacturer wizard.</p>
+<p><strong>Success criteria</strong></p>
+<ul><li>An integration declares its name, version, models, permissions, and wizard entry point.</li><li>dios verifies an integration before launching it.</li><li>Interactive, unattended, and agent modes have defined behavior.</li><li>A sample integration completes the contract without manufacturer logic in dios core.</li></ul>
+<h3>Issue 3 — Build the Unitree wizard</h3>
+<p>Create the Unitree integration repository and move Unitree models, discovery, network preparation, setup steps, and wizard UX into it.</p>
+<p><strong>Success criteria</strong></p>
+<ul><li><code>dios seed unitree</code> opens the Unitree-owned wizard.</li><li>The wizard discovers and distinguishes supported Unitree targets.</li><li>It prepares a target and invokes the standard <code>dios setup</code> flow on it.</li><li>Unitree-specific code and model names no longer live in dios core.</li></ul>
+<h3>Issue 4 — Add local target history</h3>
+<p>Support <code>target list</code>, <code>target show</code>, rename, address refresh, and installed-version display.</p>
+<p><strong>Success criteria</strong></p>
+<ul><li>A seeded target appears in <code>dios target list</code>.</li><li><code>dios target show</code> displays identity, addresses, integration, versions, and last outcome.</li><li>An address change updates the existing target instead of creating a duplicate.</li><li>Target history remains usable without internet access.</li></ul>
+<h3>Issue 5 — Prove the complete journey on hardware</h3>
+<p>Install DimOS on a workstation. Then seed a clean G1, pass the headless blueprint test, repeat with no unnecessary changes, reboot, and rediscover it.</p>
+<p><strong>Success criteria</strong></p>
+<ul><li>A new operator completes the documented workstation installation.</li><li>A clean G1 reaches a running blueprint without undocumented commands.</li><li>A second seed changes nothing already proven correct.</li><li>After reboot or DHCP change, the workstation finds the same target again.</li></ul>
+<h2>Success criteria</h2>
+<ul><li>A first-time operator installs dios with one documented command.</li><li>A user installs and verifies DimOS on a supported workstation using only <code>dios setup</code>.</li><li>The workstation setup experience is complete without a robot or manufacturer integration.</li><li>A manufacturer wizard uses the same setup engine on its target.</li><li>A fresh G1 reaches a running blueprint without undocumented commands.</li><li>A second run changes nothing already proven correct.</li><li>The workstation recognizes the same target after its address changes.</li><li>Adding a manufacturer does not add manufacturer logic to dios core.</li></ul>
+<h2>Non-goals</h2>
+<ul><li>Cloud databases or fleet dashboards</li><li>Accounts and organisations</li><li>Licensing</li><li>Cross-workstation synchronization</li><li>Remote telemetry</li><li>Automatic robot updates</li><li>Replacing a manufacturer&#x27;s operating system</li></ul>
+<h2>Open questions</h2>
+<ul><li>Final syntax: <code>dios seed unitree</code> or <code>dios unitree seed</code>?</li><li>How are manufacturer integrations named and indexed?</li><li>Does an integration ship as an executable, script bundle, or formal plugin?</li><li>Which generic connection operations belong in dios versus a shared integration SDK?</li><li>How does the existing <code>dios infect</code> command migrate to the new experience?</li></ul>
+<hr>
+<h2>Appendices</h2>
+<h3>A1 — Key architecture decisions requiring team input</h3>
+<p>The following decisions should be reviewed with the DimOS and manufacturer-integration owners before implementation:</p>
+<ol><li><strong>Two equal dios capabilities.</strong> <code>dios setup</code> is the standalone DimOS installer for the current</li></ol>
+<p>machine. <code>dios seed &lt;manufacturer&gt;</code> launches a robot wizard that reuses setup on its target.</p>
+<ol><li><strong>One repository per manufacturer.</strong> Unitree models and the complete Unitree wizard live in a</li></ol>
+<p>Unitree repository. Other manufacturers follow the same pattern.</p>
+<ol><li><strong>Generic core.</strong> dios core contains no manufacturer models, firmware rules, discovery probes,</li></ol>
+<p>or wizard-specific screens.</p>
+<ol><li><strong>Manufacturer ownership.</strong> Each manufacturer repository owns discovery, target selection,</li></ol>
+<p>network bring-up, manufacturer-specific requirements, and the final robot proof.</p>
+<ol><li><strong>One setup engine.</strong> Manufacturer wizards prepare a target and invoke <code>dios setup</code>; they do not</li></ol>
+<p>create a second DimOS installer.</p>
+<ol><li><strong>Local state for this phase.</strong> Target identity, addresses, versions, and run history are stored</li></ol>
+<p>locally. Cloud services and licensing are outside this PRD.</p>
+<ol><li><strong>ROS2-style dependency declarations for every DimOS package.</strong> Each DimOS package or module</li></ol>
+<p>declares what it needs in a checked-in manifest, similar to ROS2&#x27;s <code>package.xml</code>. dios aggregates these declarations for setup. This changes every package and the release process, so the team must agree on the ownership model, file format, required fields, and migration plan before the contract is fixed.</p>
+<h3>A2 — Major decision: ROS2-style package dependency manifests</h3>
+<p><strong>Decision status: team input required.</strong> This is not only a dios implementation choice. It changes how every DimOS package declares dependencies, how a DimOS release is assembled, how manufacturer integrations request capabilities, and eventually how <code>dimos run</code> prepares a blueprint.</p>
+<p>Today DimOS has no single source of truth for dependencies. Python feature sets are declared as extras in <code>pyproject.toml</code>, while system and native packages are maintained separately in <code>flake.nix</code> and installer code. These lists can drift.</p>
+<p>The recommended model copies ROS2&#x27;s separation between package declarations and <code>rosdep</code> mappings:</p>
+<ol><li><strong>Every DimOS runtime module declares logical package IDs.</strong> A blueprint can therefore list its</li></ol>
+<p>needs before importing or starting modules.</p>
+<ol><li><strong>Every logical package owns a <code>dimos.package.toml</code>.</strong> This is the source of truth for its direct</li></ol>
+<p>Python dependencies and abstract system-dependency keys. Package authors do not write install commands.</p>
+<ol><li><strong>One reviewed dependency catalog maps abstract keys to providers.</strong> For example,</li></ol>
+<p><code>opengl.runtime</code> maps to apt packages on Ubuntu, formulae on macOS, and Nix attributes under a pinned Nixpkgs revision. The catalog ships with and is pinned by each DimOS release.</p>
+<ol><li><strong>dios contains provider adapters, not package recipes.</strong> The adapters know how to query, compare,</li></ol>
+<p>install, and verify uv, apt/dpkg, Homebrew, and Nix packages. No module may inject arbitrary shell commands into setup.</p>
+<ol><li><strong>Release tooling aggregates and locks.</strong> CI collects every package manifest, validates every</li></ol>
+<p>dependency key on supported platforms, generates Python extras and the release dependency catalog, locks Python with uv, and pins Nixpkgs. A release fails if the graph conflicts or a supported platform has no mapping.</p>
+<ol><li><strong>Profiles select packages.</strong> A release-owned <code>standard</code> profile is installed by default.</li></ol>
+<p>Optional profiles such as <code>sim</code> are shown during setup. Manufacturer wizards add required or recommended package IDs without copying their dependency declarations.</p>
+<ol><li><strong>dios records a receipt.</strong> The receipt includes the DimOS release, selected profiles, package</li></ol>
+<p>manifests, catalog digest, lock digests, provider used, requested constraints, and versions actually observed.</p>
+<ol><li><strong><code>dimos run</code> performs preflight later.</strong> The blueprint registry exposes module package IDs before</li></ol>
+<p>importing them. <code>dimos run</code> asks dios to check the union. By default it prompts before installing; unattended execution fails with an exact remediation command unless installation was explicitly authorised.</p>
+<p>Illustrative package manifest:</p>
+<pre class="block">schema = 1
+package = &quot;dimos.simulation.mujoco&quot;
+
+[python]
+packages = [&quot;mujoco&gt;=3.3.4&quot;, &quot;playground&gt;=0.0.5&quot;, &quot;pygame&gt;=2.6.1&quot;]
+
+system = [&quot;opengl.runtime&quot;, &quot;egl.runtime&quot;]
+
+[[platform]]
+when = &quot;linux &amp;&amp; aarch64&quot;
+supported = false
+reason = &quot;Required simulation wheels are unavailable&quot;</pre>
+<p>Illustrative provider catalog entry:</p>
+<pre class="block">[dependency.&quot;opengl.runtime&quot;.apt.ubuntu.&quot;22.04&quot;]
+packages = [&quot;libgl1&quot;]
+
+[dependency.&quot;opengl.runtime&quot;.brew.macos]
+packages = []
+provided_by_os = true
+
+[dependency.&quot;opengl.runtime&quot;.nix]
+attributes = [&quot;libGL&quot;, &quot;mesa&quot;]</pre>
+<p>TOML is recommended over XML because both dios and DimOS already use TOML and it supports the required structured provider data cleanly. The architecture follows ROS2; it does not need to copy ROS2&#x27;s syntax.</p>
+<p>Version guarantees are provider-specific rather than pretending every package uses SemVer:</p>
+<ul><li><strong>Python:</strong> PEP 508 constraints in package manifests; exact resolution from the DimOS release&#x27;s</li></ul>
+<p><code>uv.lock</code>; installation with locked uv sync and verification with package metadata plus <code>uv pip check</code>.</p>
+<ul><li><strong>Nix:</strong> exact Nixpkgs and source revisions from <code>flake.lock</code>; verification by realised store path</li></ul>
+<p>and closure.</p>
+<ul><li><strong>apt/dpkg:</strong> package constraints use Debian&#x27;s native version ordering and installed versions from</li></ul>
+<p>dpkg. Exact reproduction additionally requires a pinned repository snapshot; without one, dios records the actual version and guarantees compatibility, not byte-for-byte identity.</p>
+<ul><li><strong>Homebrew:</strong> Homebrew is rolling and cannot generally install arbitrary historical versions.</li></ul>
+<p>Normal formulae therefore provide compatibility checks and an installation receipt, not exact replay. A dependency that truly requires an exact Homebrew version must use a maintained versioned formula or a Dimensional tap.</p>
+<ul><li><strong>Drivers, firmware, kernel modules, and vendor SDKs:</strong> these are host capabilities, not ordinary</li></ul>
+<p>user-space packages. They use explicit probes and manufacturer-owned rules and are never silently replaced by Nix or uv.</p>
+<p>The standard profile, selected optional profiles, manufacturer requirements, and later blueprint requirements are merged into one plan with provenance. Conflicting constraints fail before any machine is changed.</p>
+  </div>
+
+  <details>
+    <summary>Copy as Markdown</summary>
+    <div class="copywrap">
+      <button class="copy" type="button" data-target="md">Copy</button>
+      <pre id="md"># dios — Product Requirements
+
+**Status:** Draft  
+**Scope:** Installing DimOS on the current machine, manufacturer-owned robot wizards, and local target history  
+**Architecture:** [dios-architecture.md](dios-architecture.md)
+
+## Customer message
+
+**Install DimOS here with `dios setup`. Prepare a robot with `dios seed &lt;manufacturer&gt;`.**
+
+dios keeps the familiar Helm setup experience for any machine. Robot-specific discovery and setup
+live in separate manufacturer integrations, so each manufacturer can own its complete wizard.
+
+## Problem
+
+Installing DimOS and preparing a robot currently requires platform knowledge, setup guides,
+remembered addresses, and manufacturer-specific commands. A package installation can finish even
+when the robot cannot start a blueprint.
+
+Robot-specific knowledge also accumulates in the core installer. This makes the generic DimOS setup
+flow harder to maintain and forces every manufacturer change through the same repository.
+
+## Goals
+
+1. Preserve and refactor the existing Helm setup experience as `dios setup`.
+2. Allow DimOS to be installed directly on a workstation or any other supported machine.
+3. Give every manufacturer its own repository and setup wizard.
+4. Let a manufacturer wizard reuse the same `dios setup` engine on a target.
+5. Prove that a seeded target can start its intended blueprint.
+6. Remember target identity and installed versions locally on the workstation.
+
+## Product shape
+
+dios has two equally important capabilities:
+
+### Setup this machine
+
+```bash
+dios setup
+```
+
+Install and verify DimOS on the machine where dios is running. This is the direct successor to the
+existing Helm product and is a complete standalone experience. A user does not need a robot or a
+manufacturer integration to use it.
+
+### Seed a target
+
+```bash
+dios seed &lt;manufacturer&gt;
+```
+
+Launch a manufacturer-owned wizard that prepares a robot target. The wizard reuses `dios setup` on
+the target rather than implementing a second DimOS installer.
+
+Neither capability is secondary: setup serves local DimOS users directly and is also the reusable
+installation foundation used by seed.
+
+## User experience
+
+### Install dios
+
+```bash
+bash &lt;(curl -fsSL https://dim.bot/install.sh)
+```
+
+The bootstrap selects and verifies the correct dios binary, installs it, and prints the next step.
+
+### Install DimOS on this machine
+
+```bash
+dios setup
+```
+
+This is the current Helm setup experience, retained and cleaned up. It works on a workstation or on
+a target because it installs DimOS on whichever machine runs the command.
+
+Existing choices remain:
+
+```bash
+dios setup --mode library
+dios setup --mode dev
+```
+
+### Prepare a robot
+
+```bash
+dios seed unitree
+```
+
+dios loads the verified Unitree integration and opens the Unitree-owned wizard. The wizard:
+
+1. discovers Unitree targets;
+2. identifies the model and asks the operator to choose;
+3. establishes access and performs Unitree-specific preparation;
+4. installs or transfers dios to the target;
+5. invokes the standard `dios setup` flow on the target;
+6. performs Unitree-specific finishing work;
+7. starts the correct headless blueprint as the final proof;
+8. records the target and versions locally on the workstation.
+
+Other manufacturers follow the same user journey through their own integrations.
+
+### Return to a known target
+
+```bash
+dios target list
+dios target show lab-g1
+```
+
+dios remembers target identity, previous addresses, manufacturer integration, installed versions,
+and the last seed result. A DHCP address change updates the known target rather than creating a new
+one.
+
+## User stories
+
+### Install DimOS on a workstation
+
+As a robotics engineer, I want to run `dios setup` on my workstation so that I can install and use
+DimOS without following a manual dependency guide.
+
+### Seed a new robot
+
+As a deployment operator, I want to launch the robot manufacturer&#x27;s wizard so that I can discover,
+configure, and verify a target without knowing its IP address or internal setup steps.
+
+### Resume a failed setup
+
+As an operator, I want to rerun a failed seed safely so that completed work is preserved and only
+unfinished or failed steps run again.
+
+### Return to a known target
+
+As a robotics engineer, I want dios to recognize a previously seeded target after its IP address
+changes so that I can reconnect without scanning the network manually.
+
+### Automate routine deployment
+
+As an automation agent, I want a non-interactive seed flow with structured failures so that I can
+complete routine work and clearly escalate decisions that require a person.
+
+### Build a manufacturer integration
+
+As a manufacturer integration developer, I want to own my models, discovery logic, setup wizard,
+and final verification in a separate repository so that I can release changes without modifying
+dios core.
+
+### Diagnose a deployment
+
+As a support engineer, I want to see which target was configured, which versions were used, which
+steps passed, and where a run stopped so that I can diagnose a failure without repeating the setup.
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `dios setup` | Install DimOS on the current machine. |
+| `dios doctor` | Diagnose the current machine. |
+| `dios update` | Update dios safely. |
+| `dios seed &lt;manufacturer&gt;` | Launch that manufacturer&#x27;s robot wizard. |
+| `dios target list` | List locally known targets. |
+| `dios target show &lt;name&gt;` | Show target identity, addresses, versions, and last result. |
+| `dios target rename &lt;old&gt; &lt;new&gt;` | Rename a target locally. |
+| `dios uninstall` | Remove dios and choose whether to keep target history. |
+
+## Requirements
+
+1. **Preserve Helm behavior.** `dios setup` retains current working setup behavior wherever it is
+   still correct. The work is a refactor, not a rewrite.
+2. **Run anywhere supported.** `dios setup` installs DimOS on a workstation or target using the same
+   core flow.
+3. **Keep dios generic.** dios core contains no Unitree, Go2, G1, or other manufacturer-specific
+   behavior.
+4. **Manufacturer ownership.** Each manufacturer repository owns its models, discovery, networking,
+   firmware rules, wizard screens, special setup, and final robot-specific proof.
+5. **Verified integrations.** A manufacturer integration resolves to an immutable version and
+   verified artifact before it runs.
+6. **Review before mutation.** The wizard shows the selected target, versions, and requested
+   permissions before making changes.
+7. **Safe re-runs.** Work whose proof already holds is skipped. Failed work can be retried.
+8. **Real success.** A robot is ready only after its intended headless blueprint runs successfully
+   for a bounded period.
+9. **Local memory.** Target identity and version information remain available with no internet.
+10. **No secrets in history.** Passwords and private keys never appear in local target records,
+    logs, or command arguments.
+11. **Agent-safe behavior.** Agent mode never prompts or guesses; it reports when a human decision
+    is required.
+12. **Physical safety.** No setup or version check may stop a robot already performing physical
+    work.
+
+## Issues
+
+The delivery plan is the ordered issue list below. Each issue is a product milestone: it should leave
+the user with a complete new capability that can be demonstrated and accepted.
+
+### Issue 1 — Refactor Helm into `dios setup`
+
+Preserve the existing user journey while making the setup engine cleanly reusable on both
+workstations and targets. This is a standalone product milestone, not merely supporting work for
+robot seeding.
+
+**Success criteria**
+
+- `dios setup` installs DimOS on a supported workstation.
+- Library and development modes retain their current working behavior.
+- The same setup flow can run unattended on a target.
+- Existing Helm users have a documented migration path.
+
+### Issue 2 — Define the manufacturer integration contract
+
+Specify how dios finds, verifies, launches, and receives results from a manufacturer wizard.
+
+**Success criteria**
+
+- An integration declares its name, version, models, permissions, and wizard entry point.
+- dios verifies an integration before launching it.
+- Interactive, unattended, and agent modes have defined behavior.
+- A sample integration completes the contract without manufacturer logic in dios core.
+
+### Issue 3 — Build the Unitree wizard
+
+Create the Unitree integration repository and move Unitree models, discovery, network preparation,
+setup steps, and wizard UX into it.
+
+**Success criteria**
+
+- `dios seed unitree` opens the Unitree-owned wizard.
+- The wizard discovers and distinguishes supported Unitree targets.
+- It prepares a target and invokes the standard `dios setup` flow on it.
+- Unitree-specific code and model names no longer live in dios core.
+
+### Issue 4 — Add local target history
+
+Support `target list`, `target show`, rename, address refresh, and installed-version display.
+
+**Success criteria**
+
+- A seeded target appears in `dios target list`.
+- `dios target show` displays identity, addresses, integration, versions, and last outcome.
+- An address change updates the existing target instead of creating a duplicate.
+- Target history remains usable without internet access.
+
+### Issue 5 — Prove the complete journey on hardware
+
+Install DimOS on a workstation. Then seed a clean G1, pass the headless blueprint test, repeat with
+no unnecessary changes, reboot, and rediscover it.
+
+**Success criteria**
+
+- A new operator completes the documented workstation installation.
+- A clean G1 reaches a running blueprint without undocumented commands.
+- A second seed changes nothing already proven correct.
+- After reboot or DHCP change, the workstation finds the same target again.
+
+## Success criteria
+
+- A first-time operator installs dios with one documented command.
+- A user installs and verifies DimOS on a supported workstation using only `dios setup`.
+- The workstation setup experience is complete without a robot or manufacturer integration.
+- A manufacturer wizard uses the same setup engine on its target.
+- A fresh G1 reaches a running blueprint without undocumented commands.
+- A second run changes nothing already proven correct.
+- The workstation recognizes the same target after its address changes.
+- Adding a manufacturer does not add manufacturer logic to dios core.
+
+## Non-goals
+
+- Cloud databases or fleet dashboards
+- Accounts and organisations
+- Licensing
+- Cross-workstation synchronization
+- Remote telemetry
+- Automatic robot updates
+- Replacing a manufacturer&#x27;s operating system
+
+## Open questions
+
+- Final syntax: `dios seed unitree` or `dios unitree seed`?
+- How are manufacturer integrations named and indexed?
+- Does an integration ship as an executable, script bundle, or formal plugin?
+- Which generic connection operations belong in dios versus a shared integration SDK?
+- How does the existing `dios infect` command migrate to the new experience?
+
+---
+
+## Appendices
+
+### A1 — Key architecture decisions requiring team input
+
+The following decisions should be reviewed with the DimOS and manufacturer-integration owners before
+implementation:
+
+1. **Two equal dios capabilities.** `dios setup` is the standalone DimOS installer for the current
+   machine. `dios seed &lt;manufacturer&gt;` launches a robot wizard that reuses setup on its target.
+2. **One repository per manufacturer.** Unitree models and the complete Unitree wizard live in a
+   Unitree repository. Other manufacturers follow the same pattern.
+3. **Generic core.** dios core contains no manufacturer models, firmware rules, discovery probes,
+   or wizard-specific screens.
+4. **Manufacturer ownership.** Each manufacturer repository owns discovery, target selection,
+   network bring-up, manufacturer-specific requirements, and the final robot proof.
+5. **One setup engine.** Manufacturer wizards prepare a target and invoke `dios setup`; they do not
+   create a second DimOS installer.
+6. **Local state for this phase.** Target identity, addresses, versions, and run history are stored
+   locally. Cloud services and licensing are outside this PRD.
+7. **ROS2-style dependency declarations for every DimOS package.** Each DimOS package or module
+   declares what it needs in a checked-in manifest, similar to ROS2&#x27;s `package.xml`. dios aggregates
+   these declarations for setup. This changes every package and the release process, so the team
+   must agree on the ownership model, file format, required fields, and migration plan before the
+   contract is fixed.
+
+### A2 — Major decision: ROS2-style package dependency manifests
+
+**Decision status: team input required.** This is not only a dios implementation choice. It changes
+how every DimOS package declares dependencies, how a DimOS release is assembled, how manufacturer
+integrations request capabilities, and eventually how `dimos run` prepares a blueprint.
+
+Today DimOS has no single source of truth for dependencies. Python feature sets are declared as
+extras in `pyproject.toml`, while system and native packages are maintained separately in
+`flake.nix` and installer code. These lists can drift.
+
+The recommended model copies ROS2&#x27;s separation between package declarations and `rosdep` mappings:
+
+1. **Every DimOS runtime module declares logical package IDs.** A blueprint can therefore list its
+   needs before importing or starting modules.
+2. **Every logical package owns a `dimos.package.toml`.** This is the source of truth for its direct
+   Python dependencies and abstract system-dependency keys. Package authors do not write install
+   commands.
+3. **One reviewed dependency catalog maps abstract keys to providers.** For example,
+   `opengl.runtime` maps to apt packages on Ubuntu, formulae on macOS, and Nix attributes under a
+   pinned Nixpkgs revision. The catalog ships with and is pinned by each DimOS release.
+4. **dios contains provider adapters, not package recipes.** The adapters know how to query, compare,
+   install, and verify uv, apt/dpkg, Homebrew, and Nix packages. No module may inject arbitrary
+   shell commands into setup.
+5. **Release tooling aggregates and locks.** CI collects every package manifest, validates every
+   dependency key on supported platforms, generates Python extras and the release dependency
+   catalog, locks Python with uv, and pins Nixpkgs. A release fails if the graph conflicts or a
+   supported platform has no mapping.
+6. **Profiles select packages.** A release-owned `standard` profile is installed by default.
+   Optional profiles such as `sim` are shown during setup. Manufacturer wizards add required or
+   recommended package IDs without copying their dependency declarations.
+7. **dios records a receipt.** The receipt includes the DimOS release, selected profiles, package
+   manifests, catalog digest, lock digests, provider used, requested constraints, and versions
+   actually observed.
+8. **`dimos run` performs preflight later.** The blueprint registry exposes module package IDs before
+   importing them. `dimos run` asks dios to check the union. By default it prompts before installing;
+   unattended execution fails with an exact remediation command unless installation was explicitly
+   authorised.
+
+Illustrative package manifest:
+
+```toml
+schema = 1
+package = &quot;dimos.simulation.mujoco&quot;
+
+[python]
+packages = [&quot;mujoco&gt;=3.3.4&quot;, &quot;playground&gt;=0.0.5&quot;, &quot;pygame&gt;=2.6.1&quot;]
+
+system = [&quot;opengl.runtime&quot;, &quot;egl.runtime&quot;]
+
+[[platform]]
+when = &quot;linux &amp;&amp; aarch64&quot;
+supported = false
+reason = &quot;Required simulation wheels are unavailable&quot;
+```
+
+Illustrative provider catalog entry:
+
+```toml
+[dependency.&quot;opengl.runtime&quot;.apt.ubuntu.&quot;22.04&quot;]
+packages = [&quot;libgl1&quot;]
+
+[dependency.&quot;opengl.runtime&quot;.brew.macos]
+packages = []
+provided_by_os = true
+
+[dependency.&quot;opengl.runtime&quot;.nix]
+attributes = [&quot;libGL&quot;, &quot;mesa&quot;]
+```
+
+TOML is recommended over XML because both dios and DimOS already use TOML and it supports the
+required structured provider data cleanly. The architecture follows ROS2; it does not need to copy
+ROS2&#x27;s syntax.
+
+Version guarantees are provider-specific rather than pretending every package uses SemVer:
+
+- **Python:** PEP 508 constraints in package manifests; exact resolution from the DimOS release&#x27;s
+  `uv.lock`; installation with locked uv sync and verification with package metadata plus
+  `uv pip check`.
+- **Nix:** exact Nixpkgs and source revisions from `flake.lock`; verification by realised store path
+  and closure.
+- **apt/dpkg:** package constraints use Debian&#x27;s native version ordering and installed versions from
+  dpkg. Exact reproduction additionally requires a pinned repository snapshot; without one, dios
+  records the actual version and guarantees compatibility, not byte-for-byte identity.
+- **Homebrew:** Homebrew is rolling and cannot generally install arbitrary historical versions.
+  Normal formulae therefore provide compatibility checks and an installation receipt, not exact
+  replay. A dependency that truly requires an exact Homebrew version must use a maintained
+  versioned formula or a Dimensional tap.
+- **Drivers, firmware, kernel modules, and vendor SDKs:** these are host capabilities, not ordinary
+  user-space packages. They use explicit probes and manufacturer-owned rules and are never silently
+  replaced by Nix or uv.
+
+The standard profile, selected optional profiles, manufacturer requirements, and later blueprint
+requirements are merged into one plan with provenance. Conflicting constraints fail before any
+machine is changed.
+</pre>
+    </div>
+  </details>
+</div>
+
+<script>
+document.querySelectorAll("button.copy").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var text = document.getElementById(btn.dataset.target).textContent;
+    var done = function (label) {
+      btn.textContent = label; btn.dataset.done = "1";
+      setTimeout(function () { btn.textContent = "Copy"; btn.dataset.done = "0"; }, 1800);
+    };
+    // the clipboard API is often blocked inside the artifact frame, so keep a fallback
+    var fallback = function () {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", "");
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      done(ok ? "Copied" : "Press \u2318C");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done("Copied"); }, fallback);
+    } else { fallback(); }
+  });
+});
+</script>

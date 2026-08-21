@@ -1,0 +1,256 @@
+<title>dios — the full plan</title>
+<style>
+  :root {
+    --ground:#f7f6f3; --raised:#fff; --sunk:#edebe7;
+    --ink:#17181a; --ink2:#4a4d52; --steel:#6c7076; --rule:#dbd8d2;
+    --bios:#1f5f7a; --bios-bg:#e3eff3;
+    --inf:#8a4a12; --inf-bg:#f7ece0;
+    --ok:#2b6a4a; --ok-bg:#e5efe9; --no:#96271f; --no-bg:#f8e8e6;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#141517; --raised:#1b1d20; --sunk:#0f1113;
+    --ink:#e7e8ea; --ink2:#a9adb2; --steel:#878c92; --rule:#2c3033;
+    --bios:#6fb8d4; --bios-bg:#12262e; --inf:#e0954f; --inf-bg:#2b1e11;
+    --ok:#6cb98f; --ok-bg:#13251c; --no:#e0776d; --no-bg:#2c1715;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#141517; --raised:#1b1d20; --sunk:#0f1113;
+    --ink:#e7e8ea; --ink2:#a9adb2; --steel:#878c92; --rule:#2c3033;
+    --bios:#6fb8d4; --bios-bg:#12262e; --inf:#e0954f; --inf-bg:#2b1e11;
+    --ok:#6cb98f; --ok-bg:#13251c; --no:#e0776d; --no-bg:#2c1715;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;
+       line-height:1.65;margin:0;padding:3rem 1.25rem 6rem;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:56rem;margin:0 auto;display:flex;flex-direction:column;gap:3rem}
+  header{display:flex;flex-direction:column;gap:.7rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--steel)}
+  h1{font-size:2.1rem;line-height:1.12;margin:0;letter-spacing:-.022em;text-wrap:balance}
+  .lede{color:var(--ink2);margin:0;max-width:44rem}
+  section{display:flex;flex-direction:column;gap:1rem}
+  h2{font-size:1.18rem;margin:0;letter-spacing:-.012em;padding-bottom:.5rem;border-bottom:1px solid var(--rule)}
+  h3{font-size:.97rem;margin:.5rem 0 0}
+  p{margin:0;color:var(--ink2)}
+  code{font-family:var(--mono);font-size:.855em;background:var(--sunk);padding:.1em .35em;border-radius:3px}
+  pre{font-family:var(--mono);font-size:.775rem;line-height:1.55;background:var(--sunk);color:var(--ink);
+      border:1px solid var(--rule);border-radius:4px;padding:.85rem 1rem;margin:0;overflow-x:auto}
+  pre b{color:var(--ok);font-weight:600}
+  pre i{color:var(--steel);font-style:normal}
+  pre .h{color:var(--bios);font-weight:600}
+  pre .n{color:var(--inf);font-weight:600}
+  pre .x{color:var(--no);font-weight:600}
+  .scroll{overflow-x:auto}
+  .gloss{font-size:.88rem;color:var(--ink2);border-left:2px solid var(--rule);padding:.1rem 0 .1rem .8rem;margin-top:-.35rem}
+  .note{border-left:2px solid var(--inf);background:var(--inf-bg);padding:.7rem .9rem;border-radius:0 4px 4px 0;font-size:.9rem}
+  .note.stop{border-left-color:var(--no);background:var(--no-bg)}
+  .note.good{border-left-color:var(--ok);background:var(--ok-bg)}
+  .note.bios{border-left-color:var(--bios);background:var(--bios-bg)}
+  .note b{display:block;margin-bottom:.15rem}
+  table{border-collapse:collapse;width:100%;font-size:.85rem}
+  th,td{text-align:left;padding:.42rem .6rem;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);font-weight:500}
+  td:first-child{font-family:var(--mono);font-size:.79rem}
+  ul.p{margin:0;padding-left:1.15rem;color:var(--ink2);display:flex;flex-direction:column;gap:.35rem;font-size:.91rem}
+  ul.p b{color:var(--ink);font-weight:600}
+  ol.p{margin:0;padding-left:1.3rem;color:var(--ink2);display:flex;flex-direction:column;gap:.5rem;font-size:.91rem}
+  ol.p b{color:var(--ink);font-weight:600}
+  footer{color:var(--steel);font-size:.82rem;border-top:1px solid var(--rule);padding-top:1rem}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Full plan · 2026-08-10</div>
+  <h1>dios</h1>
+  <p class="lede">One repo, one binary. The package manager and the robot provisioner stop being two products. Plus the thing that actually decides the architecture: shipping to China, where the URLs everything depends on do not resolve.</p>
+</header>
+
+<section>
+  <h2>One binary</h2>
+  <p>The command becomes <code>dios</code>, and infect folds into the same repo as a subcommand tree rather than a second product.</p>
+  <div class="scroll">
+  <pre><span class="h">dios setup</span>                  install dimos on THIS machine        <i>the package manager</i>
+<span class="h">dios install &lt;pkg&gt;</span>          add a package
+<span class="h">dios doctor [--json]</span>        what is this machine, what is wrong
+<span class="h">dios config · log · self</span>    settings, history, self-update
+
+<span class="n">dios infect</span>                 set up a ROBOT                        <i>the provisioner</i>
+<span class="n">dios infect scan</span>            find robots on usb/bt/wifi/ethernet
+<span class="n">dios recipe {new,list,show,test,add,remove}</span></pre>
+  </div>
+  <p>The boundary that took a day to draw does not change — it stops being a repo boundary and becomes a module boundary. <code>src/pkg/</code> knows platforms and may never mention a robot; <code>src/infect/</code> knows robots and calls into <code>pkg</code> the way it used to shell out to a second binary.</p>
+  <div class="note bios">
+    <b>What we lose, honestly.</b>
+    Two repos enforced the boundary — infect could only reach helm through a CLI contract, so a leak was a compile error. In one repo, nothing stops <code>pkg</code> importing something from <code>infect</code> except discipline. Replace the enforcement with a test: assert that no module under <code>src/pkg/</code> references <code>infect</code>, and fail the build if it does. Cheap, and it keeps the property that mattered.
+  </div>
+  <p>Against that, the merge buys real things: one install, one version, one release, no cross-repo contract drift — which the review named as the top long-term risk — and no way for the two halves to disagree about JSON they both know at compile time.</p>
+</section>
+
+<section>
+  <h2>The G1, reliably</h2>
+  <p>The target: a fresh G1 out of the box to <code>dimos run unitree-g1</code>, with one command and two prompts. Every step below is a line from Krishna's guide with a machine-checkable proof attached.</p>
+  <div class="scroll">
+  <pre>$ <span class="n">dios infect</span>
+                                                          <i>PROOF THAT IT WORKED</i>
+  scan             wired carrier on enp0s31f6             carrier == 1
+  match            unitree-g1, score 90                   ping .164 + ~/g1plus_pc4_unitree_install
+  confirm          "this looks like a G1" [Y/n]           ← you
+  params           office wifi name + password            ← you
+  ─────────────────────────────────────────────────────────────────────────────
+  1 network        laptop takes 192.168.123.100/24        ping .164 answers
+  2 ssh            key installed for unitree@.164         ssh true, no password
+  3 wifi           explicit wpa-psk profile               hostname -I shows 10.0.0.x
+    (prove untethered ssh BEFORE the cable comes out — a failure here must not lock us out)
+  4 jetson-perf    nvpmodel -m 0 + jetson_clocks          nvpmodel -q says MAXN
+  5 git transport  https instead of ssh for github        git config --get returns it
+  6 cyclonedds     build 0.10.x from source (~15 min)     ~/cyclonedds/install exists
+  ─────────────────────────────────────────────────────────────────────────────
+  7 <span class="h">dios setup</span>     --non-interactive --mode dev           exit 0, and doctor reports
+                   --extras unitree                       zero blockers
+  ─────────────────────────────────────────────────────────────────────────────
+  8 unitree-py     sdk2py + numpy&lt;2 into the venv         import unitree_sdk2py in a FRESH shell
+  9 config         blueprint + transport written          dimos run works with no arguments
+
+  Done. Controller in hand and a gantry before first stand.</pre>
+  </div>
+  <p>Three details in there are the difference between working and not, and all three come from the guide rather than from theory. The wifi step must write an explicit <code>wpa-psk</code> profile, because <code>nmcli device wifi connect</code> fails on 20.04 with <em>Secrets were required (7)</em> — the WPA3 handshake breaks against that wpa_supplicant. Step 3 proves untethered ssh <em>before</em> you unplug, so a failure cannot strand you. And step 8 must run after step 7 and verify in a fresh shell, because the Python bindings need the venv <code>dios setup</code> creates, and <code>CYCLONEDDS_HOME</code> is exported after the installer's own check.</p>
+  <div class="note stop">
+    <b>The cheap question that invalidates everything, and is still unanswered.</b>
+    The G1 prints a <code>ros:foxy(1) noetic(2)</code> selector on login. If that is not guarded on interactivity, every non-interactive ssh step hangs and the whole verb layer is wrong. One <code>ssh unitree@10.0.0.190 'echo hi'</code> settles it. Do this before writing another line of the G1 path.
+  </div>
+</section>
+
+<section>
+  <h2>Orin and Nano</h2>
+  <p>These are boards, not robots, so they are a <code>dios setup</code> problem rather than an infect problem — nothing needs identifying or reaching. What varies is entirely platform, which is exactly what the package manager is for.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Board</th><th>JetPack</th><th>Ubuntu · glibc</th><th>What breaks</th></tr></thead>
+    <tbody>
+      <tr><td>Jetson Nano</td><td>4.x</td><td>18.04 · 2.27</td><td>below almost every manylinux floor; dropped by JetPack 5+. Must degrade with a clear message, not crash or half-install</td></tr>
+      <tr><td>Orin Nano</td><td>6</td><td>22.04 · 2.35</td><td>clears the wheel floors. CUDA 12 from JetPack, not from a wheel</td></tr>
+      <tr><td>AGX Orin</td><td>6</td><td>22.04 · 2.35</td><td>same as Orin Nano, more RAM</td></tr>
+      <tr><td>Orin NX (the G1)</td><td>5.1.1</td><td>20.04 · 2.31</td><td>the measured reference. Below the 2.34 floor, so <code>unitree</code> and <code>base</code> get excluded and a substitution carries the driver</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The work is not per-board code. It is making <code>doctor</code> honest on each — that a Nano is told plainly it is too old rather than being handed an install that fails at import, and that CUDA is reported from <code>/etc/nv_tegra_release</code> plus <code>nvcc</code> when <code>nvidia-smi</code> does not exist. Both already landed. What is missing is a fixture per board asserting the decision, which the test matrix has written.</p>
+</section>
+
+<section>
+  <h2>China — the problem that decides the architecture</h2>
+  <p>A fresh install reaches out to six places, and in China roughly all of them are slow, throttled, or gone.</p>
+  <div class="scroll">
+  <pre>archive.ubuntu.com      apt: portaudio, git-lfs, libturbojpeg, build tools
+pypi.org                every Python wheel — gigabytes, and the long pole
+github.com              dimos itself, CycloneDDS source, the Unitree SDK
+nixos.org               the Nix installer
+cache.nixos.org         every prebuilt Nix path
+R2 / ghcr.io            the dios binary, container images</pre>
+  </div>
+
+  <h3>Two answers, and you want both</h3>
+  <p><b>Mirrors handle the ordinary case.</b> This is what every engineer in China already does, and it is a configuration change rather than an architecture:</p>
+  <div class="scroll">
+  <pre>apt    mirrors.tuna.tsinghua.edu.cn/ubuntu          <i>or aliyun, ustc</i>
+pip    pypi.tuna.tsinghua.edu.cn/simple
+nix    mirrors.tuna.tsinghua.edu.cn/nix-channels/store  <i>as a substituter</i></pre>
+  </div>
+  <p>So <code>dios setup --region cn</code> rewrites sources before the first fetch. Cheap, boring, and it turns a two-hour install into a normal one. Do this first.</p>
+
+  <p><b>An offline bundle handles the real case</b> — the customer site with no useful internet, the demo, the shipment. And the mechanism already exists in the codebase, built for a different reason.</p>
+  <div class="scroll">
+  <pre><i># helm already does this — docker.rs, the DIMOSPAK payload</i>
+[ELF binary][zstd-compressed tar][u64 size LE][DIMOSPAK]
+      ↑                ↑
+   the dios CLI    a complete DimOS image
+
+run/pack_docker &lt;dios-binary&gt; &lt;image&gt;  →  one file, no registry, no network</pre>
+  </div>
+  <p class="gloss">A binary with an image glued to its tail. It reads its own file at startup, finds the marker, and installs from the payload. I described this earlier as being for air-gapped robots — China is that same case, and this is already written and shipping. What it needs is to become a supported release artifact rather than a manual script nobody runs.</p>
+</section>
+
+<section>
+  <h2>Is Nix the answer? Partly, and the honest part matters</h2>
+  <p>Nix's model is precisely "fully compiled binaries, addressed by hash". A binary cache serves prebuilt store paths, and <code>nix copy</code> exports a complete closure to a file you can carry onto a plane. For everything native, that is exactly the thing you asked for.</p>
+  <div class="scroll">
+  <pre><i># on a machine with internet</i>
+nix copy --to file:///media/usb/store .#dimos-native-closure
+
+<i># on the robot, offline</i>
+nix copy --from file:///media/usb/store --all</pre>
+  </div>
+  <p>But it does not cover the part that is actually gigabytes.</p>
+
+  <h3>Where Nix stops</h3>
+  <ul class="p">
+    <li><b>The Python ML stack is not in Nix, and putting it there is a project.</b> torch, ultralytics, transformers on aarch64 with CUDA — nixpkgs' story here is weak, and dimos gets them from PyPI through uv. This is the reason "go fully Nix-heavy" does not close, and it is not a small gap: it is most of the install by volume.</li>
+    <li><b>Disk.</b> Measured: 1.1 GB on the robot after one install, 59 GB on this laptop after months. The store never collects garbage by itself, so a long-lived robot grows until it stops. A GC job is not optional.</li>
+    <li><b>Root to bootstrap.</b> Creating <code>/nix</code> needs it. Nix concentrates the sudo requirement into one early step rather than removing it.</li>
+    <li><b>A cold build on a Jetson is brutal.</b> If the cache lacks your derivation you compile from source, and that is where <code>g++: fatal error: Killed signal terminated program cc1plus</code> comes from.</li>
+    <li><b>It does not manage system state.</b> No systemd units, no <code>/etc</code>, no env vars — on Ubuntu it builds into a store and stops. <code>CYCLONEDDS_HOME</code> stays the installer's job forever.</li>
+  </ul>
+
+  <h3>On hot-loading, since you asked</h3>
+  <p>Nix is better than apt at the thing people usually mean and worse at the thing you probably mean.</p>
+  <p>Switching profiles is <b>atomic</b>: a new generation is built, then one symlink flips. There is no window where half the packages are upgraded, and rollback is flipping it back. That is strictly better than dpkg unpacking files over a running system.</p>
+  <p>What is genuinely hard is <b>partial and incremental</b> change. You get whole closures, not one swapped library. A running process holds its old store paths open — which is a feature, since nothing breaks mid-run — but it means picking up a change requires a restart. And you cannot add a dependency into a live environment the way <code>uv pip install</code> can.</p>
+  <div class="note stop">
+    <b>The tension worth naming before committing.</b>
+    We designed <em>dependencies install on run</em> — a blueprint hits <code>ModuleNotFoundError</code>, fetches the extra it needs, retries. That is a dynamic, incremental model. Nix is a static, whole-closure model. They pull in opposite directions, and "very Nix heavy" quietly means giving up on-run installation for anything Nix owns.
+  </div>
+  <p class="gloss">The resolution is the split that already exists in dimos, and it is the right one: <b>Nix owns native modules</b>, where closures are small, builds are expensive and reproducibility is worth everything — fourteen modules already declare a Nix build. <b>uv owns Python</b>, where the graph is huge, changes are frequent, and on-run installation is the feature. China does not change that boundary; it changes how each side is <em>delivered</em> — a mirror or a closure for Nix, a mirror or a wheelhouse for Python.</p>
+  <div class="scroll">
+  <pre>PYTHON, offline:   pip download -d wheelhouse/ 'dimos[unitree]'
+                   pip install --no-index --find-links wheelhouse/ 'dimos[unitree]'
+                   <i>a directory of wheels, carried like a Nix closure</i></pre>
+  </div>
+</section>
+
+<section>
+  <h2>The scanner</h2>
+  <p>Going into todos rather than the build, because it is the natural front door and it wants the transport work underneath it first.</p>
+  <div class="scroll">
+  <pre>$ <span class="n">dios infect scan</span>
+  usb        Jetson at 192.168.55.1                  l4t device mode
+  ethernet   carrier on enp0s31f6, 192.168.123.164   two jacks, this is the live one
+  wifi       unitree-go2 · port 9991 open · 10.0.0.213
+  bluetooth  GO2_1581 advertising                     Go2 pairs over BLE first
+
+  2 candidates. [1] unitree-g1 (wired)  [2] unitree-go2 (wifi)</pre>
+  </div>
+  <p>Each transport is a read-only probe over an existing surface: link carrier plus a subnet sweep for ethernet, <code>usb0</code>/<code>l4tbr0</code> and <code>192.168.55.1</code> for USB, mDNS and a port sweep for wifi, and a BLE advertisement scan for Bluetooth — which matters because a fresh Go2 announces itself over BLE before it is on any network at all. The recipes already declare what to look for; scan is that vocabulary run without a target in mind.</p>
+</section>
+
+<section>
+  <h2>Order</h2>
+  <ol class="p">
+    <li><b>Settle the G1 login shell.</b> One ssh command. It invalidates the verb layer if it goes the wrong way, and everything else assumes it.</li>
+    <li><b>Rename to <code>dios</code> and merge the repos.</b> Do it before more code accretes, and add the test that forbids <code>pkg</code> from referencing <code>infect</code>.</li>
+    <li><b><code>--region cn</code>.</b> Mirror rewriting for apt, pip and Nix. Small, and it is the difference between usable and not for a whole office.</li>
+    <li><b>The G1 end to end</b>, against the fake-Jetson container first, then the real robot. This is the reliability goal.</li>
+    <li><b>Record real facts.</b> <code>dios infect probe --record</code> on the G1 — read-only, and it converts every fixture from an assertion about a document into one about a robot.</li>
+    <li><b>The offline bundle</b> as a real release artifact: the DIMOSPAK payload plus a Python wheelhouse plus a Nix closure, produced by CI rather than by a script someone remembers.</li>
+    <li><b>Orin and Nano fixtures</b>, then a real board when one is free.</li>
+    <li><b>The scanner</b>, once transports exist.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Open</h2>
+  <ul class="p">
+    <li><b>Does the G1 login selector hang a non-interactive ssh?</b> Unanswered, cheap, and load-bearing.</li>
+    <li><b>Whose tailnet.</b> Still unresolved, so Tailscale stays opt-in.</li>
+    <li><b>go2web's build and fetch story.</b> <code>dimensionalOS/go2web</code> is private and unread from here; <code>payload.deliver</code> needs it.</li>
+    <li><b>Which mirror.</b> Tsinghua, Aliyun and USTC all work; the Shenzhen office may already have a preference, and matching it beats picking one.</li>
+    <li><b>Is there an internal binary cache?</b> If Dimensional runs one, <code>--region cn</code> becomes pointing at it rather than at a public mirror, and that is strictly better.</li>
+  </ul>
+</section>
+
+<footer>
+  Written against dimos-bios at <code>8e7e80d</code> (11 stack layers on main, 51 tests) and dimos-infect (96 tests). Nix sizes measured on this laptop and on the G1. The robot has been offline since 2026-08-07, so nothing in the G1 section has been re-verified since.
+</footer>
+
+</div>
