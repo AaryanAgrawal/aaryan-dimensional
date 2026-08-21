@@ -83,7 +83,7 @@ Next actions.
 | The repos being worked on | `workspace/` — `dimos` (upstream + Aaryan's fork; PR branch `feat/relocalization-fiducial-prior`) and `dios` (`dimensionalOS/dios`, with worktrees `dios-3-recipe-doctor` and `dios-technical-spec`). Gitignored in full: each is its own git repo, never tracked as content here. **Never delete the fork** (fork-and-pull is the PR channel — Aaryan confirmed Jul 17). |
 | The open PRs | **#3162** fiducial relocalization prior + pre-map marker aggregation, draft — https://github.com/dimensionalOS/dimos/pull/3162. **#3161** `cameracalibrate` charuco + `--check`, draft. Superseded and closed: #3016, #3137. |
 | Everything written that is not this doc | `temp/` — tracked, so it survives the machine: `temp/g1` (setup, wipe, bringup), `temp/dios` (architecture, PRD, the archive, the render script), `temp/linear` (Engineering v1 → v2 handoff + Linear snapshot; its review-site source was a Next.js scaffold, untracked again 2026-08-20 — in history at `e23cec8`, on the dev box at `workspace/temp/linear-site-source`), `temp/templates` (PRD template), `temp/notes` (design write-ups + the WORKSPACE trial archive). |
-| The public presentation page | https://aaryanagrawal.me/dimensional — source in `site/` (canonical copy): `page.tsx`, `data-dimensional.ts`, `assets/`. Deploy home is github.com/AaryanAgrawal/portfolio: copy the three pieces into that checkout, `npx tsc --noEmit && next build`, `vercel --prod` (scope servicerobotco, project aaryan-portfolio). Edit here first, sync on deploy. |
+| The public presentation page | https://aaryanagrawal.me/dimensional — deployed from github.com/AaryanAgrawal/portfolio (`src/app/dimensional/page.tsx`, `src/data/dimensional.ts`, `public/dimensional/`). This repo's copy was untracked 2026-08-20; it is in history at `5b97988` and on the dev box at `workspace/temp/site`. **Before any redeploy:** that copy's `data-dimensional.ts` references 24 benchmark figures the portfolio repo does not have — restore `site/assets/` into `public/dimensional/` or the page ships with broken images. |
 | Trial material | Removed from the tree 2026-08-20. The writing behind #3162 is on the dimos branch `context/fiducial-trial` — start at `trial-context/INDEX.md`. The harness code and figures are in this repo's git history ≤ `c20f601`; the 11 GB of eval output and the `.rrd` files are on the dev box at `workspace/temp/trial`. |
 | Scratch, run output, clones | `workspace/` — untracked, dev box only. |
 
@@ -245,14 +245,13 @@ critical and the runner that reads `critical` does not exist.
 ## Aug 20 — repo cleaned to durable context only
 
 `aaryan-dimensional` tracked 103 files across a trial that ended on Aug 7, and `WORKSPACE.md` had
-grown to 2,467 lines. The root is now seven entries; everything written that is not this doc sits
+grown to 2,467 lines. The root is now six entries; everything written that is not this doc sits
 under `temp/`, still tracked, so a thin root costs no history.
 
     aaryan-dimensional/
     ├── CLAUDE.md  AGENTS.md  README.md    how to work
     ├── WORKSPACE.md                       state, plan, history — 292 lines
     ├── learn/                             one Q/A deck per language
-    ├── site/                              the /dimensional page
     ├── temp/                              g1 · dios · linear · templates · notes
     └── workspace/                         clones + scratch — gitignored in full
 

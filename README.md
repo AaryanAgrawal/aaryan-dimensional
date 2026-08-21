@@ -9,7 +9,6 @@ aaryan-dimensional/
 ├── AGENTS.md      judgment rules for coding agents
 ├── WORKSPACE.md   state, plan, history — the living doc
 ├── learn/         Q/A decks for spaced repetition, one per language
-├── site/          /dimensional page source (canonical copy; deploys via portfolio)
 ├── temp/          everything else written — g1 · dios · linear · templates · notes
 └── workspace/     ← the repo clones and all scratch; gitignored in full
 ```

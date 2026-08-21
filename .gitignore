@@ -1,7 +1,7 @@
 # Allowlist model: everything is ignored, then tracked paths are added back. The root holds how to
-# work (CLAUDE/AGENTS), the working log (WORKSPACE), the language decks, and the /dimensional page.
-# Everything else written goes in temp/, tracked. Clones, agent scratch and run output live under
-# workspace/, never tracked. Trial material was removed 2026-08-20; it is in history <= c20f601.
+# work (CLAUDE/AGENTS), the working log (WORKSPACE) and the language decks. Everything else written
+# goes in temp/, tracked. Clones, agent scratch and run output live under workspace/, never tracked.
+# Trial material was removed 2026-08-20; it is in history <= c20f601, as is site/ <= 5b97988.
 
 # workspace/ holds the repo clones being worked on and all scratch — never tracked here
 workspace/
@@ -14,7 +14,6 @@ workspace/
 !/README.md
 !/WORKSPACE.md
 !/learn
-!/site
 !/temp
 
 # learn/ — Q/A decks for spaced repetition, one file per language
@@ -28,18 +27,6 @@ workspace/
 /temp/**/*.db
 /temp/**/*.mp4
 /temp/**/*.webm
-
-# site/ — the /dimensional page source + assets (canonical copy; deploys from the portfolio repo)
-/site/*
-!/site/*.tsx
-!/site/*.ts
-!/site/assets
-/site/assets/*
-!/site/assets/*.png
-!/site/assets/*.gif
-!/site/assets/flow
-/site/assets/flow/*
-!/site/assets/flow/*.png
 
 # python
 **/__pycache__/
