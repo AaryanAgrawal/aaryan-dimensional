@@ -72,9 +72,9 @@ Next actions.
      ```
 6. **Read the rest of this file**, then continue from §2 Next actions.
 7. **If continuing the Engineering v2 Linear migration**, read
-   `linear-migration/HANDOFF.md`, then use `linear-migration/LINEAR_SNAPSHOT.json` as the
+   `temp/linear/HANDOFF.md`, then use `temp/linear/LINEAR_SNAPSHOT.json` as the
    verified 2026-08-17 baseline. The review artifact source is in
-   `linear-migration/site-source/`.
+   `workspace/temp/linear-site-source/` (untracked; in history at `e23cec8`).
 
 ## 1. Where everything lives
 

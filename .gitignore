@@ -22,6 +22,9 @@ workspace/
 
 # temp/ — everything written that is not WORKSPACE.md; text only, no artifacts
 !/temp/**
+# render-review-docs.sh regenerates these two from their .md siblings
+/temp/dios/ARCHITECTURE.html
+/temp/dios/DIOS-PRD.html
 /temp/**/*.pdf
 /temp/**/*.rrd
 /temp/**/*.db
