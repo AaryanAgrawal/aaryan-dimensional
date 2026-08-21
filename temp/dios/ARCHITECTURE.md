@@ -1,26 +1,26 @@
-# dios technical spec
+# DIOS technical spec
 
-dios runs setup. wizards contain the setup code.
+DIOS runs setup. Wizards contain the setup code.
 
-## repositories
+## repos
 
-- `dios`: private. runs wizards.
-- `dimos`: unchanged.
-- `dimos-setup-wizard`: open source. installs dimos and lcm.
-- `unitree-setup-wizard`: open source. sets up unitree, cyclonedds, and its sdk.
+- `dios`: Private. Runs wizards.
+- `dimos`: Unchanged.
+- `dimos-setup-wizard`: Open source. Installs DimOS and LCM.
+- `unitree-setup-wizard`: Open source. Sets up Unitree, CycloneDDS, and its SDK.
 
-no configurators or setup yaml.
+No configurators or setup YAML.
 
 ## setup
 
-dios runs the needed wizards, checks dimos, then saves the robot.
+DIOS runs the needed wizards, checks DimOS, then saves the robot.
 
 ## versioning — review question
 
-one signed file pins dios, dimos, and every wizard.
+One signed file pins DIOS, DimOS, and every wizard.
 
-dios verifies it and saves the installed verisons in `dimos.lock`.
+DIOS verifies it and saves the installed verisons in `dimos.lock`.
 
 ## doctor
 
-dios and each wizard run their checks. doctor shows which layer faild.
+DIOS and each wizard run their checks. Doctor shows which layer faild.
