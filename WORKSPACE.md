@@ -263,10 +263,17 @@ material moved to `workspace/temp/` on the dev box, and the tracked tree before 
 Before the trial tree went, the writing behind PR #3162 — FINDINGS, both PR drafts, the prior-config
 design with Aaryan's four open questions, BENCHMARK_METHOD, PROVENANCE, the verified simplify patch —
 was committed verbatim to `trial-context/` on the dimos branch `context/fiducial-trial`, a sibling of
-the PR branch so #3162's diff is untouched. **That branch is local only**: the push failed on
-`lfs.dimensionalos.com` credentials. To back it up:
+the PR branch so #3162's diff is untouched. Pushed to the fork:
+https://github.com/AaryanAgrawal/dimos/tree/context/fiducial-trial — start at `trial-context/INDEX.md`.
 
-    cd workspace/dimos && git push -u origin context/fiducial-trial
+The first push failed, and the cause is worth knowing because it will recur. dimos'
+`.gitattributes` routes `*.png` through LFS, so four tag-sheet PNGs in that commit became new LFS
+objects, and **this box has no `lfs.dimensionalos.com` credentials** — only `github.com` has a helper
+(`gh auth git-credential`). It reads like a TLS or network failure and is neither: the host resolves
+and its certificate verifies. Dropping the PNGs (regenerate with `dimos apriltag`) left a text-only
+commit with no LFS step, which pushed on the GitHub credentials alone.
+
+    Committing a *.png to dimos from this box will fail to push until LFS creds exist.
 
 ## 2. Between machines — read-only clone variant
 
