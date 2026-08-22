@@ -258,6 +258,15 @@ justifies, where it is maintained with the thing it describes.
   finished: `[x] done — <one-line result>` and push. Never work a task another window has already
   marked `doing`.
 
+## Ticket files (Aaryan, 2026-08-21)
+
+- **One markdown file per Linear ticket**, at `context/tickets/DIM-XXXX.md`. It opens with the Linear
+  link, then a short header naming: related tickets, the dimos branch (and PR) under test, and our
+  own work branch if any.
+- **Keep each file skimmable enough to resume the ticket cold** — state, what ran, what blocks it.
+  Whoever picks the ticket up next reads that file and nothing else.
+- **Linear comments stay very short**, one line where possible. The detail lives in the file.
+
 ## Workflows (Aaryan, Jul 17)
 
 **Always use ultracode workflows for everything substantive** — recon sweeps, design, writing

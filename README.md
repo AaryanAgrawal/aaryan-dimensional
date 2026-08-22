@@ -8,6 +8,7 @@ aaryan-dimensional/
 ├── CLAUDE.md      how to work in this repo
 ├── AGENTS.md      judgment rules for coding agents
 ├── WORKSPACE.md   state, plan, history — the living doc
+├── context/       work intent — tickets, branches, env traps
 ├── learn/         Q/A decks for spaced repetition, one per language
 ├── temp/          everything else written — g1 · dios · linear · templates · notes
 └── workspace/     ← the repo clones and all scratch; gitignored in full

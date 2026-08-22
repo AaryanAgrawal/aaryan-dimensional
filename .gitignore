@@ -1,6 +1,7 @@
 # Allowlist model: everything is ignored, then tracked paths are added back. The root holds how to
 # work (CLAUDE/AGENTS), the working log (WORKSPACE) and the language decks. Everything else written
-# goes in temp/, tracked. Clones, agent scratch and run output live under workspace/, never tracked.
+# goes in context/ and temp/, tracked. Clones, agent scratch and run output live under workspace/,
+# never tracked.
 # Trial material was removed 2026-08-20; it is in history <= c20f601, as is site/ <= 5b97988.
 
 # workspace/ holds the repo clones being worked on and all scratch — never tracked here
@@ -13,6 +14,7 @@ workspace/
 !/CLAUDE.md
 !/README.md
 !/WORKSPACE.md
+!/context
 !/learn
 !/temp
 
