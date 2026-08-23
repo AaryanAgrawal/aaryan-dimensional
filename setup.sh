@@ -157,7 +157,10 @@ font() {
   ( cd "$HOME/.local/share/fonts" \
     && curl -fLO https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip \
     && unzip -oq JetBrainsMono.zip && rm -f JetBrainsMono.zip ) || { warn "font download failed"; return 0; }
-  have fc-cache && { fc-cache -f >/dev/null || warn "fc-cache failed"; }
+  if have fc-cache; then
+    fc-cache -f >/dev/null || warn "fc-cache failed"
+  fi
+  return 0
 }
 
 write_ghostty_config() {

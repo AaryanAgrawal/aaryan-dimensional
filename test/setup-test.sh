@@ -35,13 +35,19 @@ case "$(basename "$0")" in
   hermes) printf 'Hermes Agent v0.19.0\n' ;;
   openspec) printf '1.10.0\n' ;;
   dimensional-ai) printf '%s/.local/bin/dimensional-ai\n' "$HOME" ;;
+  jq)
+    case "$*" in
+      *'.model // empty'*) printf 'fable\n' ;;
+      *'.model // "not pinned"'*) printf 'fable\n' ;;
+      *'.authMethod'*) printf 'claude.ai\n' ;;
+    esac ;;
   diffity) printf '0.9.5\n' ;;
   fc-list) printf 'JetBrainsMono Nerd Font\n' ;;
 esac
 exit 0
 EOF
   chmod +x "$bin/tool"
-  for command in sudo git curl zsh rg node npm dtach gh code atuin niri paneru ghostty brew \
+  for command in sudo git curl zsh jq rg node npm dtach gh code atuin niri paneru ghostty brew \
       claude codex opencode hermes openspec dimensional-ai uv diffity chsh op fc-list fc-cache unzip; do
     ln -s tool "$bin/$command"
   done
@@ -127,11 +133,25 @@ assert_contains "$TMP/gh.log" "repo clone AaryanAgrawal/dimensional-harness $TMP
 assert_contains "$TMP/harness-npm.log" 'ci --silent'
 assert_contains "$TMP/harness-npm.log" "run install:local -- --workspace $ROOT"
 
+FONT_BIN="$TMP/font-bin"
+mkdir -p "$FONT_BIN"
+for command in mkdir grep rm; do ln -s "$(command -v "$command")" "$FONT_BIN/$command"; done
+cat > "$FONT_BIN/curl" <<'EOF'
+#!/bin/bash
+: > JetBrainsMono.zip
+EOF
+cat > "$FONT_BIN/unzip" <<'EOF'
+#!/bin/bash
+exit 0
+EOF
+chmod +x "$FONT_BIN/curl" "$FONT_BIN/unzip"
+HOME="$TMP/font-home" bash -c 'source "$1"; PATH="$2"; font >/dev/null' _ "$SCRIPT" "$FONT_BIN"
+
 FAKE_BIN="$TMP/bin"
 FAKE_HOME="$TMP/home"
 make_fake_bin "$FAKE_BIN"
 make_ready_home "$FAKE_HOME"
-HOME="$FAKE_HOME" SHELL="$FAKE_BIN/zsh" PATH="$FAKE_BIN:/opt/homebrew/bin:/usr/bin:/bin" \
+HOME="$FAKE_HOME" SHELL="$FAKE_BIN/zsh" PATH="$FAKE_BIN:/usr/bin:/bin" \
   NPM_LOG="$TMP/npm.log" SUDO_LOG="$TMP/sudo.log" \
   SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" > "$TMP/install.out"
 assert_contains "$TMP/install.out" 'Workstation result: 0 failed, 0 need setup.'
@@ -148,7 +168,7 @@ assert_contains "$FAKE_HOME/.zshrc" 'zoxide init zsh'
 assert_contains "$FAKE_HOME/.zshrc" "\$HOME/.opencode/bin:\$PATH"
 
 before_check="$(find "$FAKE_HOME" -type f -exec cksum {} \; | sort | cksum)"
-HOME="$FAKE_HOME" PATH="$FAKE_BIN:/opt/homebrew/bin:/usr/bin:/bin" \
+HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
   SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/check.out"
 after_check="$(find "$FAKE_HOME" -type f -exec cksum {} \; | sort | cksum)"
 [ "$before_check" = "$after_check" ] || fail "--check modified the test home"
@@ -160,14 +180,14 @@ assert_contains "$TMP/check.out" 'Workstation result: 0 failed, 0 need setup.'
 mv "$FAKE_BIN/codex" "$FAKE_BIN/codex.logged-in"
 printf '#!/usr/bin/env bash\nprintf "Not logged in\\n"\n' > "$FAKE_BIN/codex"
 chmod +x "$FAKE_BIN/codex"
-HOME="$FAKE_HOME" PATH="$FAKE_BIN:/opt/homebrew/bin:/usr/bin:/bin" \
+HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
   SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/codex-logged-out.out"
 assert_contains "$TMP/codex-logged-out.out" '[SETUP] Codex auth'
 mv "$FAKE_BIN/codex" "$FAKE_BIN/codex.logged-out"
 mv "$FAKE_BIN/codex.logged-in" "$FAKE_BIN/codex"
 
 mv "$FAKE_BIN/hermes" "$FAKE_BIN/hermes.off"
-if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/opt/homebrew/bin:/usr/bin:/bin" \
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
     SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-hermes.out"; then
   fail "missing Hermes readiness check unexpectedly passed"
 fi
@@ -175,7 +195,7 @@ assert_contains "$TMP/missing-hermes.out" '[FAIL]  Hermes'
 mv "$FAKE_BIN/hermes.off" "$FAKE_BIN/hermes"
 
 mv "$FAKE_BIN/dimensional-ai" "$FAKE_BIN/dimensional-ai.off"
-if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/opt/homebrew/bin:/usr/bin:/bin" \
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
     SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-harness.out"; then
   fail "missing Dimensional harness readiness check unexpectedly passed"
 fi
@@ -187,13 +207,16 @@ if "$SCRIPT" --unknown > "$TMP/unknown.out" 2>&1; then
 fi
 assert_contains "$TMP/unknown.out" 'unknown option: --unknown'
 
+mv "$FAKE_BIN/node" "$FAKE_BIN/node.ready"
 printf '#!/usr/bin/env bash\nprintf "v18.20.0\\n"\n' > "$FAKE_BIN/node"
 chmod +x "$FAKE_BIN/node"
-if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/opt/homebrew/bin:/usr/bin:/bin" \
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
     SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/old-node.out"; then
   fail "Node.js 18 readiness check unexpectedly passed"
 fi
 assert_contains "$TMP/old-node.out" '[FAIL]  Node.js'
 assert_contains "$TMP/old-node.out" 'version 22+ required'
+mv "$FAKE_BIN/node" "$FAKE_BIN/node.old"
+mv "$FAKE_BIN/node.ready" "$FAKE_BIN/node"
 
 printf 'PASS: setup installer, configs, readiness UX, and failure path\n'
