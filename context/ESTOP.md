@@ -3,8 +3,11 @@
 A dimos module that latches an e-stop and stops the robot. Written in Rust. Any robot, any
 blueprint, on by default.
 
-No Linear ticket yet. PRD goes on Linear as a project description (Engineering v2, PRD template).
-Tech spec goes on GitHub.
+- PRD: https://linear.app/dimensional/project/e-stop-module-dce7e0091e2e (Linear project,
+  Engineering v2, Control initiative, PRD template, Status Draft 2026-08-23)
+- Tech spec: https://github.com/dimensionalOS/dimos/issues/3621
+- Local copies for editing: `ESTOP-PRD.md`, `ESTOP-TECHSPEC.md`. Linear and the issue are the
+  published homes; keep them in step or delete the local copies.
 
 - Branch: `aaryan/estop-rust`, off `upstream/main` @ `6fcc4e2d5`. Worktree
   `workspace/dimos/.claude/worktrees/estop-rust`.
