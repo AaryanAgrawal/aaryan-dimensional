@@ -23,6 +23,12 @@ assert_line() {
   grep -Fxq -- "$2" "$1" || fail "$1 does not contain the exact line: $2"
 }
 
+assert_not_contains() {
+  if grep -Fq -- "$2" "$1"; then
+    fail "$1 unexpectedly contains: $2"
+  fi
+}
+
 tree_fingerprint() {
   local root="$1"
   {
@@ -297,6 +303,22 @@ assert_contains "$TMP/check.out" 'OpenCode auth          credential store presen
 assert_contains "$TMP/check.out" 'Hermes profile         Dimensional profile configured'
 assert_contains "$TMP/check.out" 'Dimensional harness    '
 assert_contains "$TMP/check.out" 'Workstation result: 0 failed, 0 need setup.'
+
+mv "$FAKE_HOME/.claude/settings.json" "$FAKE_HOME/.claude/settings.json.off"
+HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+  SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-settings.out"
+assert_contains "$TMP/missing-settings.out" '[SETUP] Claude agent config'
+assert_contains "$TMP/missing-settings.out" 'settings.json is missing'
+assert_not_contains "$TMP/missing-settings.out" '[PASS]  Claude agent config'
+mv "$FAKE_HOME/.claude/settings.json.off" "$FAKE_HOME/.claude/settings.json"
+
+mv "$FAKE_HOME/.claude/statusline-command.sh" "$FAKE_HOME/.claude/statusline-command.sh.off"
+HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+  SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-statusline.out"
+assert_contains "$TMP/missing-statusline.out" '[SETUP] Claude status line'
+assert_contains "$TMP/missing-statusline.out" 'missing'
+assert_not_contains "$TMP/missing-statusline.out" '[PASS]  Claude status line'
+mv "$FAKE_HOME/.claude/statusline-command.sh.off" "$FAKE_HOME/.claude/statusline-command.sh"
 
 mv "$FAKE_BIN/codex" "$FAKE_BIN/codex.logged-in"
 printf '#!/usr/bin/env bash\nprintf "Not logged in\\n"\n' > "$FAKE_BIN/codex"
