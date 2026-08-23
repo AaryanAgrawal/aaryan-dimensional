@@ -52,7 +52,11 @@ case "$(basename "$0")" in
         case "$input" in *'"loggedIn":true'*) printf 'true\n' ;; *) exit 1 ;; esac ;;
       *'.authMethod'*)
         input="$(cat)"
-        case "$input" in *'"loggedIn":true'*) printf 'claude.ai\n' ;; *) exit 1 ;; esac ;;
+        case "$input" in
+          *'"loggedIn":true'*'"authMethod":"'*) printf 'claude.ai\n' ;;
+          *'"loggedIn":true'*) printf 'signed in\n' ;;
+          *) exit 1 ;;
+        esac ;;
     esac ;;
   brew) [ "${1:-}" = --prefix ] && printf '/opt/homebrew\n' ;;
   diffity) printf '0.9.5\n' ;;
@@ -297,6 +301,15 @@ fi
 assert_contains "$TMP/non-string-auth.out" '[PASS]  Claude auth'
 assert_contains "$TMP/non-string-auth.out" 'signed in'
 assert_contains "$TMP/non-string-auth.out" 'Workstation result:'
+
+for auth_method in '42' 'true' '[]' '{}'; do
+  HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+    CLAUDE_AUTH_PAYLOAD="{\"loggedIn\":true,\"authMethod\":$auth_method}" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/jq-non-string-auth.out"
+  assert_contains "$TMP/jq-non-string-auth.out" '[PASS]  Claude auth'
+  assert_contains "$TMP/jq-non-string-auth.out" 'signed in'
+  assert_contains "$TMP/jq-non-string-auth.out" 'Workstation result:'
+done
 
 if "$SCRIPT" --unknown > "$TMP/unknown.out" 2>&1; then
   fail "unknown option unexpectedly passed"

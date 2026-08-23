@@ -643,7 +643,7 @@ check_auth() {
   if have jq; then
     if printf '%s' "$output" | jq -e '.loggedIn == true' >/dev/null 2>&1; then
       claude_auth_ready=true
-      auth_method="$(printf '%s' "$output" | jq -r '.authMethod // "signed in"')"
+      auth_method="$(printf '%s' "$output" | jq -r '.authMethod | if type == "string" and length > 0 then . else "signed in" end')"
     fi
   elif have node; then
     if printf '%s' "$output" | node -e '
