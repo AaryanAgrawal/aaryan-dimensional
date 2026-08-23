@@ -12,6 +12,9 @@ fail() {
   exit 1
 }
 
+REAL_JQ="$(command -v jq || true)"
+[ -x "$REAL_JQ" ] || fail "jq is required to test the real readiness filters"
+
 assert_contains() {
   grep -Fq -- "$2" "$1" || fail "$1 does not contain: $2"
 }
@@ -204,6 +207,22 @@ FAKE_BIN="$TMP/bin"
 FAKE_HOME="$TMP/home"
 make_fake_bin "$FAKE_BIN"
 make_ready_home "$FAKE_HOME"
+
+REAL_JQ_BIN="$TMP/real-jq-bin"
+mkdir -p "$REAL_JQ_BIN"
+for source in "$FAKE_BIN"/*; do
+  command="$(basename "$source")"
+  [ "$command" = jq ] && continue
+  ln -s "$source" "$REAL_JQ_BIN/$command"
+done
+ln -s "$REAL_JQ" "$REAL_JQ_BIN/jq"
+
+HOME="$FAKE_HOME" PATH="$REAL_JQ_BIN:/usr/bin:/bin" \
+  SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/real-jq-string-values.out"
+assert_contains "$TMP/real-jq-string-values.out" '[PASS]  Claude model'
+assert_contains "$TMP/real-jq-string-values.out" 'fable'
+assert_contains "$TMP/real-jq-string-values.out" '[PASS]  Claude auth'
+assert_contains "$TMP/real-jq-string-values.out" 'claude.ai'
 HOME="$FAKE_HOME" SHELL="$FAKE_BIN/zsh" PATH="$FAKE_BIN:/usr/bin:/bin" \
   HOMEBREW_PREFIX=/definitely/not/the/brew/prefix \
   NPM_LOG="$TMP/npm.log" SUDO_LOG="$TMP/sudo.log" \
@@ -355,6 +374,12 @@ for auth_method in '42' 'true' '[]' '{}'; do
   assert_contains "$TMP/jq-non-string-auth.out" '[PASS]  Claude auth'
   assert_contains "$TMP/jq-non-string-auth.out" 'signed in'
   assert_contains "$TMP/jq-non-string-auth.out" 'Workstation result:'
+  HOME="$FAKE_HOME" PATH="$REAL_JQ_BIN:/usr/bin:/bin" \
+    CLAUDE_AUTH_PAYLOAD="{\"loggedIn\":true,\"authMethod\":$auth_method}" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/real-jq-non-string-auth.out"
+  assert_contains "$TMP/real-jq-non-string-auth.out" '[PASS]  Claude auth'
+  assert_contains "$TMP/real-jq-non-string-auth.out" 'signed in'
+  assert_contains "$TMP/real-jq-non-string-auth.out" 'Workstation result:'
 done
 
 cp "$FAKE_HOME/.claude/settings.json" "$TMP/settings.json"
@@ -365,6 +390,11 @@ for model in '42' 'true' '[]' '{}'; do
   assert_contains "$TMP/jq-non-string-model.out" '[PASS]  Claude model'
   assert_contains "$TMP/jq-non-string-model.out" 'not pinned'
   assert_contains "$TMP/jq-non-string-model.out" 'Workstation result:'
+  HOME="$FAKE_HOME" PATH="$REAL_JQ_BIN:/usr/bin:/bin" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/real-jq-non-string-model.out"
+  assert_contains "$TMP/real-jq-non-string-model.out" '[PASS]  Claude model'
+  assert_contains "$TMP/real-jq-non-string-model.out" 'not pinned'
+  assert_contains "$TMP/real-jq-non-string-model.out" 'Workstation result:'
   if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
       SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/node-non-string-model.out"; then
     fail "missing jq readiness check unexpectedly passed for non-string model $model"
