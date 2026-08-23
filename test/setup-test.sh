@@ -384,6 +384,17 @@ assert_contains "$TMP/missing-browser-skill.out" '[FAIL]  Browser skill'
 assert_contains "$TMP/missing-browser-skill.out" 'not installed; run ./setup.sh'
 mv "$FAKE_HOME/.claude/skills/browser.off" "$FAKE_HOME/.claude/skills/browser"
 
+mv "$FAKE_HOME/.claude/skills/browser/lib/node_modules" \
+  "$FAKE_HOME/.claude/skills/browser/lib/node_modules.off"
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-browser-deps.out"; then
+  fail "missing browser dependencies unexpectedly passed readiness"
+fi
+assert_contains "$TMP/missing-browser-deps.out" '[FAIL]  Browser skill'
+assert_contains "$TMP/missing-browser-deps.out" 'dependencies missing; run ./setup.sh'
+mv "$FAKE_HOME/.claude/skills/browser/lib/node_modules.off" \
+  "$FAKE_HOME/.claude/skills/browser/lib/node_modules"
+
 if "$SCRIPT" --unknown > "$TMP/unknown.out" 2>&1; then
   fail "unknown option unexpectedly passed"
 fi
