@@ -31,3 +31,8 @@ Environment and toolchain failures hit on real hardware, for DIOS to replicate a
 
 9. **Interactive-only paths in automated runs.** sudo wants a tty; the viewer websocket closes with
    1008 unless the URL carries `/ws`, while the data stream still connects so it looks fine.
+
+10. **Repo config silently cancels an explicit fetch.** `.lfsconfig` sets
+    `fetchexclude = data/.lfs/*`, so `git lfs pull --include="data/.lfs/<asset>"` exits 0 and
+    fetches nothing — the pointer file is left in place and the failure only shows up later as a
+    missing asset. Needs `-X ""` to clear the exclude.
