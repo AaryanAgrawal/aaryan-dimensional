@@ -53,7 +53,11 @@ case "$(basename "$0")" in
         case "$input" in *'"model":"'*) printf 'fable\n' ;; esac ;;
       *'.model'*'type == "string"'*'else "not pinned"'*)
         input="$(cat "${!#}")"
-        case "$input" in *'"model":"'*) printf 'fable\n' ;; *) printf 'not pinned\n' ;; esac ;;
+        case "$input" in
+          *'"model":""'*) printf 'not pinned\n' ;;
+          *'"model":"'*) printf 'fable\n' ;;
+          *) printf 'not pinned\n' ;;
+        esac ;;
       *'.model'*)
         input="$(cat "${!#}")"
         case "$input" in
@@ -136,21 +140,22 @@ EOF
 cat > "$INSTALL_BIN/curl" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$CURL_LOG"
-printf '#!/bin/sh\nexit 0\n'
+printf '#!/bin/sh\nprintf "%%s\\n" "$*" >> "$INSTALL_ARGS_LOG"\nexit 0\n'
 EOF
 cat > "$INSTALL_BIN/npm" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$NPM_LOG"
 EOF
 chmod +x "$INSTALL_BIN/node" "$INSTALL_BIN/curl" "$INSTALL_BIN/npm"
-CURL_LOG="$TMP/curl.log" NPM_LOG="$TMP/agent-npm.log" HOME="$TMP/install-home" PATH="$INSTALL_BIN:/usr/bin:/bin" \
+CURL_LOG="$TMP/curl.log" INSTALL_ARGS_LOG="$TMP/install-args.log" NPM_LOG="$TMP/agent-npm.log" \
+  HOME="$TMP/install-home" PATH="$INSTALL_BIN:/usr/bin:/bin" \
   bash -c 'source "$1"; install_agent_clis >/dev/null' _ "$SCRIPT"
 assert_contains "$TMP/curl.log" 'https://claude.ai/install.sh'
 assert_contains "$TMP/curl.log" 'https://chatgpt.com/codex/install.sh'
 assert_contains "$TMP/curl.log" 'https://opencode.ai/install'
 assert_contains "$TMP/curl.log" 'https://hermes-agent.nousresearch.com/install.sh'
+assert_contains "$TMP/install-args.log" '--skip-browser'
 assert_contains "$TMP/agent-npm.log" 'install -g @fission-ai/openspec@latest'
-assert_contains "$SCRIPT" 'bash -s -- --skip-browser'
 assert_contains "$SCRIPT" 'gh repo clone AaryanAgrawal/dimensional-harness'
 
 CLONE_BIN="$TMP/clone-bin"
@@ -324,9 +329,13 @@ case "${1:-}" in
           *) printf 'signed in' ;;
         esac ;;
       *'loggedIn'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 0 ;; *) exit 1 ;; esac ;;
-      *'.model'*'typeof value === "string"'*)
+      *'.model'*'value.length > 0'*)
         input="$(cat "${3:-}")"
-        case "$input" in *'"model":"'*) printf 'fable' ;; *) printf 'not pinned' ;; esac ;;
+        case "$input" in
+          *'"model":""'*) printf 'not pinned' ;;
+          *'"model":"'*) printf 'fable' ;;
+          *) printf 'not pinned' ;;
+        esac ;;
       *'.model'*)
         input="$(cat "${3:-}")"
         case "$input" in
@@ -383,7 +392,7 @@ for auth_method in '42' 'true' '[]' '{}'; do
 done
 
 cp "$FAKE_HOME/.claude/settings.json" "$TMP/settings.json"
-for model in '42' 'true' '[]' '{}'; do
+for model in '42' 'true' '[]' '{}' '""'; do
   printf '{"model":%s}\n' "$model" > "$FAKE_HOME/.claude/settings.json"
   HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
     SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/jq-non-string-model.out"

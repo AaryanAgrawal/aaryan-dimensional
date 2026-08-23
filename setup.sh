@@ -612,7 +612,7 @@ check_claude_layer() {
   elif have node; then
     model="$(node -e '
       const value = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).model;
-      process.stdout.write(typeof value === "string" ? value : "not pinned");
+      process.stdout.write(typeof value === "string" && value.length > 0 ? value : "not pinned");
     ' "$d/settings.json" 2>/dev/null || true)"
   else
     model="not inspected"
