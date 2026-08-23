@@ -327,6 +327,24 @@ agent_layer() {
   step "credentials are separate: ~/.claude/scripts/agent-setup.sh"
 }
 
+# diffity: browser diff viewer for reviewing what the agent changed. The skills
+# give Claude Code and Codex /diffity-diff, /diffity-review, /diffity-resolve.
+diffity_install() {
+  log "diffity"
+  have npm || { warn "npm missing -- diffity not installed"; return 0; }
+  have diffity || npm install -g diffity >/dev/null 2>&1 || { warn "npm install -g diffity failed"; return 0; }
+  # --global: without it the skills land in the current repo only
+  if [ ! -d "$HOME/.agents/skills/diffity-diff" ]; then
+    npx --yes skills add nilbuild/diffity --yes --global >/dev/null 2>&1 \
+      || warn "diffity skills failed -- run: npx skills add nilbuild/diffity --global"
+  fi
+  if [ -L "$HOME/.claude/skills/diffity-diff" ]; then
+    step "/diffity-diff, /diffity-review, /diffity-resolve ready"
+  else
+    warn "diffity skills not linked into ~/.claude/skills"
+  fi
+}
+
 summary() {
   log "Done"
   printf '  terminal   %s\n' "$(have ghostty && echo ghostty || echo '-- missing')"
@@ -354,6 +372,7 @@ main() {
   have claude || curl -fsSL https://claude.ai/install.sh | bash || warn "claude code install failed"
   have uv     || curl -LsSf https://astral.sh/uv/install.sh | sh || warn "uv install failed"
   agent_layer
+  diffity_install
   [ "${SHELL:-}" = "$(command -v zsh)" ] || chsh -s "$(command -v zsh)" || warn "run: chsh -s $(command -v zsh)"
   summary
 }
