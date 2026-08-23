@@ -197,17 +197,21 @@ cat > "$FONT_BIN/unzip" <<'EOF'
 exit 0
 EOF
 chmod +x "$FONT_BIN/curl" "$FONT_BIN/unzip"
-FONT_CURL_LOG="$TMP/font-curl.log" HOME="$TMP/font-home" \
-  bash -c 'source "$1"; PATH="$2"; font >/dev/null; font >/dev/null; font >/dev/null' \
-  _ "$SCRIPT" "$FONT_BIN" || fail "font install without fc-cache failed"
-[ "$(wc -l < "$TMP/font-curl.log" | tr -d ' ')" = 1 ] || fail "font install was not idempotent"
-if [ "$(uname -s)" = Darwin ]; then
-  [ -f "$TMP/font-home/Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf" ] \
-    || fail "macOS font was not installed into ~/Library/Fonts"
-else
-  [ -f "$TMP/font-home/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf" ] \
-    || fail "Linux font was not installed into ~/.local/share/fonts"
-fi
+for font_os in Darwin Linux; do
+  font_home="$TMP/font-home-$font_os"
+  font_log="$TMP/font-curl-$font_os.log"
+  FONT_CURL_LOG="$font_log" HOME="$font_home" \
+    bash -c 'source "$1"; OS="$3"; PATH="$2"; font >/dev/null; font >/dev/null; font >/dev/null' \
+    _ "$SCRIPT" "$FONT_BIN" "$font_os" || fail "$font_os font install without fc-cache failed"
+  [ "$(wc -l < "$font_log" | tr -d ' ')" = 1 ] || fail "$font_os font install was not idempotent"
+  if [ "$font_os" = Darwin ]; then
+    [ -f "$font_home/Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf" ] \
+      || fail "macOS font was not installed into ~/Library/Fonts"
+  else
+    [ -f "$font_home/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf" ] \
+      || fail "Linux font was not installed into ~/.local/share/fonts"
+  fi
+done
 
 FAKE_BIN="$TMP/bin"
 FAKE_HOME="$TMP/home"
@@ -330,7 +334,10 @@ case "${1:-}" in
           *'"authMethod":{}'*) printf '{}' ;;
           *) printf 'signed in' ;;
         esac ;;
-      *'loggedIn'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 0 ;; *) exit 1 ;; esac ;;
+      *'.loggedIn === true'*)
+        input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 0 ;; *) exit 1 ;; esac ;;
+      *'loggedIn'*)
+        input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 1 ;; *) exit 0 ;; esac ;;
       *'.model'*'value.length > 0'*)
         input="$(cat "${3:-}")"
         case "$input" in
@@ -355,6 +362,16 @@ chmod +x "$MISSING_JQ_BIN/node"
 for command in bash basename cat date dirname env find grep sed tr uname wc; do
   [ -e "$MISSING_JQ_BIN/$command" ] || ln -s "$(command -v "$command")" "$MISSING_JQ_BIN/$command"
 done
+
+if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
+    CLAUDE_AUTH_PAYLOAD='{"loggedIn":false,"authMethod":"claude.ai"}' \
+    SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/node-logged-out.out"; then
+  fail "missing jq readiness check unexpectedly passed for logged-out Claude"
+fi
+assert_contains "$TMP/node-logged-out.out" '[SETUP] Claude auth'
+if grep -Fq '[PASS]  Claude auth' "$TMP/node-logged-out.out"; then
+  fail "logged-out Claude falsely passed authentication without jq"
+fi
 if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
     SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/missing-jq.out"; then
   fail "missing jq readiness check unexpectedly passed"
@@ -450,6 +467,8 @@ if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
 fi
 assert_contains "$TMP/old-node.out" '[FAIL]  Node.js'
 assert_contains "$TMP/old-node.out" 'version 24+ required'
+assert_contains "$TMP/old-node.out" '[FAIL]  Browser skill'
+assert_contains "$TMP/old-node.out" 'Node.js 24+ required'
 mv "$FAKE_BIN/node" "$FAKE_BIN/node.old"
 mv "$FAKE_BIN/node.ready" "$FAKE_BIN/node"
 
