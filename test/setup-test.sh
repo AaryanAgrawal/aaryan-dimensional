@@ -50,12 +50,22 @@ case "$(basename "$0")" in
       *'.loggedIn == true'*)
         input="$(cat)"
         case "$input" in *'"loggedIn":true'*) printf 'true\n' ;; *) exit 1 ;; esac ;;
-      *'.authMethod'*)
+      *'.authMethod'*'type == "string"'*)
         input="$(cat)"
         case "$input" in
           *'"loggedIn":true'*'"authMethod":"'*) printf 'claude.ai\n' ;;
           *'"loggedIn":true'*) printf 'signed in\n' ;;
           *) exit 1 ;;
+        esac ;;
+      *'.authMethod'*)
+        input="$(cat)"
+        case "$input" in
+          *'"authMethod":"'*) printf 'claude.ai\n' ;;
+          *'"authMethod":42'*) printf '42\n' ;;
+          *'"authMethod":true'*) printf 'true\n' ;;
+          *'"authMethod":[]'*) printf '[]\n' ;;
+          *'"authMethod":{}'*) printf '{}\n' ;;
+          *) printf 'signed in\n' ;;
         esac ;;
     esac ;;
   brew) [ "${1:-}" = --prefix ] && printf '/opt/homebrew\n' ;;
