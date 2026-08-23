@@ -45,8 +45,21 @@ case "$(basename "$0")" in
   dimensional-ai) printf '%s/.local/bin/dimensional-ai\n' "$HOME" ;;
   jq)
     case "$*" in
-      *'.model // empty'*) printf 'fable\n' ;;
-      *'.model // "not pinned"'*) printf 'fable\n' ;;
+      *'.model'*'type == "string"'*'else empty'*)
+        input="$(cat "${!#}")"
+        case "$input" in *'"model":"'*) printf 'fable\n' ;; esac ;;
+      *'.model'*'type == "string"'*'else "not pinned"'*)
+        input="$(cat "${!#}")"
+        case "$input" in *'"model":"'*) printf 'fable\n' ;; *) printf 'not pinned\n' ;; esac ;;
+      *'.model'*)
+        input="$(cat "${!#}")"
+        case "$input" in
+          *'"model":"'*) printf 'fable\n' ;;
+          *'"model":42'*) printf '42\n' ;;
+          *'"model":true'*) printf 'true\n' ;;
+          *'"model":[]'*) printf '[]\n' ;;
+          *'"model":{}'*) printf '{}\n' ;;
+        esac ;;
       *'.loggedIn == true'*)
         input="$(cat)"
         case "$input" in *'"loggedIn":true'*) printf 'true\n' ;; *) exit 1 ;; esac ;;
@@ -320,6 +333,26 @@ for auth_method in '42' 'true' '[]' '{}'; do
   assert_contains "$TMP/jq-non-string-auth.out" 'signed in'
   assert_contains "$TMP/jq-non-string-auth.out" 'Workstation result:'
 done
+
+cp "$FAKE_HOME/.claude/settings.json" "$TMP/settings.json"
+for model in '42' 'true' '[]' '{}'; do
+  printf '{"model":%s}\n' "$model" > "$FAKE_HOME/.claude/settings.json"
+  HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/jq-non-string-model.out"
+  assert_contains "$TMP/jq-non-string-model.out" '[PASS]  Claude model'
+  assert_contains "$TMP/jq-non-string-model.out" 'not pinned'
+  assert_contains "$TMP/jq-non-string-model.out" 'Workstation result:'
+done
+cp "$TMP/settings.json" "$FAKE_HOME/.claude/settings.json"
+
+mv "$FAKE_HOME/.claude/skills/browser" "$FAKE_HOME/.claude/skills/browser.off"
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-browser-skill.out"; then
+  fail "missing browser skill unexpectedly passed readiness"
+fi
+assert_contains "$TMP/missing-browser-skill.out" '[FAIL]  Browser skill'
+assert_contains "$TMP/missing-browser-skill.out" 'not installed; run ./setup.sh'
+mv "$FAKE_HOME/.claude/skills/browser.off" "$FAKE_HOME/.claude/skills/browser"
 
 if "$SCRIPT" --unknown > "$TMP/unknown.out" 2>&1; then
   fail "unknown option unexpectedly passed"

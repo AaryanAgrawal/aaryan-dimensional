@@ -454,7 +454,7 @@ harness_prepare() {
     || warn "no ~/.config/agent/.env -- OP_SERVICE_ACCOUNT_TOKEN has to be placed by hand, then: ~/.claude/scripts/agent-setup.sh"
 
   # model drift: rules/models.md forbids 1M variants and names fable; flag, never auto-edit
-  local model; model="$(jq -r '.model // empty' "$d/settings.json" 2>/dev/null || true)"
+  local model; model="$(jq -r '.model | if type == "string" then . else empty end' "$d/settings.json" 2>/dev/null || true)"
   case "$model" in
     *"[1m]"*) warn "settings.json model is '$model' -- rules/models.md forbids 1M variants" ;;
   esac
@@ -608,7 +608,7 @@ check_claude_layer() {
     check_row PASS "Claude hook paths" "match this machine"
   fi
   if have jq; then
-    model="$(jq -r '.model // "not pinned"' "$d/settings.json" 2>/dev/null || true)"
+    model="$(jq -r '.model | if type == "string" and length > 0 then . else "not pinned" end' "$d/settings.json" 2>/dev/null || true)"
   elif have node; then
     model="$(node -e '
       const value = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).model;
@@ -623,7 +623,9 @@ check_claude_layer() {
     *) check_row PASS "Claude model" "$model" ;;
   esac
   major="$(node_major)"
-  if [ -f "$d/skills/browser/lib/package.json" ] && [ ! -d "$d/skills/browser/lib/node_modules" ]; then
+  if [ ! -f "$d/skills/browser/lib/package.json" ]; then
+    check_row FAIL "Browser skill" "not installed; run ./setup.sh"
+  elif [ ! -d "$d/skills/browser/lib/node_modules" ]; then
     check_row FAIL "Browser skill" "dependencies missing; run ./setup.sh"
   elif [ "$major" -lt 24 ]; then
     check_row FAIL "Browser skill" "Node.js 24+ required"
