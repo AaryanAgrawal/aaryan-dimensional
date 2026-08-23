@@ -568,16 +568,18 @@ command_path() {
 }
 
 check_claude_layer() {
-  local d="$HOME/.claude" model major settings_valid=false
+  local d="$HOME/.claude" model major settings_valid=false settings_inspected=false
   if [ ! -f "$d/settings.json" ]; then
     check_row SETUP "Claude agent config" "$HOME/.claude/settings.json is missing"
     return 0
   fi
   if have jq; then
+    settings_inspected=true
     if jq empty "$d/settings.json" >/dev/null 2>&1; then
       settings_valid=true
     fi
   elif have node; then
+    settings_inspected=true
     if node -e 'JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"))' \
         "$d/settings.json" >/dev/null 2>&1; then
       settings_valid=true
@@ -585,6 +587,8 @@ check_claude_layer() {
   fi
   if [ "$settings_valid" = true ]; then
     check_row PASS "Claude settings" "valid JSON"
+  elif [ "$settings_inspected" = false ]; then
+    check_row SETUP "Claude settings" "not inspected; install jq or Node.js 24+"
   else
     check_row FAIL "Claude settings" "invalid JSON"
   fi

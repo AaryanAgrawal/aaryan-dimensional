@@ -467,6 +467,20 @@ assert_contains "$TMP/missing-jq.out" '[PASS]  Claude hook paths'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude model'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Browser skill'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude auth'
+NO_JSON_BIN="$TMP/no-json-bin"
+mkdir -p "$NO_JSON_BIN"
+for source in "$MISSING_JQ_BIN"/*; do
+  command="$(basename "$source")"
+  [ "$command" = node ] && continue
+  ln -s "$source" "$NO_JSON_BIN/$command"
+done
+if HOME="$FAKE_HOME" PATH="$NO_JSON_BIN" SETUP_SKIP_HARNESS_DOCTOR=1 \
+    /bin/bash "$SCRIPT" --check > "$TMP/no-json-parser.out"; then
+  fail "readiness unexpectedly passed without jq or Node.js"
+fi
+assert_contains "$TMP/no-json-parser.out" '[SETUP] Claude settings'
+assert_contains "$TMP/no-json-parser.out" 'not inspected; install jq or Node.js 24+'
+assert_not_contains "$TMP/no-json-parser.out" 'Claude settings        invalid JSON'
 for auth_method in '42' 'true' '[]' '{}' '""'; do
   if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
       CLAUDE_AUTH_PAYLOAD="{\"loggedIn\":true,\"authMethod\":$auth_method}" \
