@@ -46,7 +46,11 @@ make_fake_bin() {
   cat > "$bin/tool" <<'EOF'
 #!/usr/bin/env bash
 case "$(basename "$0")" in
-  sudo) printf '%s\n' "$*" >> "${SUDO_LOG:-/dev/null}" ;;
+  sudo)
+    printf '%s\n' "$*" >> "${SUDO_LOG:-/dev/null}"
+    if [ "${FAIL_APT_UPDATE:-0}" = 1 ]; then
+      case "$*" in *'apt-get update -qq'*) exit 100 ;; esac
+    fi ;;
   node) printf 'v24.13.0\n' ;;
   npm)
     if [ "${1:-}" = config ] && [ "${2:-}" = get ]; then printf '/usr\n'; fi
@@ -291,6 +295,11 @@ HOME="$LINUX_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" NPM_LOG="$TMP/linux-npm.log" \
   SUDO_LOG="$TMP/linux-sudo.log" bash -c 'source "$1"; OS=Linux; linux_packages >/dev/null' _ "$SCRIPT"
 assert_contains "$TMP/linux-sudo.log" 'apt-get install -y build-essential'
 assert_contains "$TMP/linux-sudo.log" 'apt-get install -y python3'
+FAIL_APT_UPDATE=1 HOME="$LINUX_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+  NPM_LOG="$TMP/linux-npm.log" SUDO_LOG="$TMP/linux-sudo.log" \
+  bash -c 'source "$1"; OS=Linux; linux_packages; summary' _ "$SCRIPT" > "$TMP/apt-update-failure.out"
+assert_contains "$TMP/apt-update-failure.out" 'apt package index refresh failed; continuing with cached package metadata'
+assert_contains "$TMP/apt-update-failure.out" 'Installation finished'
 HOME="$LINUX_HOME" bash -c 'source "$1"; write_niri_config' _ "$SCRIPT"
 assert_contains "$LINUX_HOME/.config/niri/config.kdl" 'Mod+J { focus-column-left; }'
 

@@ -89,7 +89,8 @@ ensure_node() {
 
 linux_packages() {
   log "Packages (apt)"
-  sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq \
+    || warn "apt package index refresh failed; continuing with cached package metadata"
   # One call each keeps one unavailable package from blocking the rest; Hermes needs the toolchain.
   for p in git curl unzip zsh fontconfig ripgrep fzf zoxide jq gh perl dtach \
            build-essential python3 \
