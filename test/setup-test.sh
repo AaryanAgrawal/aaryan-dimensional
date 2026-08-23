@@ -73,6 +73,7 @@ case "$(basename "$0")" in
       *'.authMethod'*'type == "string"'*)
         input="$(cat)"
         case "$input" in
+          *'"loggedIn":true'*'"authMethod":""'*) printf 'signed in\n' ;;
           *'"loggedIn":true'*'"authMethod":"'*) printf 'claude.ai\n' ;;
           *'"loggedIn":true'*) printf 'signed in\n' ;;
           *) exit 1 ;;
@@ -311,9 +312,10 @@ case "${1:-}" in
   -v) printf 'v24.13.0\n' ;;
   -e)
     case "$2" in
-      *'authMethod'*'typeof value === "string"'*)
+      *'authMethod'*'typeof value === "string" && value ?'*)
         input="$(cat)"
         case "$input" in
+          *'"loggedIn":true'*'"authMethod":""'*) printf 'signed in' ;;
           *'"loggedIn":true'*'"authMethod":"'*) printf 'claude.ai' ;;
           *'"loggedIn":true'*) printf 'signed in' ;;
           *) exit 1 ;;
@@ -365,7 +367,7 @@ assert_contains "$TMP/missing-jq.out" '[PASS]  Claude hook paths'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude model'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Browser skill'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude auth'
-for auth_method in '42' 'true' '[]' '{}'; do
+for auth_method in '42' 'true' '[]' '{}' '""'; do
   if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
       CLAUDE_AUTH_PAYLOAD="{\"loggedIn\":true,\"authMethod\":$auth_method}" \
       SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/non-string-auth.out"; then
@@ -376,7 +378,7 @@ for auth_method in '42' 'true' '[]' '{}'; do
   assert_contains "$TMP/non-string-auth.out" 'Workstation result:'
 done
 
-for auth_method in '42' 'true' '[]' '{}'; do
+for auth_method in '42' 'true' '[]' '{}' '""'; do
   HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
     CLAUDE_AUTH_PAYLOAD="{\"loggedIn\":true,\"authMethod\":$auth_method}" \
     SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/jq-non-string-auth.out"
