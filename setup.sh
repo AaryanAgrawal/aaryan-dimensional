@@ -655,7 +655,10 @@ check_auth() {
       auth_method="$(printf '%s' "$output" | node -e '
         let input = "";
         process.stdin.on("data", chunk => { input += chunk; });
-        process.stdin.on("end", () => process.stdout.write(JSON.parse(input).authMethod || "signed in"));
+        process.stdin.on("end", () => {
+          const value = JSON.parse(input).authMethod;
+          process.stdout.write(typeof value === "string" && value ? value : "signed in");
+        });
       ')"
     fi
   fi

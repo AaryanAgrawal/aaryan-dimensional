@@ -28,7 +28,15 @@ case "$(basename "$0")" in
     if [ "${1:-}" = config ] && [ "${2:-}" = get ]; then printf '/usr\n'; fi
     if [ "${1:-}" = config ] && [ "${2:-}" = set ]; then printf '%s\n' "$*" >> "${NPM_LOG:-/dev/null}"; fi ;;
   claude)
-    if [ "${1:-}" = auth ]; then printf '{"loggedIn":true,"authMethod":"claude.ai"}\n'; else printf '2.1.241 (Claude Code)\n'; fi ;;
+    if [ "${1:-}" = auth ]; then
+      if [ -n "${CLAUDE_AUTH_PAYLOAD:-}" ]; then
+        printf '%s\n' "$CLAUDE_AUTH_PAYLOAD"
+      else
+        printf '{"loggedIn":true,"authMethod":"claude.ai"}\n'
+      fi
+    else
+      printf '2.1.241 (Claude Code)\n'
+    fi ;;
   codex)
     if [ "${1:-}" = login ]; then printf 'Logged in using ChatGPT\n'; else printf 'codex-cli 0.147.0\n'; fi ;;
   opencode) printf '1.18.10\n' ;;
@@ -252,7 +260,13 @@ case "${1:-}" in
   -v) printf 'v24.13.0\n' ;;
   -e)
     case "$2" in
-      *'authMethod'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) printf 'claude.ai' ;; *) exit 1 ;; esac ;;
+      *'authMethod'*)
+        input="$(cat)"
+        case "$input" in
+          *'"loggedIn":true'*'"authMethod":"'*) printf 'claude.ai' ;;
+          *'"loggedIn":true'*) printf 'signed in' ;;
+          *) exit 1 ;;
+        esac ;;
       *'loggedIn'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 0 ;; *) exit 1 ;; esac ;;
       *'.model'*) printf 'fable' ;;
       *'JSON.parse'*) grep -q '"model"' "${3:-}" ;;
@@ -275,6 +289,14 @@ assert_contains "$TMP/missing-jq.out" '[PASS]  Claude hook paths'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude model'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Browser skill'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude auth'
+assert_contains "$SCRIPT" 'typeof value === "string" && value ? value : "signed in"'
+if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" CLAUDE_AUTH_PAYLOAD='{"loggedIn":true,"authMethod":42}' \
+    SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/non-string-auth.out"; then
+  fail "missing jq readiness check unexpectedly passed for non-string authMethod"
+fi
+assert_contains "$TMP/non-string-auth.out" '[PASS]  Claude auth'
+assert_contains "$TMP/non-string-auth.out" 'signed in'
+assert_contains "$TMP/non-string-auth.out" 'Workstation result:'
 
 if "$SCRIPT" --unknown > "$TMP/unknown.out" 2>&1; then
   fail "unknown option unexpectedly passed"
