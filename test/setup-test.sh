@@ -19,6 +19,10 @@ assert_contains() {
   grep -Fq -- "$2" "$1" || fail "$1 does not contain: $2"
 }
 
+assert_line() {
+  grep -Fxq -- "$2" "$1" || fail "$1 does not contain the exact line: $2"
+}
+
 tree_fingerprint() {
   local root="$1"
   {
@@ -192,7 +196,7 @@ GH_LOG="$TMP/gh.log" HARNESS_NPM_LOG="$TMP/harness-npm.log" \
   bash -c 'source "$1"; install_dimensional_harness >/dev/null' _ "$SCRIPT"
 assert_contains "$TMP/gh.log" "repo clone AaryanAgrawal/dimensional-harness $TMP/private-harness"
 assert_contains "$TMP/harness-npm.log" 'ci --silent'
-assert_contains "$TMP/harness-npm.log" "run install:local -- --workspace $ROOT"
+assert_line "$TMP/harness-npm.log" "run install:local -- --workspace $ROOT"
 
 FONT_BIN="$TMP/font-bin"
 mkdir -p "$FONT_BIN"
