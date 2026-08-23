@@ -295,7 +295,18 @@ case "${1:-}" in
           *) exit 1 ;;
         esac ;;
       *'loggedIn'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 0 ;; *) exit 1 ;; esac ;;
-      *'.model'*) printf 'fable' ;;
+      *'.model'*'typeof value === "string"'*)
+        input="$(cat "${3:-}")"
+        case "$input" in *'"model":"'*) printf 'fable' ;; *) printf 'not pinned' ;; esac ;;
+      *'.model'*)
+        input="$(cat "${3:-}")"
+        case "$input" in
+          *'"model":"'*) printf 'fable' ;;
+          *'"model":42'*) printf '42' ;;
+          *'"model":true'*) printf 'true' ;;
+          *'"model":[]'*) printf '[]' ;;
+          *'"model":{}'*) printf '{}' ;;
+        esac ;;
       *'JSON.parse'*) grep -q '"model"' "${3:-}" ;;
     esac ;;
 esac
@@ -342,6 +353,13 @@ for model in '42' 'true' '[]' '{}'; do
   assert_contains "$TMP/jq-non-string-model.out" '[PASS]  Claude model'
   assert_contains "$TMP/jq-non-string-model.out" 'not pinned'
   assert_contains "$TMP/jq-non-string-model.out" 'Workstation result:'
+  if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
+      SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/node-non-string-model.out"; then
+    fail "missing jq readiness check unexpectedly passed for non-string model $model"
+  fi
+  assert_contains "$TMP/node-non-string-model.out" '[PASS]  Claude model'
+  assert_contains "$TMP/node-non-string-model.out" 'not pinned'
+  assert_contains "$TMP/node-non-string-model.out" 'Workstation result:'
 done
 cp "$TMP/settings.json" "$FAKE_HOME/.claude/settings.json"
 
