@@ -77,8 +77,9 @@ Hardware, 2026-08-21, real robot, bus otherwise idle:
 ```
 
 Robot readings, not Point-LIO: `python /tmp/g1check/fsm.py` on the G1 prints `mode_machine`, tilt,
-knee `tau_est` and any nonzero `motorstate` in one shot. `mode_machine=5` means activated and
-balancing; `0` is ZERO_TORQUE.
+knee `tau_est` and any nonzero `motorstate` in one shot. Read activation off **knee `tau_est`**, not
+`mode_machine` — a fresh boot with motors disabled also reports `mode_machine=5`, so it does not
+distinguish the two. Disabled reads ~0.2 Nm; standing and balancing reads 11-24 Nm.
 
 ## Architecture notes from the branch sweep (1,606 refs)
 
