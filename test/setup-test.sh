@@ -41,7 +41,7 @@ esac
 exit 0
 EOF
   chmod +x "$bin/tool"
-  for command in sudo git curl zsh rg node npm dtach gh code atuin niri ghostty brew \
+  for command in sudo git curl zsh rg node npm dtach gh code atuin niri paneru ghostty brew \
       claude codex opencode hermes openspec dimensional-ai uv diffity chsh op fc-list fc-cache unzip; do
     ln -s tool "$bin/$command"
   done
