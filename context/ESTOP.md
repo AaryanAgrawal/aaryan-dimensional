@@ -8,7 +8,9 @@ Tech spec goes on GitHub.
 
 - Branch: `aaryan/estop-rust`, off `upstream/main` @ `6fcc4e2d5`. Worktree
   `workspace/dimos/.claude/worktrees/estop-rust`.
-- Lives at `dimos/control/estop/`, beside the `ControlCoordinator` it feeds.
+- Lives at `dimos/control/estop/`, beside the `ControlCoordinator` it will feed.
+- **The rust module has never run on a robot.** Every hardware number below was measured with the
+  earlier python prototype. The rust module is verified only against the replayed fixture.
 - Supersedes the earlier Python G1 prototype on `aaryan/g1-estop` (kept for its measurements, see
   History below).
 
@@ -50,19 +52,33 @@ watchdogs"). That watchdog was never built. This is it.
 
 ## Test data
 
-`g1_fall_imu.csv`, 1401 rows, committed beside the test. A real measured G1 fall trajectory (two
-deliberate falls, peak tilt 81.15 deg, 836 samples above 45 deg), re-encoded as quaternions that
-round-trip to the measured tilt within 9.4e-08 deg, with yaw spun at 0.7 rad/s so it also exercises
-yaw invariance. The rust test replays it.
+`g1_fall_imu.csv`, 1401 rows, committed beside the test.
+
+**The orientation is SIMULATED.** Only the tilt magnitude is measured: it is the real tilt-vs-time
+of two deliberate G1 falls (peak 81.15 deg, 836 samples above 45 deg). That measured tilt is then
+re-encoded as a synthetic orientation, a pure roll of the measured angle composed with a yaw ramp
+at 0.7 rad/s. So pitch is identically zero and yaw is a perfect ramp, neither of which the robot
+did. The encoding round-trips to the measured tilt within 9.4e-08 deg. It is a faithful input for
+the tilt-and-latch path and a poor stand-in for real IMU orientation noise.
 
 ## Environment
 
 `cargo` is not on PATH (DIOS trap 1). Use the nix store directly:
 
+`nix build -L path:.` in the module's `rust/` dir is the sanctioned path, and it runs the tests
+inside the sandbox.
+
+For a fast `cargo test` loop, use the self-consistent nixpkgs pair. These two work:
+
 ```
-export PATH=/nix/store/3iax01111k6mxx897z11vl9xa2plr7sw-cargo-1.97.0-x86_64-unknown-linux-gnu/bin:\
-/nix/store/c4zd28myz1cm2adkf09wacxk40dpkrn5-rustc-1.97.0-x86_64-unknown-linux-gnu/bin:$PATH
+export PATH=/nix/store/cavxgwfb7l7akyvvqvnl39d6nw0wckgh-cargo-1.97.1/bin:\
+/nix/store/hjh2pcv59jhxwh6japwx1v437w4yrbp1-rustc-1.97.1/bin:$PATH
 ```
+
+Do NOT use the `*-x86_64-unknown-linux-gnu` suffixed cargo/rustc store paths. That rustc ships no
+host `rust-std`, so every crate dies with `E0463: can't find crate for std` unless a matching
+`rust-std` store path is grafted in via `RUSTFLAGS=--sysroot=...`. `cargo fmt` and `cargo clippy`
+are absent from both toolchains.
 
 The minimal rust module template is `examples/native-modules/rust/src/pong.rs`, 53 lines.
 
@@ -70,12 +86,17 @@ The minimal rust module template is `examples/native-modules/rust/src/pong.rs`, 
 
 Hardware, 2026-08-22. These numbers are why the design looks like it does.
 
-- **Falls:** two deliberate falls, 176,427 samples at ~780 Hz. Trips at 45.1 deg both times, peak
-  81.2 deg. Upright baseline 2.03 deg standing in walk mode, 5.94 deg in prep mode. Zero false
-  trips across a 10 minute activated-standing baseline.
-- **45 deg is a confirmation, not an early warning.** At the crossing the robot is already 65%
-  unloaded. `tilt > 30 deg` leads by 300 ms, `tilt > 20 deg` by 778 ms, `gyro > 1.0 rad/s` by
-  102 ms. `gyro > 2.0 rad/s` never fired before the trip.
+- **Falls:** two deliberate falls, 176,426 samples, 756 Hz mean. Trips at 45.1 deg both times,
+  peak 81.2 deg. Upright baseline over the first 60 s of that recording: p50 5.92 deg (prep mode).
+  Zero false trips across a 10 minute activated-standing baseline.
+- **45 deg is a confirmation, not an early warning.** At the crossing the robot is already ~64%
+  unloaded. `tilt > 30 deg` leads by 300 ms and `tilt > 20 deg` by 778 ms, measured in a 6 s window
+  around the first trip.
+- **A gyro gate is not usable, and this is why the fall check is tilt only.** Over the FULL
+  recording `gyro > 2.0 rad/s` fires 115 samples starting at t=72.1 s, 46 s before the fall, while
+  the robot is in prep. `gyro > 1.0 rad/s` fires 979 samples from t=49.5 s. Both would false trip.
+  An earlier claim that `gyro > 2.0` never fired before the trip was measured only inside a 6 s
+  window and is wrong over the whole recording.
 - **Lifted / hung up:** knee torque separates cleanly (standing p50 13.71 Nm, hung 2.64 Nm, no
   overlap) but tilt peaked at only 25 deg while hung, so tilt cannot see it. Torque is dropped from
   the design anyway per Aaryan, so a lift is currently NOT detected. Stated, not hidden.

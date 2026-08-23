@@ -36,3 +36,8 @@ Environment and toolchain failures hit on real hardware, for DIOS to replicate a
     `fetchexclude = data/.lfs/*`, so `git lfs pull --include="data/.lfs/<asset>"` exits 0 and
     fetches nothing — the pointer file is left in place and the failure only shows up later as a
     missing asset. Needs `-X ""` to clear the exclude.
+
+10. **Rust toolchain split across store paths.** A nix `rustc` whose path ends
+    `-x86_64-unknown-linux-gnu` ships no host `rust-std`, so every crate fails
+    `E0463: can't find crate for std` even though `rustc --version` works. The matching `rust-std`
+    is a separate unlinked store path. `cargo fmt` and `cargo clippy` are absent from both.
