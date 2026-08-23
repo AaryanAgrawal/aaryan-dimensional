@@ -261,6 +261,11 @@ assert_contains "$TMP/real-jq-string-values.out" '[PASS]  Claude model'
 assert_contains "$TMP/real-jq-string-values.out" 'fable'
 assert_contains "$TMP/real-jq-string-values.out" '[PASS]  Claude auth'
 assert_contains "$TMP/real-jq-string-values.out" 'claude.ai'
+HOME="$FAKE_HOME" PATH="$REAL_JQ_BIN:/usr/bin:/bin" \
+  CLAUDE_AUTH_PAYLOAD='{"loggedIn":false,"authMethod":"claude.ai"}' \
+  SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/real-jq-logged-out.out"
+assert_contains "$TMP/real-jq-logged-out.out" '[SETUP] Claude auth'
+assert_not_contains "$TMP/real-jq-logged-out.out" '[PASS]  Claude auth'
 HOME="$FAKE_HOME" SHELL="$FAKE_BIN/zsh" PATH="$FAKE_BIN:/usr/bin:/bin" \
   HOMEBREW_PREFIX=/definitely/not/the/brew/prefix \
   NPM_LOG="$TMP/npm.log" SUDO_LOG="$TMP/sudo.log" \
@@ -312,6 +317,15 @@ assert_contains "$TMP/check.out" 'OpenCode auth          credential store presen
 assert_contains "$TMP/check.out" 'Hermes profile         Dimensional profile configured'
 assert_contains "$TMP/check.out" 'Dimensional harness    '
 assert_contains "$TMP/check.out" 'Workstation result: 0 failed, 0 need setup.'
+
+mkdir -p "$FAKE_HOME/.hermes/profiles/dimensional/opencode/data/opencode"
+mv "$FAKE_HOME/.local/share/opencode/auth.json" "$FAKE_HOME/.local/share/opencode/auth.json.off"
+printf '{}\n' > "$FAKE_HOME/.hermes/profiles/dimensional/opencode/data/opencode/auth.json"
+HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+  SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/isolated-opencode-auth.out"
+assert_contains "$TMP/isolated-opencode-auth.out" 'OpenCode auth          isolated Dimensional credential; checked below'
+assert_not_contains "$TMP/isolated-opencode-auth.out" '[SETUP] OpenCode auth'
+mv "$FAKE_HOME/.local/share/opencode/auth.json.off" "$FAKE_HOME/.local/share/opencode/auth.json"
 
 mv "$FAKE_HOME/.claude/settings.json" "$FAKE_HOME/.claude/settings.json.off"
 HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
