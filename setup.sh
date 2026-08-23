@@ -5,7 +5,8 @@
 # deletes, never prints a secret, and collects what it could not do into a
 # list printed at the end instead of stopping.
 #
-#   ./setup.sh
+#   ./setup.sh             install or update the workstation
+#   ./setup.sh --check     read-only readiness report
 #
 # Window management is the same model on both machines -- a horizontal strip of
 # windows you scroll through. niri on Linux, paneru on macOS, identical keys:
@@ -16,17 +17,57 @@ set -euo pipefail
 STAMP="$(date +%Y%m%d-%H%M%S)"
 OS="$(uname -s)"
 WARNINGS=()
+CHECK_FAILURES=0
+CHECK_SETUPS=0
 
 log()  { printf '\n\033[32m==>\033[0m %s\n' "$*"; }
 step() { printf '\033[2m  ·\033[0m %s\n' "$*"; }
 warn() { printf '\033[33m  ! %s\033[0m\n' "$*"; WARNINGS+=("$*"); }
 have() { command -v "$1" >/dev/null 2>&1; }
 
+version_line() {
+  "$@" 2>&1 | sed -n '1{s/[[:cntrl:]]//g; p;}' || true
+}
+
+check_row() {
+  local state="$1" label="$2" detail="$3"
+  printf '  %-7s %-22s %s\n' "[$state]" "$label" "$detail"
+  [ "$state" = FAIL ] && CHECK_FAILURES=$((CHECK_FAILURES + 1))
+  [ "$state" = SETUP ] && CHECK_SETUPS=$((CHECK_SETUPS + 1))
+  return 0
+}
+
 # -L dereferences: a symlinked dotfile must not back up as another link to the
 # file we are about to overwrite, or both copies die.
 bak() { if [ -s "$1" ]; then cp -aL "$1" "$1.bak.$STAMP"; step "backed up $1"; fi; }
 
-TOOLS="ripgrep fzf zoxide jq gh node"
+TOOLS="ripgrep fzf zoxide jq gh node dtach"
+
+node_major() {
+  have node || { printf '0\n'; return; }
+  node -v | sed 's/^v//; s/\..*//'
+}
+
+ensure_node() {
+  [ "$(node_major)" -ge 22 ] && return 0
+  log "Node.js 22"
+  if [ "$OS" = Darwin ]; then
+    if ! have brew || ! brew install node >/dev/null 2>&1; then
+      warn "Node.js 22+ install failed"
+    fi
+    return 0
+  fi
+  local installer
+  installer="$(mktemp)"
+  if curl -fsSL https://deb.nodesource.com/setup_22.x -o "$installer" \
+      && sudo -E bash "$installer" >/dev/null 2>&1 \
+      && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs >/dev/null 2>&1; then
+    step "Node.js $(node -v)"
+  else
+    warn "Node.js 22+ install failed -- nodejs.org/en/download"
+  fi
+  rm -f "$installer"
+}
 
 # ---------------------------------------------------------------- linux
 
@@ -34,7 +75,7 @@ linux_packages() {
   log "Packages (apt)"
   sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
   # one call each: apt aborts the whole transaction on a single unknown name
-  for p in git curl unzip zsh fontconfig ripgrep fzf zoxide jq nodejs gh \
+  for p in git curl unzip zsh fontconfig ripgrep fzf zoxide jq gh perl dtach \
            zsh-autosuggestions zsh-syntax-highlighting ghostty; do
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$p" >/dev/null 2>&1 \
       || warn "$p: not in the archive on this release"
@@ -42,17 +83,19 @@ linux_packages() {
   have code   || sudo snap install code --classic >/dev/null 2>&1 \
     || warn "VS Code: code.visualstudio.com/docs/setup/linux"
   have atuin  || curl -fsSL https://setup.atuin.sh | bash || warn "atuin install failed"
+  ensure_node
 }
 
 linux_niri() {
   log "niri (scrollable tiling)"
   if have niri; then step "present"; else
     # dms adds the bar, launcher and notifications -- niri alone is a bare compositor
-    sudo add-apt-repository -y ppa:avengemedia/danklinux >/dev/null 2>&1 \
+    if ! sudo add-apt-repository -y ppa:avengemedia/danklinux >/dev/null 2>&1 \
       && sudo add-apt-repository -y ppa:avengemedia/dms >/dev/null 2>&1 \
       && sudo apt-get update -qq \
-      && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y niri dms >/dev/null \
-      || warn "niri PPA failed -- github.com/YaLTeR/niri/wiki/Getting-Started"
+      && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y niri dms >/dev/null; then
+      warn "niri PPA failed -- github.com/YaLTeR/niri/wiki/Getting-Started"
+    fi
   fi
   write_niri_config
 }
@@ -309,7 +352,11 @@ agent_layer() {
   log "Global agent config"
   local d="$HOME/.claude"
   if [ -d "$d/.git" ]; then
-    git -C "$d" pull --rebase --autostash || warn "could not pull claude-global-config"
+    if [ -n "$(git -C "$d" status --porcelain 2>/dev/null)" ]; then
+      warn "$HOME/.claude has local changes -- kept them and skipped the config update"
+    else
+      git -C "$d" pull --ff-only || warn "could not update claude-global-config"
+    fi
     return 0
   fi
   # Claude Code creates ~/.claude first, so clone-into-nonempty fails: graft instead.
@@ -330,7 +377,7 @@ agent_layer() {
 # The harness is the hooks, statusline, and skills under ~/.claude. Each has
 # runtime needs the clone does not carry, and most fail OPEN when something is
 # missing -- Claude still runs, the guard just silently does nothing.
-harness_check() {
+harness_prepare() {
   local d="$HOME/.claude"
   [ -f "$d/settings.json" ] || { warn "no ~/.claude/settings.json -- harness not installed"; return 0; }
   log "Harness"
@@ -348,8 +395,11 @@ harness_check() {
   local blib="$d/skills/browser/lib"
   if [ -f "$blib/package.json" ] && [ ! -d "$blib/node_modules" ]; then
     if have npm; then
-      ( cd "$blib" && npm ci --silent >/dev/null 2>&1 ) && step "installed skills/browser deps" \
-        || warn "npm ci failed in $blib -- browser skill will throw 'Cannot find module'"
+      if ( cd "$blib" && npm ci --silent >/dev/null 2>&1 ); then
+        step "installed skills/browser deps"
+      else
+        warn "npm ci failed in $blib -- browser skill will throw 'Cannot find module'"
+      fi
     else
       warn "npm missing -- cannot install skills/browser deps"
     fi
@@ -385,6 +435,20 @@ harness_check() {
   fi
 }
 
+install_agent_clis() {
+  log "Agent CLIs"
+  ensure_node
+  have claude || curl -fsSL https://claude.ai/install.sh | bash \
+    || warn "Claude Code install failed"
+  have codex || curl -fsSL https://chatgpt.com/codex/install.sh | sh \
+    || warn "Codex install failed"
+  have opencode || curl -fsSL https://opencode.ai/install | bash \
+    || warn "OpenCode install failed"
+  have hermes || curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash \
+    || warn "Hermes install failed"
+  step "authentication stays separate; the readiness check names each remaining login"
+}
+
 # diffity: browser diff viewer for reviewing what the agent changed. The skills
 # give Claude Code and Codex /diffity-diff, /diffity-review, /diffity-resolve.
 diffity_install() {
@@ -411,20 +475,183 @@ diffity_install() {
   fi
 }
 
+check_command() {
+  local label="$1" command="$2" version="$3"
+  if have "$command"; then
+    check_row PASS "$label" "$version"
+  else
+    check_row SETUP "$label" "missing; run ./setup.sh"
+  fi
+}
+
+check_claude_layer() {
+  local d="$HOME/.claude" model major
+  if [ ! -f "$d/settings.json" ]; then
+    check_row SETUP "Claude agent config" "$HOME/.claude/settings.json is missing"
+    return 0
+  fi
+  if jq empty "$d/settings.json" >/dev/null 2>&1; then
+    check_row PASS "Claude settings" "valid JSON"
+  else
+    check_row FAIL "Claude settings" "invalid JSON"
+    return 0
+  fi
+  if [ -n "$(git -C "$d" status --porcelain 2>/dev/null || true)" ]; then
+    check_row WARN "Claude config sync" "local changes kept; setup will not overwrite them"
+  else
+    check_row PASS "Claude config sync" "clean"
+  fi
+  if [ -r "$d/statusline-command.sh" ]; then
+    check_row PASS "Claude status line" "$d/statusline-command.sh"
+  else
+    check_row SETUP "Claude status line" "missing"
+  fi
+  if [ -x "$d/hooks/keep-working.sh" ] && [ -x "$d/hooks/payment-guard.sh" ]; then
+    check_row PASS "Claude hooks" "keep-working + payment guard"
+  else
+    check_row FAIL "Claude hooks" "required hook is missing or not executable"
+  fi
+  if grep -q '/Users/aaryan/.claude/' "$d/settings.json" && [ "$HOME" != /Users/aaryan ]; then
+    check_row FAIL "Claude hook paths" "still point at /Users/aaryan; run ./setup.sh"
+  else
+    check_row PASS "Claude hook paths" "match this machine"
+  fi
+  model="$(jq -r '.model // "not pinned"' "$d/settings.json")"
+  case "$model" in
+    *"[1m]"*) check_row WARN "Claude model" "$model conflicts with rules/models.md" ;;
+    *) check_row PASS "Claude model" "$model" ;;
+  esac
+  major="$(node_major)"
+  if [ -f "$d/skills/browser/lib/package.json" ] && [ ! -d "$d/skills/browser/lib/node_modules" ]; then
+    check_row FAIL "Browser skill" "dependencies missing; run ./setup.sh"
+  elif [ "$major" -lt 22 ]; then
+    check_row FAIL "Browser skill" "Node.js 22+ required"
+  else
+    check_row PASS "Browser skill" "runtime dependencies present"
+  fi
+}
+
+check_auth() {
+  local output
+  if have gh && gh auth status >/dev/null 2>&1; then
+    check_row PASS "GitHub auth" "gh is authenticated"
+  else
+    check_row SETUP "GitHub auth" "run: gh auth login"
+  fi
+  output="$(claude auth status --json 2>/dev/null || true)"
+  if printf '%s' "$output" | jq -e '.loggedIn == true' >/dev/null 2>&1; then
+    check_row PASS "Claude auth" "$(printf '%s' "$output" | jq -r '.authMethod // "signed in"')"
+  else
+    check_row SETUP "Claude auth" "run: claude"
+  fi
+  output="$(codex login status 2>&1 || true)"
+  if printf '%s' "$output" | grep -qi 'logged in'; then
+    check_row PASS "Codex auth" "$output"
+  else
+    check_row SETUP "Codex auth" "run: codex"
+  fi
+  if [ -s "$HOME/.local/share/opencode/auth.json" ]; then
+    check_row PASS "OpenCode auth" "credential store present"
+  else
+    check_row SETUP "OpenCode auth" "run opencode, then /connect"
+  fi
+  if [ -s "$HOME/.hermes/config.yaml" ] || [ -s "$HOME/.hermes/auth.json" ]; then
+    check_row PASS "Hermes profile" "default profile configured"
+  elif [ -s "$HOME/.hermes/profiles/dimensional/auth.json" ]; then
+    check_row PASS "Hermes profile" "Dimensional profile configured"
+  else
+    check_row SETUP "Hermes profile" "run: hermes setup"
+  fi
+}
+
+readiness_check() {
+  CHECK_FAILURES=0
+  CHECK_SETUPS=0
+  log "Workstation readiness"
+  printf '  %-7s %-22s %s\n' STATUS COMPONENT DETAIL
+  printf '  %-7s %-22s %s\n' '-------' '----------------------' '------'
+  local command
+  for command in git curl zsh jq rg node npm dtach; do
+    if have "$command"; then
+      check_row PASS "$command" "$(command -v "$command")"
+    else
+      check_row FAIL "$command" "required dependency missing"
+    fi
+  done
+  if [ "$(node_major)" -ge 22 ]; then
+    check_row PASS "Node.js" "$(node -v)"
+  else
+    check_row FAIL "Node.js" "$(node -v 2>/dev/null || echo missing); version 22+ required"
+  fi
+  check_command "Claude Code" claude "$(have claude && version_line claude --version || true)"
+  check_command "Codex" codex "$(have codex && version_line codex --version || true)"
+  check_command "OpenCode" opencode "$(have opencode && version_line opencode --version || true)"
+  check_command "Hermes" hermes "$(have hermes && version_line hermes --version || true)"
+  check_command "Diffity" diffity "$(have diffity && version_line diffity --version || true)"
+  check_command "Ghostty" ghostty "$(have ghostty && command -v ghostty || true)"
+  if [ "$OS" = Darwin ]; then
+    check_command "Paneru" paneru "$(have paneru && command -v paneru || true)"
+  else
+    check_command "niri" niri "$(have niri && command -v niri || true)"
+  fi
+  check_claude_layer
+  check_auth
+  local skills_count
+  skills_count="$(find "$HOME/.agents/skills" -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')"
+  if [ "$skills_count" -gt 0 ]; then
+    check_row PASS "Shared skills" "$skills_count under ~/.agents/skills"
+  else
+    check_row SETUP "Shared skills" "none under ~/.agents/skills"
+  fi
+  if have op; then
+    check_row PASS "1Password CLI" "$(command -v op)"
+  else
+    check_row SETUP "1Password CLI" "needed only for agent credential sync"
+  fi
+  printf '\n  Result: %d failed, %d need setup.\n' "$CHECK_FAILURES" "$CHECK_SETUPS"
+  if have dimensional-ai && [ "${SETUP_SKIP_HARNESS_DOCTOR:-0}" != 1 ]; then
+    log "Dimensional harness"
+    if dimensional-ai doctor; then
+      step "Dimensional harness doctor passed; SETUP rows above remain human checkpoints"
+    else
+      warn "Dimensional harness doctor failed"
+      CHECK_FAILURES=$((CHECK_FAILURES + 1))
+    fi
+  fi
+  [ "$CHECK_FAILURES" -eq 0 ]
+}
+
 summary() {
-  log "Done"
-  printf '  terminal   %s\n' "$(have ghostty && echo ghostty || echo '-- missing')"
-  printf '  windows    %s\n' "$(have niri && echo niri || { have paneru && echo paneru || echo '-- missing'; })"
-  printf '  editor     %s\n' "$(have code && echo 'VS Code' || echo '-- missing')"
-  printf '  claude     %s\n' "$(have claude && echo present || echo '-- missing')"
+  log "Installation finished"
   if [ ${#WARNINGS[@]} -gt 0 ]; then
     printf '\n\033[33m  %d need you:\033[0m\n' "${#WARNINGS[@]}"
     printf '    - %s\n' "${WARNINGS[@]}"
   fi
-  printf '\n  Log out and back in: the shell change and the font cache both need it.\n\n'
+  printf '\n  Open a new terminal for PATH and shell changes.\n'
+  printf '  Re-run this report any time: ./setup.sh --check\n\n'
+}
+
+usage() {
+  cat <<'EOF'
+Usage: ./setup.sh [--check | --help]
+
+  no argument  Install or update the workstation, then verify it
+  --check      Read-only readiness report; no installs or config writes
+  --help       Show this help
+
+The installer sets up the terminal, window manager, agent CLIs, shared Claude
+config, and review skills. Authentication remains per tool and is reported as
+SETUP until the operator completes it.
+EOF
 }
 
 main() {
+  case "${1:-}" in
+    --check|check) readiness_check; return ;;
+    --help|-h|help) usage; return ;;
+    "") ;;
+    *) printf 'unknown option: %s\n\n' "$1" >&2; usage >&2; exit 2 ;;
+  esac
   log "$OS"
   case "$OS" in
     Linux)  linux_packages; linux_niri ;;
@@ -435,13 +662,24 @@ main() {
   log "Configs"
   write_ghostty_config
   write_zshrc
-  have claude || curl -fsSL https://claude.ai/install.sh | bash || warn "claude code install failed"
   have uv     || curl -LsSf https://astral.sh/uv/install.sh | sh || warn "uv install failed"
+  install_agent_clis
   agent_layer
-  harness_check
+  harness_prepare
   diffity_install
-  [ "${SHELL:-}" = "$(command -v zsh)" ] || chsh -s "$(command -v zsh)" || warn "run: chsh -s $(command -v zsh)"
+  # plain chsh asks for a password and fails unattended; sudo chsh on Linux does not
+  if have zsh && [ "${SHELL:-}" != "$(command -v zsh)" ]; then
+    local zsh_path; zsh_path="$(command -v zsh)"
+    if [ "$OS" = Linux ]; then
+      sudo chsh -s "$zsh_path" "${USER:-$(id -un)}" || warn "run: chsh -s $zsh_path"
+    else
+      chsh -s "$zsh_path" || warn "run: chsh -s $zsh_path"
+    fi
+  fi
   summary
+  readiness_check
 }
 
-main "$@"
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+  main "$@"
+fi
