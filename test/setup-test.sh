@@ -170,7 +170,7 @@ assert_line "$TMP/curl.log" '-fsSL https://claude.ai/install.sh'
 assert_line "$TMP/curl.log" '-fsSL https://chatgpt.com/codex/install.sh'
 assert_line "$TMP/curl.log" '-fsSL https://opencode.ai/install'
 assert_line "$TMP/curl.log" '-fsSL https://hermes-agent.nousresearch.com/install.sh'
-assert_contains "$TMP/install-args.log" '--skip-browser'
+assert_line "$TMP/install-args.log" '--skip-browser'
 assert_contains "$TMP/agent-npm.log" 'install -g @fission-ai/openspec@latest'
 assert_contains "$SCRIPT" 'gh repo clone AaryanAgrawal/dimensional-harness'
 
@@ -279,7 +279,7 @@ mkdir -p "$LINUX_HOME"
 : > "$TMP/linux-npm.log"
 : > "$TMP/linux-sudo.log"
 HOME="$LINUX_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" NPM_LOG="$TMP/linux-npm.log" \
-  bash -c 'source "$1"; OS=Linux; npm_prefix_to_home' _ "$SCRIPT"
+  bash -c 'source "$1"; OS=Linux; ensure_node' _ "$SCRIPT"
 assert_contains "$TMP/linux-npm.log" "config set prefix $LINUX_HOME/.local"
 HOME="$LINUX_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" NPM_LOG="$TMP/linux-npm.log" \
   SUDO_LOG="$TMP/linux-sudo.log" bash -c 'source "$1"; OS=Linux; linux_packages >/dev/null' _ "$SCRIPT"
