@@ -19,6 +19,7 @@ OS="$(uname -s)"
 WARNINGS=()
 CHECK_FAILURES=0
 CHECK_SETUPS=0
+export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"
 
 log()  { printf '\n\033[32m==>\033[0m %s\n' "$*"; }
 step() { printf '\033[2m  ·\033[0m %s\n' "$*"; }
@@ -37,6 +38,10 @@ check_row() {
   return 0
 }
 
+check_section() {
+  printf '\n  %s\n' "$1"
+}
+
 # -L dereferences: a symlinked dotfile must not back up as another link to the
 # file we are about to overwrite, or both copies die.
 bak() { if [ -s "$1" ]; then cp -aL "$1" "$1.bak.$STAMP"; step "backed up $1"; fi; }
@@ -48,8 +53,17 @@ node_major() {
   node -v | sed 's/^v//; s/\..*//'
 }
 
+# nodesource's global prefix is root-owned, so every later `npm install -g`
+# (diffity, Hermes's own installer) would fail. ~/.local is ours and on PATH.
+npm_prefix_to_home() {
+  have npm || return 0
+  if [ "$OS" = Linux ] && [ "$(npm config get prefix 2>/dev/null)" = /usr ]; then
+    npm config set prefix "$HOME/.local" >/dev/null 2>&1 || true
+  fi
+}
+
 ensure_node() {
-  [ "$(node_major)" -ge 22 ] && return 0
+  if [ "$(node_major)" -ge 22 ]; then npm_prefix_to_home; return 0; fi
   log "Node.js 22"
   if [ "$OS" = Darwin ]; then
     if ! have brew || ! brew install node >/dev/null 2>&1; then
@@ -63,6 +77,7 @@ ensure_node() {
       && sudo -E bash "$installer" >/dev/null 2>&1 \
       && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs >/dev/null 2>&1; then
     step "Node.js $(node -v)"
+    npm_prefix_to_home
   else
     warn "Node.js 22+ install failed -- nodejs.org/en/download"
   fi
@@ -74,8 +89,9 @@ ensure_node() {
 linux_packages() {
   log "Packages (apt)"
   sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
-  # one call each: apt aborts the whole transaction on a single unknown name
+  # One call each keeps one unavailable package from blocking the rest; Hermes needs the toolchain.
   for p in git curl unzip zsh fontconfig ripgrep fzf zoxide jq gh perl dtach \
+           build-essential python3 \
            zsh-autosuggestions zsh-syntax-highlighting ghostty; do
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$p" >/dev/null 2>&1 \
       || warn "$p: not in the archive on this release"
@@ -89,15 +105,17 @@ linux_packages() {
 linux_niri() {
   log "niri (scrollable tiling)"
   if have niri; then step "present"; else
-    # dms adds the bar, launcher and notifications -- niri alone is a bare compositor
-    if ! sudo add-apt-repository -y ppa:avengemedia/danklinux >/dev/null 2>&1 \
-      && sudo add-apt-repository -y ppa:avengemedia/dms >/dev/null 2>&1 \
-      && sudo apt-get update -qq \
-      && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y niri dms >/dev/null; then
-      warn "niri PPA failed -- github.com/YaLTeR/niri/wiki/Getting-Started"
-    fi
+    # A function keeps `!` from applying only to the first command in the install chain.
+    install_niri_from_ppa || warn "niri PPA failed -- github.com/YaLTeR/niri/wiki/Getting-Started"
   fi
   write_niri_config
+}
+
+install_niri_from_ppa() {
+  sudo add-apt-repository -y ppa:avengemedia/danklinux >/dev/null 2>&1 \
+    && sudo add-apt-repository -y ppa:avengemedia/dms >/dev/null 2>&1 \
+    && sudo apt-get update -qq \
+    && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y niri dms >/dev/null
 }
 
 # ---------------------------------------------------------------- macos
@@ -319,7 +337,7 @@ write_zshrc() {
   [ -n "${HOMEBREW_PREFIX:-}" ] && share="$HOMEBREW_PREFIX/share"
   cat > "$HOME/.zshrc" <<EOF
 # managed by setup.sh -- edits here are overwritten on the next run
-export PATH="\$HOME/.local/bin:\$PATH"
+export PATH="\$HOME/.local/bin:\$HOME/.opencode/bin:\$PATH"
 
 HISTSIZE=100000; SAVEHIST=100000; HISTFILE=~/.zsh_history
 setopt SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS
@@ -444,7 +462,7 @@ install_agent_clis() {
     || warn "Codex install failed"
   have opencode || curl -fsSL https://opencode.ai/install | bash \
     || warn "OpenCode install failed"
-  have hermes || curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash \
+  have hermes || curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --skip-browser \
     || warn "Hermes install failed"
   step "authentication stays separate; the readiness check names each remaining login"
 }
@@ -480,7 +498,21 @@ check_command() {
   if have "$command"; then
     check_row PASS "$label" "$version"
   else
-    check_row SETUP "$label" "missing; run ./setup.sh"
+    check_row FAIL "$label" "missing; run ./setup.sh"
+  fi
+}
+
+command_version() {
+  local command="$1"
+  shift
+  if have "$command"; then
+    version_line "$command" "$@"
+  fi
+}
+
+command_path() {
+  if have "$1"; then
+    command -v "$1"
   fi
 }
 
@@ -545,20 +577,23 @@ check_auth() {
     check_row SETUP "Claude auth" "run: claude"
   fi
   output="$(codex login status 2>&1 || true)"
-  if printf '%s' "$output" | grep -qi 'logged in'; then
+  # anchored: "Not logged in" also contains "logged in"
+  if printf '%s' "$output" | grep -qiE '^(logged in|✓)'; then
     check_row PASS "Codex auth" "$output"
   else
     check_row SETUP "Codex auth" "run: codex"
   fi
   if [ -s "$HOME/.local/share/opencode/auth.json" ]; then
     check_row PASS "OpenCode auth" "credential store present"
+  elif [ -s "$HOME/.hermes/profiles/dimensional/opencode/data/opencode/auth.json" ]; then
+    check_row PASS "OpenCode auth" "isolated Dimensional credential; checked below"
   else
     check_row SETUP "OpenCode auth" "run opencode, then /connect"
   fi
-  if [ -s "$HOME/.hermes/config.yaml" ] || [ -s "$HOME/.hermes/auth.json" ]; then
-    check_row PASS "Hermes profile" "default profile configured"
-  elif [ -s "$HOME/.hermes/profiles/dimensional/auth.json" ]; then
+  if [ -s "$HOME/.hermes/profiles/dimensional/auth.json" ]; then
     check_row PASS "Hermes profile" "Dimensional profile configured"
+  elif [ -s "$HOME/.hermes/config.yaml" ] || [ -s "$HOME/.hermes/auth.json" ]; then
+    check_row PASS "Hermes profile" "default profile configured"
   else
     check_row SETUP "Hermes profile" "run: hermes setup"
   fi
@@ -571,6 +606,7 @@ readiness_check() {
   printf '  %-7s %-22s %s\n' STATUS COMPONENT DETAIL
   printf '  %-7s %-22s %s\n' '-------' '----------------------' '------'
   local command
+  check_section "FOUNDATION"
   for command in git curl zsh jq rg node npm dtach; do
     if have "$command"; then
       check_row PASS "$command" "$(command -v "$command")"
@@ -583,21 +619,28 @@ readiness_check() {
   else
     check_row FAIL "Node.js" "$(node -v 2>/dev/null || echo missing); version 22+ required"
   fi
-  check_command "Claude Code" claude "$(have claude && version_line claude --version || true)"
-  check_command "Codex" codex "$(have codex && version_line codex --version || true)"
-  check_command "OpenCode" opencode "$(have opencode && version_line opencode --version || true)"
-  check_command "Hermes" hermes "$(have hermes && version_line hermes --version || true)"
-  check_command "Diffity" diffity "$(have diffity && version_line diffity --version || true)"
-  check_command "Ghostty" ghostty "$(have ghostty && command -v ghostty || true)"
+  check_section "AGENT SURFACES"
+  check_command "Claude Code" claude "$(command_version claude --version)"
+  check_command "Codex" codex "$(command_version codex --version)"
+  check_command "OpenCode" opencode "$(command_version opencode --version)"
+  check_command "Hermes" hermes "$(command_version hermes --version)"
+  check_command "Diffity" diffity "$(command_version diffity --version)"
+  check_command "Ghostty" ghostty "$(command_path ghostty)"
   if [ "$OS" = Darwin ]; then
-    check_command "Paneru" paneru "$(have paneru && command -v paneru || true)"
+    check_command "Paneru" paneru "$(command_path paneru)"
   else
-    check_command "niri" niri "$(have niri && command -v niri || true)"
+    check_command "niri" niri "$(command_path niri)"
   fi
+  check_section "CLAUDE LAYER"
   check_claude_layer
+  check_section "ACCOUNTS"
   check_auth
-  local skills_count
-  skills_count="$(find "$HOME/.agents/skills" -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')"
+  check_section "SHARED TOOLING"
+  local skills_count=0
+  # find exits 1 on a missing dir; under pipefail that would kill the whole report
+  if [ -d "$HOME/.agents/skills" ]; then
+    skills_count="$(find "$HOME/.agents/skills" -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')"
+  fi
   if [ "$skills_count" -gt 0 ]; then
     check_row PASS "Shared skills" "$skills_count under ~/.agents/skills"
   else
@@ -608,11 +651,11 @@ readiness_check() {
   else
     check_row SETUP "1Password CLI" "needed only for agent credential sync"
   fi
-  printf '\n  Result: %d failed, %d need setup.\n' "$CHECK_FAILURES" "$CHECK_SETUPS"
+  printf '\n  Workstation result: %d failed, %d need setup.\n' "$CHECK_FAILURES" "$CHECK_SETUPS"
   if have dimensional-ai && [ "${SETUP_SKIP_HARNESS_DOCTOR:-0}" != 1 ]; then
     log "Dimensional harness"
     if dimensional-ai doctor; then
-      step "Dimensional harness doctor passed; SETUP rows above remain human checkpoints"
+      step "Core harness checks passed; any harness SETUP rows are human checkpoints"
     else
       warn "Dimensional harness doctor failed"
       CHECK_FAILURES=$((CHECK_FAILURES + 1))

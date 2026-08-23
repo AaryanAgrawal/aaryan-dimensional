@@ -21,7 +21,11 @@ Next actions.
    ```bash
    git clone https://github.com/AaryanAgrawal/aaryan-dimensional.git
    cd aaryan-dimensional
+   ./setup.sh
+   ./setup.sh --check
    ```
+   The installer is shared by macOS and Ubuntu. The read-only check reports agent CLIs, auth
+   checkpoints, hooks, shared skills, and the Dimensional harness when it is installed.
 2. **Clone `dimos` inside this repo root**, on Aaryan's fork, on the trial branch (run from the
    repo root — `dimos/` is gitignored here, its own git repo, never tracked as content; nesting it
    is what makes this file and `CLAUDE.md` govern dimos work too):
