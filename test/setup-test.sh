@@ -166,10 +166,10 @@ chmod +x "$INSTALL_BIN/node" "$INSTALL_BIN/curl" "$INSTALL_BIN/npm"
 CURL_LOG="$TMP/curl.log" INSTALL_ARGS_LOG="$TMP/install-args.log" NPM_LOG="$TMP/agent-npm.log" \
   HOME="$TMP/install-home" PATH="$INSTALL_BIN:/usr/bin:/bin" \
   bash -c 'source "$1"; install_agent_clis >/dev/null' _ "$SCRIPT"
-assert_contains "$TMP/curl.log" 'https://claude.ai/install.sh'
-assert_contains "$TMP/curl.log" 'https://chatgpt.com/codex/install.sh'
-assert_contains "$TMP/curl.log" 'https://opencode.ai/install'
-assert_contains "$TMP/curl.log" 'https://hermes-agent.nousresearch.com/install.sh'
+assert_line "$TMP/curl.log" '-fsSL https://claude.ai/install.sh'
+assert_line "$TMP/curl.log" '-fsSL https://chatgpt.com/codex/install.sh'
+assert_line "$TMP/curl.log" '-fsSL https://opencode.ai/install'
+assert_line "$TMP/curl.log" '-fsSL https://hermes-agent.nousresearch.com/install.sh'
 assert_contains "$TMP/install-args.log" '--skip-browser'
 assert_contains "$TMP/agent-npm.log" 'install -g @fission-ai/openspec@latest'
 assert_contains "$SCRIPT" 'gh repo clone AaryanAgrawal/dimensional-harness'
@@ -242,8 +242,11 @@ for source in "$FAKE_BIN"/*; do
 done
 ln -s "$REAL_JQ" "$REAL_JQ_BIN/jq"
 
+before_first_check="$(tree_fingerprint "$FAKE_HOME")"
 HOME="$FAKE_HOME" PATH="$REAL_JQ_BIN:/usr/bin:/bin" \
   SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/real-jq-string-values.out"
+after_first_check="$(tree_fingerprint "$FAKE_HOME")"
+[ "$before_first_check" = "$after_first_check" ] || fail "first --check modified the test home"
 assert_contains "$TMP/real-jq-string-values.out" '[PASS]  Claude model'
 assert_contains "$TMP/real-jq-string-values.out" 'fable'
 assert_contains "$TMP/real-jq-string-values.out" '[PASS]  Claude auth'
