@@ -19,6 +19,17 @@ assert_contains() {
   grep -Fq -- "$2" "$1" || fail "$1 does not contain: $2"
 }
 
+tree_fingerprint() {
+  local root="$1"
+  {
+    find "$root" -mindepth 1 -print | LC_ALL=C sort
+    find "$root" -type l -exec sh -c '
+      for item do printf "%s -> %s\n" "$item" "$(readlink "$item")"; done
+    ' sh {} + | LC_ALL=C sort
+    find "$root" -type f -exec cksum {} \; | LC_ALL=C sort
+  } | cksum
+}
+
 make_fake_bin() {
   local bin="$1" command
   mkdir -p "$bin"
@@ -256,10 +267,24 @@ if [ "$(uname -s)" = Darwin ]; then
   fi
 fi
 
-before_check="$(find "$FAKE_HOME" -type f -exec cksum {} \; | sort | cksum)"
+LINUX_HOME="$TMP/linux-home"
+mkdir -p "$LINUX_HOME"
+: > "$TMP/linux-npm.log"
+: > "$TMP/linux-sudo.log"
+HOME="$LINUX_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" NPM_LOG="$TMP/linux-npm.log" \
+  bash -c 'source "$1"; OS=Linux; npm_prefix_to_home' _ "$SCRIPT"
+assert_contains "$TMP/linux-npm.log" "config set prefix $LINUX_HOME/.local"
+HOME="$LINUX_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" NPM_LOG="$TMP/linux-npm.log" \
+  SUDO_LOG="$TMP/linux-sudo.log" bash -c 'source "$1"; OS=Linux; linux_packages >/dev/null' _ "$SCRIPT"
+assert_contains "$TMP/linux-sudo.log" 'apt-get install -y build-essential'
+assert_contains "$TMP/linux-sudo.log" 'apt-get install -y python3'
+HOME="$LINUX_HOME" bash -c 'source "$1"; write_niri_config' _ "$SCRIPT"
+assert_contains "$LINUX_HOME/.config/niri/config.kdl" 'Mod+J { focus-column-left; }'
+
+before_check="$(tree_fingerprint "$FAKE_HOME")"
 HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
   SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/check.out"
-after_check="$(find "$FAKE_HOME" -type f -exec cksum {} \; | sort | cksum)"
+after_check="$(tree_fingerprint "$FAKE_HOME")"
 [ "$before_check" = "$after_check" ] || fail "--check modified the test home"
 assert_contains "$TMP/check.out" 'OpenCode auth          credential store present'
 assert_contains "$TMP/check.out" 'Hermes profile         Dimensional profile configured'
@@ -302,6 +327,26 @@ if grep -Fq '[PASS]  Claude auth' "$TMP/missing-claude.out"; then
   fail "missing Claude Code falsely passed authentication"
 fi
 mv "$FAKE_BIN/claude.off" "$FAKE_BIN/claude"
+
+mv "$FAKE_HOME/.claude/hooks/keep-working.sh" "$FAKE_HOME/.claude/hooks/keep-working.sh.off"
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-hook.out"; then
+  fail "missing Claude hook unexpectedly passed readiness"
+fi
+assert_contains "$TMP/missing-hook.out" '[FAIL]  Claude hooks'
+assert_contains "$TMP/missing-hook.out" 'required hook is missing or not executable'
+mv "$FAKE_HOME/.claude/hooks/keep-working.sh.off" "$FAKE_HOME/.claude/hooks/keep-working.sh"
+
+cp "$FAKE_HOME/.claude/settings.json" "$TMP/settings-before-hook-path.json"
+printf '{"model":"fable","hooks":{"command":"/Users/aaryan/.claude/hooks/keep-working.sh"}}\n' \
+  > "$FAKE_HOME/.claude/settings.json"
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/cross-machine-hook.out"; then
+  fail "cross-machine Claude hook path unexpectedly passed readiness"
+fi
+assert_contains "$TMP/cross-machine-hook.out" '[FAIL]  Claude hook paths'
+assert_contains "$TMP/cross-machine-hook.out" 'still point at /Users/aaryan; run ./setup.sh'
+cp "$TMP/settings-before-hook-path.json" "$FAKE_HOME/.claude/settings.json"
 
 MISSING_JQ_BIN="$TMP/missing-jq-bin"
 mkdir -p "$MISSING_JQ_BIN"
