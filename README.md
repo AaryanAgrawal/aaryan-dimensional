@@ -27,10 +27,10 @@ Run the same setup on macOS or Ubuntu:
 ```
 
 The first command installs the terminal layer and the supported upstream Claude Code, Codex,
-OpenCode, Hermes, OpenSpec, and Diffity tools. It also installs the Dimensional harness when its
-source is present at `../AI Harness/dimensional-harness/` or `DIMENSIONAL_HARNESS_SOURCE` points
-to another checkout. Transfer or clone that local source before setup on a new laptop. The second
-command is read-only: it reports dependencies,
+OpenCode, Hermes, OpenSpec, and Diffity tools. It also installs the Dimensional harness from a
+checkout at `../AI Harness/dimensional-harness/`, `DIMENSIONAL_HARNESS_SOURCE`, or the private
+`AaryanAgrawal/dimensional-harness` repository after `gh auth login`. The second command is
+read-only: it reports dependencies,
 versions, auth checkpoints, Claude hooks/status line, shared skills, and the installed Dimensional
 harness. Authentication stays separate for each tool; the script never copies credentials between
 them.

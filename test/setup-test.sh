@@ -101,6 +101,31 @@ assert_contains "$TMP/curl.log" 'https://opencode.ai/install'
 assert_contains "$TMP/curl.log" 'https://hermes-agent.nousresearch.com/install.sh'
 assert_contains "$TMP/agent-npm.log" 'install -g @fission-ai/openspec@latest'
 assert_contains "$SCRIPT" 'bash -s -- --skip-browser'
+assert_contains "$SCRIPT" 'gh repo clone AaryanAgrawal/dimensional-harness'
+
+CLONE_BIN="$TMP/clone-bin"
+mkdir -p "$CLONE_BIN"
+cat > "$CLONE_BIN/gh" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$GH_LOG"
+if [ "${1:-}" = auth ]; then exit 0; fi
+if [ "${1:-}" = repo ] && [ "${2:-}" = clone ]; then
+  mkdir -p "$4"
+  printf '{"name":"dimensional-harness"}\n' > "$4/package.json"
+fi
+EOF
+cat > "$CLONE_BIN/npm" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$HARNESS_NPM_LOG"
+EOF
+chmod +x "$CLONE_BIN/gh" "$CLONE_BIN/npm"
+GH_LOG="$TMP/gh.log" HARNESS_NPM_LOG="$TMP/harness-npm.log" \
+  DIMENSIONAL_HARNESS_SOURCE="$TMP/private-harness" HOME="$TMP/clone-home" \
+  PATH="$CLONE_BIN:/usr/bin:/bin" \
+  bash -c 'source "$1"; install_dimensional_harness >/dev/null' _ "$SCRIPT"
+assert_contains "$TMP/gh.log" "repo clone AaryanAgrawal/dimensional-harness $TMP/private-harness"
+assert_contains "$TMP/harness-npm.log" 'ci --silent'
+assert_contains "$TMP/harness-npm.log" "run install:local -- --workspace $ROOT"
 
 FAKE_BIN="$TMP/bin"
 FAKE_HOME="$TMP/home"

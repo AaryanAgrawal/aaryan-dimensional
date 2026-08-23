@@ -476,10 +476,18 @@ install_dimensional_harness() {
   if [ ! -f "$source/package.json" ]; then
     if have dimensional-ai; then
       step "installed; source checkout not present on this machine"
-    else
-      warn "harness source missing: $source -- transfer or clone it, then rerun ./setup.sh"
+      return 0
     fi
-    return 0
+    if have gh && gh auth status >/dev/null 2>&1; then
+      mkdir -p "$(dirname "$source")"
+      gh repo clone AaryanAgrawal/dimensional-harness "$source" >/dev/null 2>&1 \
+        || warn "could not clone the private harness repository"
+    fi
+    if [ ! -f "$source/package.json" ]; then
+      warn "harness source missing: $source -- run gh auth login, then rerun ./setup.sh"
+      return 0
+    fi
+    step "cloned private harness source"
   fi
   have npm || { warn "npm missing -- cannot install the Dimensional harness"; return 0; }
   if ( cd "$source" && npm ci --silent && npm run install:local -- --workspace "$REPO_ROOT" ); then
