@@ -27,7 +27,10 @@ Run the same setup on macOS or Ubuntu:
 ```
 
 The first command installs the terminal layer and the supported upstream Claude Code, Codex,
-OpenCode, Hermes, and Diffity tools. The second command is read-only: it reports dependencies,
+OpenCode, Hermes, OpenSpec, and Diffity tools. It also installs the Dimensional harness when its
+source is present at `../AI Harness/dimensional-harness/` or `DIMENSIONAL_HARNESS_SOURCE` points
+to another checkout. Transfer or clone that local source before setup on a new laptop. The second
+command is read-only: it reports dependencies,
 versions, auth checkpoints, Claude hooks/status line, shared skills, and the installed Dimensional
 harness. Authentication stays separate for each tool; the script never copies credentials between
 them.
@@ -50,6 +53,10 @@ dimensional-ai doctor     # verify the whole local integration
 surface; OpenCode is the interactive coding UI; Claude Code and Codex remain selectable runtimes
 and review counterparts. Detailed commands and boundaries live in
 `../AI Harness/dimensional-harness/docs/WORKFLOW_SWITCH.md`.
+
+The two persistent leads are reconciled every minute by launchd on macOS or a systemd user timer
+on Ubuntu. Both operating systems run the same `dh team reconcile` implementation and write into
+the same profile-local ledger shape; only the native service manager differs.
 
 The information is intentionally split by ownership:
 

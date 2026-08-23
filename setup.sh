@@ -16,6 +16,7 @@ set -euo pipefail
 
 STAMP="$(date +%Y%m%d-%H%M%S)"
 OS="$(uname -s)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WARNINGS=()
 CHECK_FAILURES=0
 CHECK_SETUPS=0
@@ -464,7 +465,28 @@ install_agent_clis() {
     || warn "OpenCode install failed"
   have hermes || curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --skip-browser \
     || warn "Hermes install failed"
+  have openspec || npm install -g @fission-ai/openspec@latest >/dev/null 2>&1 \
+    || warn "OpenSpec install failed"
   step "authentication stays separate; the readiness check names each remaining login"
+}
+
+install_dimensional_harness() {
+  local source="${DIMENSIONAL_HARNESS_SOURCE:-$HOME/Files/AI Harness/dimensional-harness}"
+  log "Dimensional AI harness"
+  if [ ! -f "$source/package.json" ]; then
+    if have dimensional-ai; then
+      step "installed; source checkout not present on this machine"
+    else
+      warn "harness source missing: $source -- transfer or clone it, then rerun ./setup.sh"
+    fi
+    return 0
+  fi
+  have npm || { warn "npm missing -- cannot install the Dimensional harness"; return 0; }
+  if ( cd "$source" && npm ci --silent && npm run install:local -- --workspace "$REPO_ROOT" ); then
+    step "installed from $source"
+  else
+    warn "Dimensional harness install failed: $source"
+  fi
 }
 
 # diffity: browser diff viewer for reviewing what the agent changed. The skills
@@ -624,6 +646,8 @@ readiness_check() {
   check_command "Codex" codex "$(command_version codex --version)"
   check_command "OpenCode" opencode "$(command_version opencode --version)"
   check_command "Hermes" hermes "$(command_version hermes --version)"
+  check_command "OpenSpec" openspec "$(command_version openspec --version)"
+  check_command "Dimensional harness" dimensional-ai "$(command_path dimensional-ai)"
   check_command "Diffity" diffity "$(command_version diffity --version)"
   check_command "Ghostty" ghostty "$(command_path ghostty)"
   if [ "$OS" = Darwin ]; then
@@ -709,6 +733,7 @@ main() {
   install_agent_clis
   agent_layer
   harness_prepare
+  install_dimensional_harness
   diffity_install
   # plain chsh asks for a password and fails unattended; sudo chsh on Linux does not
   if have zsh && [ "${SHELL:-}" != "$(command -v zsh)" ]; then
