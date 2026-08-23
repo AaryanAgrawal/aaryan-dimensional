@@ -327,6 +327,64 @@ agent_layer() {
   step "credentials are separate: ~/.claude/scripts/agent-setup.sh"
 }
 
+# The harness is the hooks, statusline, and skills under ~/.claude. Each has
+# runtime needs the clone does not carry, and most fail OPEN when something is
+# missing -- Claude still runs, the guard just silently does nothing.
+harness_check() {
+  local d="$HOME/.claude"
+  [ -f "$d/settings.json" ] || { warn "no ~/.claude/settings.json -- harness not installed"; return 0; }
+  log "Harness"
+
+  # jq: statusline + keep-working + payment-guard all require it, all exit 0 without it
+  have jq   || warn "jq missing -- statusline blank, keep-working and payment-guard silently disabled"
+  have perl || warn "perl missing -- the hooks' timeout wrapper needs it"
+  have node || warn "node missing -- keep-working, Linear CLI and browser skill need it"
+  if have node; then
+    local major; major="$(node -v | sed 's/^v//; s/\..*//')"
+    [ "$major" -ge 22 ] || warn "node $major found; skills/browser needs >= 22"
+  fi
+
+  # node_modules is gitignored repo-wide, so a fresh clone has none
+  local blib="$d/skills/browser/lib"
+  if [ -f "$blib/package.json" ] && [ ! -d "$blib/node_modules" ]; then
+    if have npm; then
+      ( cd "$blib" && npm ci --silent >/dev/null 2>&1 ) && step "installed skills/browser deps" \
+        || warn "npm ci failed in $blib -- browser skill will throw 'Cannot find module'"
+    else
+      warn "npm missing -- cannot install skills/browser deps"
+    fi
+  fi
+
+  # the statusline's blocker count reads tools/ which the repo whitelist does not track
+  [ -f "$d/tools/blockers/refresh-count.mjs" ] \
+    || step "statusline blocker count off: tools/blockers is not in the repo -- harmless"
+
+  # agent-setup.sh is the credential bootstrap; it needs op plus one env file
+  have op || warn "1Password CLI missing -- agent-setup.sh cannot pull credentials"
+  [ -f "$HOME/.config/agent/.env" ] \
+    || warn "no ~/.config/agent/.env -- OP_SERVICE_ACCOUNT_TOKEN has to be placed by hand, then: ~/.claude/scripts/agent-setup.sh"
+
+  # model drift: rules/models.md forbids 1M variants and names fable; flag, never auto-edit
+  local model; model="$(jq -r '.model // empty' "$d/settings.json" 2>/dev/null || true)"
+  case "$model" in
+    *"[1m]"*) warn "settings.json model is '$model' -- rules/models.md forbids 1M variants" ;;
+  esac
+
+  # hooks hardcode /Users/aaryan/.claude/hooks/..., which does not exist on Linux, so
+  # keep-working and payment-guard would never fire. Rewrite to this machine's HOME.
+  if grep -q '/Users/aaryan/.claude/' "$d/settings.json" && [ "$HOME" != /Users/aaryan ]; then
+    bak "$d/settings.json"
+    sed -i.tmp "s|/Users/aaryan/.claude/|$HOME/.claude/|g" "$d/settings.json"
+    rm -f "$d/settings.json.tmp"
+    if jq empty "$d/settings.json" 2>/dev/null; then
+      step "rewrote hook paths to $HOME/.claude"
+    else
+      cp "$d/settings.json.bak.$STAMP" "$d/settings.json"
+      warn "settings.json did not parse after the path rewrite -- restored from backup"
+    fi
+  fi
+}
+
 # diffity: browser diff viewer for reviewing what the agent changed. The skills
 # give Claude Code and Codex /diffity-diff, /diffity-review, /diffity-resolve.
 diffity_install() {
@@ -339,9 +397,17 @@ diffity_install() {
       || warn "diffity skills failed -- run: npx skills add nilbuild/diffity --global"
   fi
   if [ -L "$HOME/.claude/skills/diffity-diff" ]; then
-    step "/diffity-diff, /diffity-review, /diffity-resolve ready"
+    step "/diffity-diff, /diffity-review, /diffity-resolve ready in Claude Code"
   else
     warn "diffity skills not linked into ~/.claude/skills"
+  fi
+  # the installer lists Codex but does not actually link it; do it ourselves
+  if [ -d "$HOME/.codex/skills" ]; then
+    local s
+    for s in "$HOME"/.agents/skills/diffity-*; do
+      [ -d "$s" ] && ln -sfn "$s" "$HOME/.codex/skills/$(basename "$s")"
+    done
+    step "linked into Codex too"
   fi
 }
 
@@ -372,6 +438,7 @@ main() {
   have claude || curl -fsSL https://claude.ai/install.sh | bash || warn "claude code install failed"
   have uv     || curl -LsSf https://astral.sh/uv/install.sh | sh || warn "uv install failed"
   agent_layer
+  harness_check
   diffity_install
   [ "${SHELL:-}" = "$(command -v zsh)" ] || chsh -s "$(command -v zsh)" || warn "run: chsh -s $(command -v zsh)"
   summary
