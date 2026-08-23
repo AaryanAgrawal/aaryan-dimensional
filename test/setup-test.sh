@@ -287,12 +287,22 @@ case "${1:-}" in
   -v) printf 'v24.13.0\n' ;;
   -e)
     case "$2" in
-      *'authMethod'*)
+      *'authMethod'*'typeof value === "string"'*)
         input="$(cat)"
         case "$input" in
           *'"loggedIn":true'*'"authMethod":"'*) printf 'claude.ai' ;;
           *'"loggedIn":true'*) printf 'signed in' ;;
           *) exit 1 ;;
+        esac ;;
+      *'authMethod'*)
+        input="$(cat)"
+        case "$input" in
+          *'"authMethod":"'*) printf 'claude.ai' ;;
+          *'"authMethod":42'*) printf '42' ;;
+          *'"authMethod":true'*) printf 'true' ;;
+          *'"authMethod":[]'*) printf '[]' ;;
+          *'"authMethod":{}'*) printf '{}' ;;
+          *) printf 'signed in' ;;
         esac ;;
       *'loggedIn'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 0 ;; *) exit 1 ;; esac ;;
       *'.model'*'typeof value === "string"'*)
@@ -327,14 +337,16 @@ assert_contains "$TMP/missing-jq.out" '[PASS]  Claude hook paths'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude model'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Browser skill'
 assert_contains "$TMP/missing-jq.out" '[PASS]  Claude auth'
-assert_contains "$SCRIPT" 'typeof value === "string" && value ? value : "signed in"'
-if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" CLAUDE_AUTH_PAYLOAD='{"loggedIn":true,"authMethod":42}' \
-    SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/non-string-auth.out"; then
-  fail "missing jq readiness check unexpectedly passed for non-string authMethod"
-fi
-assert_contains "$TMP/non-string-auth.out" '[PASS]  Claude auth'
-assert_contains "$TMP/non-string-auth.out" 'signed in'
-assert_contains "$TMP/non-string-auth.out" 'Workstation result:'
+for auth_method in '42' 'true' '[]' '{}'; do
+  if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
+      CLAUDE_AUTH_PAYLOAD="{\"loggedIn\":true,\"authMethod\":$auth_method}" \
+      SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/non-string-auth.out"; then
+    fail "missing jq readiness check unexpectedly passed for non-string authMethod $auth_method"
+  fi
+  assert_contains "$TMP/non-string-auth.out" '[PASS]  Claude auth'
+  assert_contains "$TMP/non-string-auth.out" 'signed in'
+  assert_contains "$TMP/non-string-auth.out" 'Workstation result:'
+done
 
 for auth_method in '42' 'true' '[]' '{}'; do
   HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
