@@ -23,7 +23,7 @@ make_fake_bin() {
 #!/usr/bin/env bash
 case "$(basename "$0")" in
   sudo) printf '%s\n' "$*" >> "${SUDO_LOG:-/dev/null}" ;;
-  node) printf 'v22.14.0\n' ;;
+  node) printf 'v24.13.0\n' ;;
   npm)
     if [ "${1:-}" = config ] && [ "${2:-}" = get ]; then printf '/usr\n'; fi
     if [ "${1:-}" = config ] && [ "${2:-}" = set ]; then printf '%s\n' "$*" >> "${NPM_LOG:-/dev/null}"; fi ;;
@@ -39,8 +39,14 @@ case "$(basename "$0")" in
     case "$*" in
       *'.model // empty'*) printf 'fable\n' ;;
       *'.model // "not pinned"'*) printf 'fable\n' ;;
-      *'.authMethod'*) printf 'claude.ai\n' ;;
+      *'.loggedIn == true'*)
+        input="$(cat)"
+        case "$input" in *'"loggedIn":true'*) printf 'true\n' ;; *) exit 1 ;; esac ;;
+      *'.authMethod'*)
+        input="$(cat)"
+        case "$input" in *'"loggedIn":true'*) printf 'claude.ai\n' ;; *) exit 1 ;; esac ;;
     esac ;;
+  brew) [ "${1:-}" = --prefix ] && printf '/opt/homebrew\n' ;;
   diffity) printf '0.9.5\n' ;;
   fc-list) printf 'JetBrainsMono Nerd Font\n' ;;
 esac
@@ -87,7 +93,7 @@ INSTALL_BIN="$TMP/install-bin"
 mkdir -p "$INSTALL_BIN"
 cat > "$INSTALL_BIN/node" <<'EOF'
 #!/usr/bin/env bash
-printf 'v22.14.0\n'
+printf 'v24.13.0\n'
 EOF
 cat > "$INSTALL_BIN/curl" <<'EOF'
 #!/usr/bin/env bash
@@ -135,23 +141,36 @@ assert_contains "$TMP/harness-npm.log" "run install:local -- --workspace $ROOT"
 
 FONT_BIN="$TMP/font-bin"
 mkdir -p "$FONT_BIN"
-for command in mkdir grep rm; do ln -s "$(command -v "$command")" "$FONT_BIN/$command"; done
+for command in find grep mkdir rm; do ln -s "$(command -v "$command")" "$FONT_BIN/$command"; done
 cat > "$FONT_BIN/curl" <<'EOF'
 #!/bin/bash
+printf 'curl\n' >> "$FONT_CURL_LOG"
 : > JetBrainsMono.zip
 EOF
 cat > "$FONT_BIN/unzip" <<'EOF'
 #!/bin/bash
+: > JetBrainsMonoNerdFont-Regular.ttf
 exit 0
 EOF
 chmod +x "$FONT_BIN/curl" "$FONT_BIN/unzip"
-HOME="$TMP/font-home" bash -c 'source "$1"; PATH="$2"; font >/dev/null' _ "$SCRIPT" "$FONT_BIN"
+FONT_CURL_LOG="$TMP/font-curl.log" HOME="$TMP/font-home" \
+  bash -c 'source "$1"; PATH="$2"; font >/dev/null; font >/dev/null; font >/dev/null' \
+  _ "$SCRIPT" "$FONT_BIN" || fail "font install without fc-cache failed"
+[ "$(wc -l < "$TMP/font-curl.log" | tr -d ' ')" = 1 ] || fail "font install was not idempotent"
+if [ "$(uname -s)" = Darwin ]; then
+  [ -f "$TMP/font-home/Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf" ] \
+    || fail "macOS font was not installed into ~/Library/Fonts"
+else
+  [ -f "$TMP/font-home/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf" ] \
+    || fail "Linux font was not installed into ~/.local/share/fonts"
+fi
 
 FAKE_BIN="$TMP/bin"
 FAKE_HOME="$TMP/home"
 make_fake_bin "$FAKE_BIN"
 make_ready_home "$FAKE_HOME"
 HOME="$FAKE_HOME" SHELL="$FAKE_BIN/zsh" PATH="$FAKE_BIN:/usr/bin:/bin" \
+  HOMEBREW_PREFIX=/definitely/not/the/brew/prefix \
   NPM_LOG="$TMP/npm.log" SUDO_LOG="$TMP/sudo.log" \
   SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" > "$TMP/install.out"
 assert_contains "$TMP/install.out" 'Workstation result: 0 failed, 0 need setup.'
@@ -166,6 +185,12 @@ else
 fi
 assert_contains "$FAKE_HOME/.zshrc" 'zoxide init zsh'
 assert_contains "$FAKE_HOME/.zshrc" "\$HOME/.opencode/bin:\$PATH"
+if [ "$(uname -s)" = Darwin ]; then
+  assert_contains "$FAKE_HOME/.zshrc" '/opt/homebrew/share/zsh-autosuggestions'
+  if grep -Fq '/definitely/not/the/brew/prefix' "$FAKE_HOME/.zshrc"; then
+    fail "zsh plugin path inherited HOMEBREW_PREFIX"
+  fi
+fi
 
 before_check="$(find "$FAKE_HOME" -type f -exec cksum {} \; | sort | cksum)"
 HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
@@ -202,6 +227,55 @@ fi
 assert_contains "$TMP/missing-harness.out" '[FAIL]  Dimensional harness'
 mv "$FAKE_BIN/dimensional-ai.off" "$FAKE_BIN/dimensional-ai"
 
+mv "$FAKE_BIN/claude" "$FAKE_BIN/claude.off"
+if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 "$SCRIPT" --check > "$TMP/missing-claude.out"; then
+  fail "missing Claude Code readiness check unexpectedly passed"
+fi
+assert_contains "$TMP/missing-claude.out" '[FAIL]  Claude Code'
+assert_contains "$TMP/missing-claude.out" '[SETUP] Claude auth'
+if grep -Fq '[PASS]  Claude auth' "$TMP/missing-claude.out"; then
+  fail "missing Claude Code falsely passed authentication"
+fi
+mv "$FAKE_BIN/claude.off" "$FAKE_BIN/claude"
+
+MISSING_JQ_BIN="$TMP/missing-jq-bin"
+mkdir -p "$MISSING_JQ_BIN"
+for source in "$FAKE_BIN"/*; do
+  command="$(basename "$source")"
+  case "$command" in jq|node) continue ;; esac
+  ln -s "$source" "$MISSING_JQ_BIN/$command"
+done
+cat > "$MISSING_JQ_BIN/node" <<'EOF'
+#!/bin/bash
+case "${1:-}" in
+  -v) printf 'v24.13.0\n' ;;
+  -e)
+    case "$2" in
+      *'authMethod'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) printf 'claude.ai' ;; *) exit 1 ;; esac ;;
+      *'loggedIn'*) input="$(cat)"; case "$input" in *'"loggedIn":true'*) exit 0 ;; *) exit 1 ;; esac ;;
+      *'.model'*) printf 'fable' ;;
+      *'JSON.parse'*) grep -q '"model"' "${3:-}" ;;
+    esac ;;
+esac
+EOF
+chmod +x "$MISSING_JQ_BIN/node"
+for command in bash basename cat date dirname env find grep sed tr uname wc; do
+  [ -e "$MISSING_JQ_BIN/$command" ] || ln -s "$(command -v "$command")" "$MISSING_JQ_BIN/$command"
+done
+if HOME="$FAKE_HOME" PATH="$MISSING_JQ_BIN" \
+    SETUP_SKIP_HARNESS_DOCTOR=1 /bin/bash "$SCRIPT" --check > "$TMP/missing-jq.out"; then
+  fail "missing jq readiness check unexpectedly passed"
+fi
+assert_contains "$TMP/missing-jq.out" '[FAIL]  jq'
+assert_contains "$TMP/missing-jq.out" '[PASS]  Claude settings'
+assert_contains "$TMP/missing-jq.out" '[PASS]  Claude status line'
+assert_contains "$TMP/missing-jq.out" '[PASS]  Claude hooks'
+assert_contains "$TMP/missing-jq.out" '[PASS]  Claude hook paths'
+assert_contains "$TMP/missing-jq.out" '[PASS]  Claude model'
+assert_contains "$TMP/missing-jq.out" '[PASS]  Browser skill'
+assert_contains "$TMP/missing-jq.out" '[PASS]  Claude auth'
+
 if "$SCRIPT" --unknown > "$TMP/unknown.out" 2>&1; then
   fail "unknown option unexpectedly passed"
 fi
@@ -215,7 +289,7 @@ if HOME="$FAKE_HOME" PATH="$FAKE_BIN:/usr/bin:/bin" \
   fail "Node.js 18 readiness check unexpectedly passed"
 fi
 assert_contains "$TMP/old-node.out" '[FAIL]  Node.js'
-assert_contains "$TMP/old-node.out" 'version 22+ required'
+assert_contains "$TMP/old-node.out" 'version 24+ required'
 mv "$FAKE_BIN/node" "$FAKE_BIN/node.old"
 mv "$FAKE_BIN/node.ready" "$FAKE_BIN/node"
 

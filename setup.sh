@@ -64,23 +64,23 @@ npm_prefix_to_home() {
 }
 
 ensure_node() {
-  if [ "$(node_major)" -ge 22 ]; then npm_prefix_to_home; return 0; fi
-  log "Node.js 22"
+  if [ "$(node_major)" -ge 24 ]; then npm_prefix_to_home; return 0; fi
+  log "Node.js 24"
   if [ "$OS" = Darwin ]; then
     if ! have brew || ! brew install node >/dev/null 2>&1; then
-      warn "Node.js 22+ install failed"
+      warn "Node.js 24+ install failed"
     fi
     return 0
   fi
   local installer
   installer="$(mktemp)"
-  if curl -fsSL https://deb.nodesource.com/setup_22.x -o "$installer" \
+  if curl -fsSL https://deb.nodesource.com/setup_24.x -o "$installer" \
       && sudo -E bash "$installer" >/dev/null 2>&1 \
       && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs >/dev/null 2>&1; then
     step "Node.js $(node -v)"
     npm_prefix_to_home
   else
-    warn "Node.js 22+ install failed -- nodejs.org/en/download"
+    warn "Node.js 24+ install failed -- nodejs.org/en/download"
   fi
   rm -f "$installer"
 }
@@ -151,10 +151,24 @@ mac_paneru() {
 # ---------------------------------------------------------------- shared
 
 font() {
+  local font_dir
   log "JetBrains Mono Nerd Font"
-  if fc-list 2>/dev/null | grep -qi "jetbrainsmono nerd"; then step "present"; return 0; fi
-  mkdir -p "$HOME/.local/share/fonts"
-  ( cd "$HOME/.local/share/fonts" \
+  if [ "$OS" = Darwin ]; then
+    font_dir="$HOME/Library/Fonts"
+  else
+    font_dir="$HOME/.local/share/fonts"
+  fi
+  if find "$font_dir" -maxdepth 1 -type f -iname 'JetBrainsMono*NerdFont*.ttf' -print -quit 2>/dev/null \
+      | grep -q .; then
+    step "present"
+    return 0
+  fi
+  if have fc-list && fc-list 2>/dev/null | grep -qi "jetbrainsmono nerd"; then
+    step "present"
+    return 0
+  fi
+  mkdir -p "$font_dir"
+  ( cd "$font_dir" \
     && curl -fLO https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip \
     && unzip -oq JetBrainsMono.zip && rm -f JetBrainsMono.zip ) || { warn "font download failed"; return 0; }
   if have fc-cache; then
@@ -337,8 +351,11 @@ EOF
 
 write_zshrc() {
   bak "$HOME/.zshrc"
-  local share=/usr/share
-  [ -n "${HOMEBREW_PREFIX:-}" ] && share="$HOMEBREW_PREFIX/share"
+  local share=/usr/share brew_prefix=""
+  if [ "$OS" = Darwin ] && have brew; then
+    brew_prefix="$(brew --prefix 2>/dev/null || true)"
+    [ -n "$brew_prefix" ] && share="$brew_prefix/share"
+  fi
   cat > "$HOME/.zshrc" <<EOF
 # managed by setup.sh -- edits here are overwritten on the next run
 export PATH="\$HOME/.local/bin:\$HOME/.opencode/bin:\$PATH"
@@ -410,7 +427,7 @@ harness_prepare() {
   have node || warn "node missing -- keep-working, Linear CLI and browser skill need it"
   if have node; then
     local major; major="$(node -v | sed 's/^v//; s/\..*//')"
-    [ "$major" -ge 22 ] || warn "node $major found; skills/browser needs >= 22"
+    [ "$major" -ge 24 ] || warn "node $major found; agent stack needs >= 24"
   fi
 
   # node_modules is gitignored repo-wide, so a fresh clone has none
@@ -550,16 +567,25 @@ command_path() {
 }
 
 check_claude_layer() {
-  local d="$HOME/.claude" model major
+  local d="$HOME/.claude" model major settings_valid=false
   if [ ! -f "$d/settings.json" ]; then
     check_row SETUP "Claude agent config" "$HOME/.claude/settings.json is missing"
     return 0
   fi
-  if jq empty "$d/settings.json" >/dev/null 2>&1; then
+  if have jq; then
+    if jq empty "$d/settings.json" >/dev/null 2>&1; then
+      settings_valid=true
+    fi
+  elif have node; then
+    if node -e 'JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"))' \
+        "$d/settings.json" >/dev/null 2>&1; then
+      settings_valid=true
+    fi
+  fi
+  if [ "$settings_valid" = true ]; then
     check_row PASS "Claude settings" "valid JSON"
   else
     check_row FAIL "Claude settings" "invalid JSON"
-    return 0
   fi
   if [ -n "$(git -C "$d" status --porcelain 2>/dev/null || true)" ]; then
     check_row WARN "Claude config sync" "local changes kept; setup will not overwrite them"
@@ -581,7 +607,17 @@ check_claude_layer() {
   else
     check_row PASS "Claude hook paths" "match this machine"
   fi
-  model="$(jq -r '.model // "not pinned"' "$d/settings.json")"
+  if have jq; then
+    model="$(jq -r '.model // "not pinned"' "$d/settings.json" 2>/dev/null || true)"
+  elif have node; then
+    model="$(node -e '
+      const value = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).model;
+      process.stdout.write(typeof value === "string" ? value : "not pinned");
+    ' "$d/settings.json" 2>/dev/null || true)"
+  else
+    model="not inspected"
+  fi
+  [ -n "$model" ] || model="not inspected"
   case "$model" in
     *"[1m]"*) check_row WARN "Claude model" "$model conflicts with rules/models.md" ;;
     *) check_row PASS "Claude model" "$model" ;;
@@ -589,23 +625,42 @@ check_claude_layer() {
   major="$(node_major)"
   if [ -f "$d/skills/browser/lib/package.json" ] && [ ! -d "$d/skills/browser/lib/node_modules" ]; then
     check_row FAIL "Browser skill" "dependencies missing; run ./setup.sh"
-  elif [ "$major" -lt 22 ]; then
-    check_row FAIL "Browser skill" "Node.js 22+ required"
+  elif [ "$major" -lt 24 ]; then
+    check_row FAIL "Browser skill" "Node.js 24+ required"
   else
     check_row PASS "Browser skill" "runtime dependencies present"
   fi
 }
 
 check_auth() {
-  local output
+  local output auth_method="signed in" claude_auth_ready=false
   if have gh && gh auth status >/dev/null 2>&1; then
     check_row PASS "GitHub auth" "gh is authenticated"
   else
     check_row SETUP "GitHub auth" "run: gh auth login"
   fi
   output="$(claude auth status --json 2>/dev/null || true)"
-  if printf '%s' "$output" | jq -e '.loggedIn == true' >/dev/null 2>&1; then
-    check_row PASS "Claude auth" "$(printf '%s' "$output" | jq -r '.authMethod // "signed in"')"
+  if have jq; then
+    if printf '%s' "$output" | jq -e '.loggedIn == true' >/dev/null 2>&1; then
+      claude_auth_ready=true
+      auth_method="$(printf '%s' "$output" | jq -r '.authMethod // "signed in"')"
+    fi
+  elif have node; then
+    if printf '%s' "$output" | node -e '
+        let input = "";
+        process.stdin.on("data", chunk => { input += chunk; });
+        process.stdin.on("end", () => process.exit(JSON.parse(input).loggedIn === true ? 0 : 1));
+      ' >/dev/null 2>&1; then
+      claude_auth_ready=true
+      auth_method="$(printf '%s' "$output" | node -e '
+        let input = "";
+        process.stdin.on("data", chunk => { input += chunk; });
+        process.stdin.on("end", () => process.stdout.write(JSON.parse(input).authMethod || "signed in"));
+      ')"
+    fi
+  fi
+  if [ "$claude_auth_ready" = true ]; then
+    check_row PASS "Claude auth" "$auth_method"
   else
     check_row SETUP "Claude auth" "run: claude"
   fi
@@ -647,10 +702,10 @@ readiness_check() {
       check_row FAIL "$command" "required dependency missing"
     fi
   done
-  if [ "$(node_major)" -ge 22 ]; then
+  if [ "$(node_major)" -ge 24 ]; then
     check_row PASS "Node.js" "$(node -v)"
   else
-    check_row FAIL "Node.js" "$(node -v 2>/dev/null || echo missing); version 22+ required"
+    check_row FAIL "Node.js" "$(node -v 2>/dev/null || echo missing); version 24+ required"
   fi
   check_section "AGENT SURFACES"
   check_command "Claude Code" claude "$(command_version claude --version)"
