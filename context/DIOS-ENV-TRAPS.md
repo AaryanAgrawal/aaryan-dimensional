@@ -41,3 +41,8 @@ Environment and toolchain failures hit on real hardware, for DIOS to replicate a
     `-x86_64-unknown-linux-gnu` ships no host `rust-std`, so every crate fails
     `E0463: can't find crate for std` even though `rustc --version` works. The matching `rust-std`
     is a separate unlinked store path. `cargo fmt` and `cargo clippy` are absent from both.
+
+11. **Repo venv missing a declared dependency.** `import git` (GitPython) fails in the dimos venv,
+    so 19 of 98 blueprint validity tests fail on a clean `main` with nothing local changed. Looks
+    like your regression until you run the same suite on an untouched checkout.
+
