@@ -38,11 +38,9 @@
 
 ### Customer messaging
 
-*How would we explain the value in two sentences without implementation jargon?*
+*Explain the value in one sentence. Add a second only when it directly completes the first.*
 
-**[One-line promise.]**
-
-[Who it is for and what becomes possible.]
+**[What changes, for whom, and why it matters.]**
 
 ### What we are building
 

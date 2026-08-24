@@ -150,7 +150,97 @@ editing; introduce nothing new. An API with one caller is not a norm.
 
 ---
 
-## 6. Bank every language answer in `learn/`
+## 6. Write technical prose like a person
+
+**This applies to every agent and every deliverable:** PRDs, tech specs, Linear tickets and
+comments, PR bodies, Discord, and Markdown in this repo.
+
+**Prefer one connected sentence.** Start with what the thing is, what it does, and why the reader
+cares. If one sentence carries the point clearly, stop. Do not add a second sentence to satisfy a
+template, and do not force unrelated ideas into a run-on.
+
+    WRONG:
+    The robot stops itself when it tilts too far. Recovery is a restart.
+
+    RIGHT:
+    The robot stops itself when it tilts too far and stays stopped until the process restarts.
+
+**A second sentence must complete the first.** Use it for a consequence, constraint, piece of
+evidence, or next step, and make the connection explicit with a shared subject or a word such as
+`but`, `because`, or `so`. A new idea starts a new paragraph or section.
+
+    RIGHT:
+    The e-stop publishes a latched signal when the robot tilts past 45 deg. Nothing consumes that
+    signal yet, so the current branch stops nothing.
+
+**Lead with the reader's point.** A PRD opens with the user and the problem. A tech spec opens with
+the component and its contract. A status opens with what works and what blocks the next step.
+Implementation follows only when the reader needs it.
+
+**Direct does not mean clipped.** Use ordinary words, natural conjunctions, and enough context to
+connect each claim. Vary sentence length. Read the paragraph aloud once; if it sounds like bullets
+with the markers removed, combine or reorder it.
+
+**Assert only what the evidence supports.** Cut filler and vague hedges, but state uncertainty
+plainly: `Not run on hardware` is stronger than a softened promise. No word or punctuation mark is
+banned; remove it only when it makes the sentence less clear or sounds promotional.
+
+**Use concrete nouns and verbs.** Prefer `The G1 drops commands after arming` to `A loss of command
+emission may occur`. Say what is true, including limits and missing pieces, instead of building a
+sentence around contrast.
+
+**Keep evidence attached to the claim.** Every number carries its unit and source. `Trips at 45.1
+deg in both recorded falls, measured by the Python prototype` is useful; a decimal with no source is
+a guess.
+
+**Use structure only when it helps.** Prose is the default. Use a table for exact comparisons and
+an ASCII diagram for flow, order, or frames. A heading names the reader's question, and its first
+line answers it without a preamble.
+
+Target shape:
+
+    PRD: A G1 can fall while dimos keeps commanding it because no module checks whether the robot
+    is upright.
+
+    Tech spec: The Rust e-stop latches a stop when the IMU detects a fall or an operator triggers
+    it, but nothing consumes the signal yet, so the current branch stops nothing.
+
+    Status: Sim works, but hardware is blocked by a motor fault that prevents the robot from moving.
+
+Linear comments are one sentence when possible and two connected sentences at most. Every
+substantial PR gets a companion Discord announcement in the same voice: problem, change, use.
+
+**PR format: use the repo house template verbatim** (`.github/pull_request_template.md`):
+Contribution path → Problem → Solution → Breaking Changes → How to Test → AI assistance →
+Checklist.
+
+- **Problem** leads with the use case, who it blocks, and the current pain in one paragraph; add a
+  second sentence only when it directly completes that thought.
+- **Solution** names the existing core primitives and exact seams used, then closes with the safety
+  property.
+- **Breaking Changes** is an explicit `None` or the list, on its own `---`-fenced line.
+
+Add a **Core changes — why** section stating whether shared code (`core/`, `msgs/`, `transport/`,
+blueprints) changed and why each change is safe. **How to Test** starts with hardware: robot,
+firmware, and observation, or an explicit `Not run on hardware`. Then give one copy-pasteable
+command per rung, the one test worth reading, and `existing suites unchanged`. Add an **Evidence**
+section with real graphs from the dimos-native `eval` and one caption per graph: what it shows, then
+the takeaway.
+
+Justify every physical tuning choice beside the value in code and in its evidence caption. Nabla7
+#2861 is the pattern: `Voxel size is 0.08 m to match Go2; at 0.05 m the raytracer pegged the Orin and
+fell about 60 s behind.` Add `cc @handle` only when a reviewer is useful.
+
+Real PR exemplars: #2981 (`declared_streams`) for tone, leanness, and use of existing seams; #2959
+(mustafab0) for the same Problem → Solution → Breaking Changes → How to Test shape; #3004
+(ruthwikdasyam) for the full template; leshy #2811 and Nabla7 #2861 for dense evidence and hardware
+tuning rationale.
+
+PR bodies may run longer in **Evidence** and the **How to Test** hardware rung. Everywhere else,
+match #2981's leanness. Density comes from figures and commands, not more prose. Keep the code diff
+small: dimos normally squash-merges one clean commit, a few at most, with terse commit subjects.
+
+## 7. Bank every language answer in `learn/`
 
 **Aaryan asks how Rust works → the concept behind it goes in `learn/rust.md`.** Same for
 `learn/python.md` and `learn/cpp.md`. These are recall decks, so file the general idea, never the
@@ -174,7 +264,7 @@ question he happened to ask.
 
 ---
 
-## 7. Before you push
+## 8. Before you push
 
 1. Magic numbers carry a unit or physical why on the same line; non-obvious ones carry a URL.
 2. Quantities carry units in the identifier; every pose names its frame.
