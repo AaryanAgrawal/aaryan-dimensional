@@ -150,14 +150,49 @@ editing; introduce nothing new. An API with one caller is not a norm.
 
 ---
 
-## 6. Write technical prose like a person
+## 6. Writing
 
-**This applies to every agent and every deliverable:** PRDs, tech specs, Linear tickets and
+### Voice
+
+These rules apply to every agent and every deliverable: PRDs, tech specs, Linear tickets and
 comments, PR bodies, Discord, and Markdown in this repo.
 
-**Prefer one connected sentence.** Start with what the thing is, what it does, and why the reader
-cares. If one sentence carries the point clearly, stop. Do not add a second sentence to satisfy a
-template, and do not force unrelated ideas into a run-on.
+**For copy work, the user's words are the specification.** This rule overrides section 0's advice
+to rethink a request. `Just say X` means write `X`, not a polished version of `X`. Exact copy,
+`WIP`, `TBD`, and `Blocked on broader nav stack` are complete answers when requested.
+
+    REQUEST:
+    In Architecture just say "Blocked on broader nav stack."
+
+    WRONG:
+    Architecture is undecided and belongs to the team. Relocalization currently runs on the Go2
+    2D stack, so moving it to the 3D path is part of the decision.
+
+    RIGHT:
+    ## Architecture
+
+    Blocked on broader nav stack.
+
+**The requested scope is closed.** Edit only the named words, passage, or file. Do not clean up an
+adjacent section, add findings, sync another copy, update Linear, or explain an implication unless
+the user asks. If something nearby is inconsistent, mention it after the requested edit and leave
+it untouched.
+
+**Simplify by subtracting.** Keep the meaning and facts already present, then remove jargon,
+repetition, setup, and commentary. Never add architecture, evidence, caveats, or background to make
+short copy feel complete. A shorter request wins over a more comprehensive answer.
+
+    WRONG:
+    Relocalization is the named failure in a live deployment, and the pluggable-prior work makes a
+    tag source additive.
+
+    RIGHT:
+    Relocalization is the named failure in a live deployment.
+
+**Prefer one connected sentence.** Start with the point and stop when it is clear. Use a second
+sentence only when it directly completes the first with a consequence, constraint, piece of
+evidence, or next step. Make that connection explicit with a shared subject or a word such as
+`but`, `because`, or `so`; otherwise start a new paragraph or cut the sentence.
 
     WRONG:
     The robot stops itself when it tilts too far. Recovery is a restart.
@@ -165,29 +200,19 @@ template, and do not force unrelated ideas into a run-on.
     RIGHT:
     The robot stops itself when it tilts too far and stays stopped until the process restarts.
 
-**A second sentence must complete the first.** Use it for a consequence, constraint, piece of
-evidence, or next step, and make the connection explicit with a shared subject or a word such as
-`but`, `because`, or `so`. A new idea starts a new paragraph or section.
-
-    RIGHT:
+    RIGHT WHEN TWO SENTENCES ARE NEEDED:
     The e-stop publishes a latched signal when the robot tilts past 45 deg. Nothing consumes that
     signal yet, so the current branch stops nothing.
 
-**Lead with the reader's point.** A PRD opens with the user and the problem. A tech spec opens with
-the component and its contract. A status opens with what works and what blocks the next step.
-Implementation follows only when the reader needs it.
+**Use words a teammate would say.** Prefer concrete nouns, verbs, and the user's own vocabulary.
+Do not coin phrases such as `tag source additive`, turn verbs into abstractions such as `command
+emission`, or add formal transitions that nobody would say aloud. Direct prose can still use
+contractions, conjunctions, and varied sentence length.
 
-**Direct does not mean clipped.** Use ordinary words, natural conjunctions, and enough context to
-connect each claim. Vary sentence length. Read the paragraph aloud once; if it sounds like bullets
-with the markers removed, combine or reorder it.
-
-**Assert only what the evidence supports.** Cut filler and vague hedges, but state uncertainty
-plainly: `Not run on hardware` is stronger than a softened promise. No word or punctuation mark is
-banned; remove it only when it makes the sentence less clear or sounds promotional.
-
-**Use concrete nouns and verbs.** Prefer `The G1 drops commands after arming` to `A loss of command
-emission may occur`. Say what is true, including limits and missing pieces, instead of building a
-sentence around contrast.
+**Lead with what the reader needs.** A PRD opens with the user and problem, a tech spec with the
+component and contract, and a status with what works and what blocks the next step. Implementation
+belongs later and only when requested. State uncertainty plainly: `Not run on hardware` is a result,
+not an invitation to speculate.
 
 **Keep evidence attached to the claim.** Every number carries its unit and source. `Trips at 45.1
 deg in both recorded falls, measured by the Python prototype` is useful; a decimal with no source is
@@ -197,20 +222,24 @@ a guess.
 an ASCII diagram for flow, order, or frames. A heading names the reader's question, and its first
 line answers it without a preamble.
 
-Target shape:
+Before saving copy, check five things:
 
-    PRD: A G1 can fall while dimos keeps commanding it because no module checks whether the robot
-    is upright.
+1. Does it say exactly what the user asked it to say?
+2. Did I touch only the named scope?
+3. Did I add a fact, interpretation, or technical phrase that was not already there? Delete it.
+4. Can one clear sentence replace two disconnected ones?
+5. Would a teammate say this aloud without explaining what it means?
 
-    Tech spec: The Rust e-stop latches a stop when the IMU detects a fall or an operator triggers
-    it, but nothing consumes the signal yet, so the current branch stops nothing.
-
-    Status: Sim works, but hardware is blocked by a motor fault that prevents the robot from moving.
+**The handoff matches the edit.** Report a one-line copy change in one sentence. Do not follow it
+with a recap of the investigation, a defense of unrequested changes, token counts, or a `result:`
+footer.
 
 Linear comments are one sentence when possible and two connected sentences at most. Every
 substantial PR gets a companion Discord announcement in the same voice: problem, change, use.
 
-**PR format: use the repo house template verbatim** (`.github/pull_request_template.md`):
+### PR format
+
+Use the repo house template verbatim (`.github/pull_request_template.md`):
 Contribution path → Problem → Solution → Breaking Changes → How to Test → AI assistance →
 Checklist.
 

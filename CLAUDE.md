@@ -282,9 +282,9 @@ one file at once — it clobbers.
 
 ## Writing
 
-Follow `AGENTS.md` section "Write technical prose like a person" for every PRD, tech spec, Linear
-ticket or comment, PR body, Discord message, and Markdown file. The shared rules apply to Claude
-and every other agent.
+Follow `AGENTS.md` section "Writing" for every PRD, tech spec, Linear ticket or comment, PR body,
+Discord message, and Markdown file. Its exact-copy and closed-scope rules override the general
+instruction to rethink a request. The shared rules apply to Claude and every other agent.
 
 ## Writing code the dimos way (studied from lesh + Sam Bull, Jul 17)
 
