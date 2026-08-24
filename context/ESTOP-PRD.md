@@ -6,7 +6,7 @@ A fallen G1 keeps receiving commands because dimos does not detect the fall or s
 
 ## Goal
 
-Add an e-stop module that stops the robot when it tilts too far or when an operator sends a stop message, then keeps it stopped until the process restarts.
+Add an e-stop module that stops the robot when it tilts too far or when an operator sends a stop message, then keeps it stopped until an operator manually resets it.
 
 ## Done when
 
