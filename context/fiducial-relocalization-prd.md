@@ -22,7 +22,8 @@ it never converges.
 
 ### Why now?
 
-Relocalization is the named failure in a live deployment, and kronknav is landing without it.
+Relocalization is the named failure in a live deployment, and the pluggable-prior work makes a tag
+source additive.
 
 ### Existing alternatives
 
@@ -95,8 +96,4 @@ their setup work, not add a second tagging regime.
 
 ## Architecture
 
-The team decides it, down to the back of the napkin.
-
-One fact to start from: relocalization runs on go2's older 2D costmap blueprint alone.
-`unitree_go2_nav_3d` and kronknav's `unitree_g1_nav_3d` are the same stack, and neither
-relocalizes. Putting it on the 3D path is part of the decision.
+Blocked on broader nav stack.
