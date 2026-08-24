@@ -282,10 +282,65 @@ one file at once — it clobbers.
 
 ## Writing (PRs, Discord, tickets)
 
-**Voice: very short, plain, human.** Only what's required. Say what a thing IS, not what it isn't
-("streams are declared in config," not "toggleable, not hardcoded") — the contrast is inferred. Few
-hyphens. No sales pitch, no hype, no filler. Over-explaining, negation, and marketing tone read as
-AI. Applies to every deliverable: PR bodies, Discord, Linear tickets.
+**Voice: technical writer. Simple and assertive.** Every deliverable: PRDs, tech specs, Linear
+tickets and comments, PR bodies, Discord, and the md files in this repo.
+
+**Lead with the point.** The first sentence says what the thing IS and what it does. Not the
+implementation, not the reason, not the how. Those get their own sections below, or they get cut. A
+reader who stops after one sentence still has the point.
+
+    WRONG (opens with mechanism):
+    The module subscribes to sensor_msgs/Imu, computes the angle between the body z axis and
+    gravity from the orientation quaternion, compares it against a configurable threshold, and
+    writes a boolean latch that is republished on every incoming sample.
+
+    RIGHT (the point first, mechanism under Design):
+    The robot stops itself when it tilts too far. The stop latches, so recovery is a restart.
+
+**Assert.** Cut every hedge: aims to, is designed to, helps, enables, allows, can be used to,
+provides the ability to, we believe, in order to, it should be noted, currently. Uncertainty is a
+flat statement of what is unknown, never a softened claim.
+
+    WRONG: The module is designed to enable operators to potentially halt motion in the event
+           that unsafe conditions are detected. Hardware validation remains future work.
+    RIGHT: An operator stops the robot with one message. It has never run on a robot.
+
+**No em dashes. Ever.** A period, a comma, or a colon does the job. No middle dot either. Few
+hyphens. One idea per sentence. If a sentence needs a dash to hold it together, it is two sentences.
+
+**Say what a thing IS, not what it isn't** ("streams are declared in config", not "toggleable, not
+hardcoded"). The contrast is inferred. Negation, over-explaining, and marketing tone read as AI.
+
+**Banned words:** robust, seamless, powerful, comprehensive, leverage, utilize, facilitate, ensure,
+streamline, simply, just, various, a number of, in terms of, deep dive, unlock.
+
+**State, not narrative.** A status is what is true now, then what blocks it. Never the story of the
+day, never the search that got you there.
+
+    WRONG: We spent the morning bringing the stack up and eventually discovered there may be
+           an issue with how pointclouds are decoded on the Jetson.
+    RIGHT: Sim works. Hardware blocked: the robot cannot move, for two stacked reasons.
+
+**Every number carries its unit and its source.** "Trips at 45.1 deg on both falls, 176,426 samples
+at 756 Hz mean, python prototype." A number with no source is a guess with a decimal point.
+
+**Tables and ASCII diagrams beat paragraphs.** Ports, options, alternatives, blockers: table. Data
+flow and trigger order: diagram. Prose carries only what neither can.
+
+**A heading is the reader's question. The first line answers it.** "What it does not do yet", then
+the list. No preamble, no restating the heading, no throat clearing.
+
+**Linear comments are one or two lines.** The detail lives in the ticket md.
+
+Sound like this. All three are openers from our own docs:
+
+    A rust module with two checks: a fall check on the IMU, and a manual trigger check. Either
+    one latches estop=true. Nothing subscribes to the output yet, so today it stops nothing.
+
+    The robot stops itself when it tilts too far, and an operator can stop it with one message.
+    Once stopped it stays stopped until the process restarts.
+
+    Sim works. Hardware blocked: the robot cannot move, for two stacked reasons.
 
 **PR format: the repo house template, verbatim** (`.github/pull_request_template.md`): Contribution
 path → Problem → Solution → Breaking Changes → How to Test → AI assistance → Checklist.
