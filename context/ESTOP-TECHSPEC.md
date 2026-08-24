@@ -32,9 +32,3 @@ g1_root = autoconnect(g1_hardware, g1_estop_defaults)
 Derived blueprints inherit the bundle from their root. `autoconnect` links `imu`, and `estop` must reach `ControlCoordinator.set_estop()`.
 
 Not run on hardware yet.
-
-## Replay
-
-The real Rust module replayed **SIMULATED orientation** at 1x; tilt came from the G1 recording, but the raw quaternion did not.
-
-![Fall detection replay](https://raw.githubusercontent.com/AaryanAgrawal/aaryan-dimensional/main/context/estop-fall-replay.png)
