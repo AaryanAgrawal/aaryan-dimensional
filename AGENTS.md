@@ -157,6 +157,13 @@ editing; introduce nothing new. An API with one caller is not a norm.
 These rules apply to every agent and every deliverable: PRDs, tech specs, Linear tickets and
 comments, PR bodies, Discord, and Markdown in this repo.
 
+**Never reply to a person as the user. Never post an AI-written response, anywhere, ever.**
+GitHub comments, Linear comments, PR review replies, Discord, email. Draft it and hand it over; the
+user sends it in their own words. A colleague asking a design question is talking to Aaryan, not to
+an agent, and a fluent agent answer sent under his name misrepresents him and wastes the reviewer's
+time. This holds even when the reply would be factually correct, and even when the user asked you
+to look at the thread. Reading a comment and answering it are different instructions.
+
 **For copy work, the user's words are the specification.** This rule overrides section 0's advice
 to rethink a request. `Just say X` means write `X`, not a polished version of `X`. Exact copy,
 `WIP`, `TBD`, and `Blocked on broader nav stack` are complete answers when requested.

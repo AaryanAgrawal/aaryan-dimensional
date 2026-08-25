@@ -282,6 +282,11 @@ one file at once — it clobbers.
 
 ## Writing
 
+**Never reply to anyone as Aaryan.** No AI-written GitHub/Linear/PR/Discord replies, ever. Draft,
+hand over, he sends. "Go through X's comment" means read it and report, not answer it. See
+`AGENTS.md` section Writing.
+
+
 Follow `AGENTS.md` section "Writing" for every PRD, tech spec, Linear ticket or comment, PR body,
 Discord message, and Markdown file. Its exact-copy and closed-scope rules override the general
 instruction to rethink a request. The shared rules apply to Claude and every other agent.
