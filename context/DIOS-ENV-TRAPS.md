@@ -46,3 +46,27 @@ Environment and toolchain failures hit on real hardware, for DIOS to replicate a
     so 19 of 98 blueprint validity tests fail on a clean `main` with nothing local changed. Looks
     like your regression until you run the same suite on an untouched checkout.
 
+12. **The Unitree app IP is not the G1 Jetson.** On this G1, `10.0.0.214` answered ping but refused
+    ssh; over Ethernet the control computer was `192.168.123.161`, the Mid360 was `.120`, and the
+    Jetson with ssh was `.164`. The laptop used `192.168.123.100/24` and
+    `unitree@192.168.123.164`. The Jetson's Wi-Fi was soft-blocked, so its saved `dimensional`
+    profile only came up after `sudo rfkill unblock wifi` and `sudo nmcli connection up
+    dimensional`; DHCP then assigned `10.0.0.95`.
+
+13. **A timeout can make a healthy G1 run look failed during shutdown.** On `7b2a5b698`,
+    `LD_PRELOAD=/lib/aarch64-linux-gnu/libGLdispatch.so.0:/usr/lib/aarch64-linux-gnu/libgomp.so.1
+    dimos --rerun-open none --rerun-host 0.0.0.0 run unitree-g1-nav-3d --build-native` built and ran
+    MLS, ray tracing, and PointLio; LowState, odometry, local maps, region bounds, and the Rerun
+    server were live. Wrapping it in `timeout --signal=INT 360` stopped every module, then logged
+    `RuntimeError: release unlocked lock` and exited 124.
+
+14. **The G1 native build dirties a clean checkout.** On `7b2a5b698`, the standard
+    `unitree-g1-nav-3d --build-native` path adds `dimos-repo` to the tracked ray-tracing
+    `flake.lock` and creates an untracked MLS `flake.lock`; the builds pass, but later modules warn
+    that the Git tree is dirty.
+
+15. **Changing networks can leave Rerun connected but blank.** The Ethernet viewer disappeared
+    when the cable was removed, and the server logged a blocked broadcast channel; a new Wi-Fi
+    viewer connected to both ports but received only the gRPC handshake. Stop the viewer, restart
+    Dimos, then reconnect both URLs through `10.0.0.95`; the fresh viewer streamed data and rendered
+    the point cloud.
