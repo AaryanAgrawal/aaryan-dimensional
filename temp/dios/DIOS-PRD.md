@@ -1,156 +1,172 @@
-# DIOS — Product Requirements
+# DimOS Installer — Product Requirements
 
-**Status:** Draft, 2026-08-20
+**Status:** Draft v2, 2026-08-30. Replaces the 2026-08-20 draft.
+
+Paul and Ivan both rejected the BIOS name, so the product is the DimOS installer and the command is
+`dimos`. `DIOS` survives as this file's name until the move lands. Review dispositions for every
+comment on v1 are in [review-dispositions.md](review-dispositions.md).
 
 ## 1. Problem
 
-Installing DimOS and preparing a robot currently depends on fragile scripts, one-off .md
-guides, remembered IP addresses, pkg/system dependency troubleshooting, and manufacturer-specific knowledge. Current system has no versioning and weak verification.
+There are two DimOS installers, in two repositories, and neither one is the answer.
 
-### Why now?
+| Installer | Where | What works | Gap |
+|---|---|---|---|
+| `scripts/install.sh` | `dimos`, 1000 lines of bash | The documented quickstart, public and versioned with DimOS | Fragile across platforms |
+| `dim` | `dios`, Rust, v0.3.97 | Static binary, curl bootstrap, self-update with rollback, systemd services, Unitree and Jetson paths, months of FDE use | Private, and ships from a different repository than the DimOS it installs |
 
-FDEs are integrating new platforms quickly. Each integration is creating scripts and guides with no canonical location and no dependable way to keep instructions and versions aligned across machines.
+The bash script is the one users find and the Rust binary is the one that works, so every platform
+fix is either made twice or silently missing from one of them.
 
-FDEs have already been testing a one-command curl installer as a better way to get DimOS running.
-This release turns that into a fuller product with guided setup, better pkg resolve,
-version awareness, platform-specific wizard repositories, local target memory, and end-to-end
-verification.
+Robot bring-up is worse than workstation setup because that knowledge lives in `G1_SETUP_GUIDE.md`,
+in per-robot Markdown files, and in people's heads.
+
+### Why now
+
+FDEs are integrating new platforms quickly and adoption is the priority. The Rust installer already
+works on real robots, so the remaining problem is that it lives in the wrong repository.
 
 ### Existing alternatives
 
 | Alternative | What works | Remaining gap |
 |---|---|---|
-| Manual setup guides | Flexible and available today | Manual, slow and drift over time |
-| Existing massive install.sh | Can install DimOS on known machines | Fragile, inconsistent across platforms, and not reliably versioned |
+| Manual setup guides | Flexible and available today | Manual, slow, and drift over time |
+| `scripts/install.sh` | Installs DimOS on known machines | Fragile, inconsistent across platforms, not reliably versioned |
+| `dim` in a separate repository | Installs and verifies DimOS today | Drifts from the DimOS it installs |
 
 ## 2. Solution
 
-### Customer messaging
+One installer, in the DimOS repository, written in Rust.
 
-**Install DimOS on your workstation or robot in one click.**
-
-DIOS is the DimOS BIOS that guides and verifies setup on the current machine or a robot.
-
-### What we are building
-
-DIOS is the private, platform-neutral entry point for two guided experiences:
+**Install DimOS on a workstation or a robot in one command.**
 
 ```text
-PSEUDO-COMMANDS — SUBJECT TO CHANGE
-
-install DIOS
-set up DimOS on this machine
-prepare a Unitree robot
+curl -fsSL https://dimensionalos.com/install.sh | bash
+dimos setup
 ```
 
-The first experience installs DIOS and starts the guided path. DIOS downloads a pinned release of
-the open-source `dimos-setup-wizard`, whose code owns the complete setup and its checks. The wizard
-installs an unchanged DimOS release on a supported workstation or robot computer. The user can
-choose library or development setup and optional capabilities such as simulation.
+The bootstrap script detects the platform, downloads one static binary, and runs it. Everything
+else is Rust in the DimOS repository, released on the same tag as the DimOS it installs.
 
-The robot preparation experience launches an open-source manufacturer wizard, such as
-`unitree-setup-wizard`. It discovers supported robots reachable over USB, Bluetooth, Wi-Fi, or
-Ethernet; helps the operator select one; and prepares manufacturer-specific access and dependencies.
-DIOS then chains it with `dimos-setup-wizard` and starts the intended headless blueprint as the final
-proof. Each manufacturer owns its complete wizard in a separate repository.
+The installer is compiled and statically linked because it runs before anything is installed, on a
+machine whose libc it cannot assume. It is Apache-2.0 like the rest of the repository. A broken
+DimOS install cannot break the installer, because a static binary shares nothing with it at
+runtime.
 
-The repository boundary is deliberate:
+### What a user does
 
-| Repository | Responsibility |
-|---|---|
-| `dimos` | The existing open-source software being installed. DIOS requires no changes to it. |
-| `dios` | The private, platform-neutral orchestrator: resolve, run wizards, verify, Doctor, and the local target registry. It contains no platform-specific setup. |
-| `dimos-setup-wizard` | An open-source repository whose code contains the complete DimOS setup and checks. |
-| `<manufacturer>-setup-wizard` | One open-source repository per manufacturer whose code contains discovery, access, setup, and checks specific to its robots. |
+```text
+dimos setup      install DimOS on this machine, or on a robot reachable from it
+dimos doctor     report machine state, read-only
+dimos update     self-update, and roll back if the new binary fails
+dimos service    run a blueprint as a systemd service
+```
 
-### Deferred
+Any other subcommand is handled by DimOS itself. `dimos setup` works before DimOS exists and
+`dimos run` works after it, so there is one command name to learn.
 
-- One dependency YAML, or `info.yaml` per DimOS module. Both require schema enforcement in `dimos`.
-  Wizards as code keep the MVP smaller; metadata can come later.
+`setup` is safe to re-run and skips work it can prove is already done. `doctor`, `--dry-run`, and
+`--agent-instructions` change nothing.
 
-When a robot is saved, DIOS assigns a unique friendly name such as `oswald-go2` or `mikey-g1`. The
-operator can list, inspect, and rename it later. DIOS recognizes the same robot after its address
-changes instead of creating a duplicate.
+### Three ways it runs
 
-**DIOS Doctor** helps a human or an agent find where the problem is.
+- **Interactive.** A failed non-critical step offers continue, drop to a shell and fix it, or show
+  help links.
+- **Unattended.** Critical failures stop the run and the rest are logged and skipped.
+- **Agent.** With no terminal attached, the installer prints the steps instead of prompting, so a
+  coding agent can follow them on a platform we do not support.
 
 ### Non-goals
 
-- Cloud databases or fleet dashboards
-- Accounts, organizations, licensing, or cross-workstation synchronization
-- Remote telemetry or delivering OTA update orchestration in this release
-- Replacing a manufacturer's operating system
-- Defining internal package formats, APIs, storage, or cloud architecture in this PRD
+- Cloud databases, dashboards, telemetry, and OTA orchestration. State stays in local JSON.
+- Accounts, organizations, licensing, and cross-workstation sync.
+- Tailscale.
+- Replacing a manufacturer's operating system.
+- Resolving a robot by name at runtime, and following it when its address changes. Ivan is building
+  that now as Zenoh autodiscovery and machine tags.
+- The desktop and app store that ship in the `dios` repository today. They are not installer work
+  and they need their own PRD before that repository can be archived.
 
 ## 3. Usage scenarios
 
 ### Install DimOS on a workstation
 
-- **Trigger:** A developer wants a local DimOS environment.
-- **Expected path:** Install DIOS, start setup, choose capabilities, review the plan, and pass
-  verification through `dimos-setup-wizard`.
-- **Hard case:** An unsupported capability is explained before the machine is changed.
+- **Trigger:** a developer wants a local DimOS environment.
+- **Path:** run the curl command, choose capabilities, review the plan, and pass verification.
+- **Hard case:** an unsupported capability is explained before the machine is changed.
 
 ### Prepare a new robot
 
-- **Trigger:** An operator starts the Unitree preparation experience near a new robot.
-- **Expected path:** A manufacturer wizard discovers and prepares the robot, the DimOS wizard
-  installs DimOS, DIOS verifies a headless blueprint, and the target is saved under a unique
-  friendly name.
-- **Hard case:** An interrupted run resumes completed work safely.
+- **Trigger:** an FDE opens a boxed G1.
+- **Path:** the installer finds the robot on the local network, confirms what it is, installs DimOS
+  on it, and proves it by running a headless blueprint.
+- **Hard case:** an interrupted run resumes and repeats no completed work.
 
-### Return to a known robot
+### Install where we have no support
 
-- **Trigger:** A previously prepared robot reboots or receives a different address.
-- **Expected path:** DIOS recognizes the same identity and updates its known address.
-- **Hard case:** DIOS Doctor identifies whether the problem belongs to DIOS, the manufacturer
-  wizard, or the DimOS wizard and gives a human or agent the next action.
+- **Trigger:** an external user or a coding agent runs setup on an untested distribution.
+- **Path:** the installer prints the steps it would take and exits without changing the machine.
+- **Hard case:** a system package is never installed without asking.
 
 ### Update DimOS
 
-- **Trigger:** A user chooses a newer DimOS release on a workstation or robot computer.
-- **Expected path:** DIOS loads the selected version from `dimos-setup-wizard`, compares its complete
-  requirements with the machine, shows the update plan, installs only what changed, updates DimOS,
-  and verifies that the selected capabilities still run.
-- **Hard case:** If a required package or version cannot be installed safely, DIOS explains the
-  conflict before changing DimOS and leaves the existing installation usable.
+- **Trigger:** a user wants a newer DimOS.
+- **Path:** the installer shows what will change, applies only that, and verifies the result.
+- **Hard case:** if the new binary does not run, the previous one is restored.
 
 ## 4. Product requirements
 
 | ID | Requirement | Priority | Proof |
 |---|---|---|---|
-| R1 | Install and verify an unchanged DimOS release on a supported workstation through `dimos-setup-wizard` | Must | First-time workstation test |
-| R2 | Chain a manufacturer wizard with `dimos-setup-wizard` on a supported robot computer | Must | Clean target installation |
-| R3 | Manufacturer wizards scan their supported USB, Bluetooth, Wi-Fi, and Ethernet paths and present likely targets for confirmation | Must | Discovery test over each supported connection type |
-| R4 | Keep DIOS private and platform-neutral; keep all setup and platform-specific behavior in open-source wizard repositories | Must | Repository boundary review |
-| R5 | Show the target, permissions, package choices, and planned changes before setup | Must | Interactive acceptance test |
-| R6 | Resume safely and skip work already proven complete | Must | Interrupted run and immediate re-run |
-| R7 | Declare a robot ready only after its intended headless blueprint runs | Must | Bounded blueprint proof |
-| R8 | Assign a unique `<friendly-word>-<model>` target name and allow rename | Should | Multiple-target naming test |
-| R9 | Recognize a saved target after reboot or address change | Must | Reboot and address-change test |
-| R10 | Record the DimOS version, every wizard and version used, target identity, and last result locally | Must | Offline target inspection |
-| R11 | Keep credentials out of target history, logs, and process arguments | Must | Security review |
-| R12 | DIOS Doctor helps a human or agent find where the problem is | Must | Layered diagnostic test |
-| R13 | In agent mode, return structured failures instead of prompting or guessing | Should | Non-interactive test |
-| R14 | A pinned `dimos-setup-wizard` release contains all setup code and checks without adding DIOS metadata to `dimos` | Must | Install two reviewed install sets |
-| R15 | Before updating DimOS, load an exact reviewed DIOS, DimOS, and wizard install set, show the plan, apply only required changes, and verify the updated installation | Must | Upgrade test between two supported DimOS releases |
+| R1 | Install and verify DimOS on a supported workstation from one command | Must | Nightly CI matrix |
+| R2 | Install and verify DimOS on a supported robot, ending in a running headless blueprint | Must | G1 bring-up |
+| R3 | Ship the installer from the DimOS repository, on the DimOS tag | Must | Release job |
+| R4 | Delete `scripts/install.sh` as an installer and keep it as a bootstrapper | Must | Line count and content check |
+| R5 | Re-running setup applies no changes | Must | Second run's action log |
+| R6 | Show the target, permissions, package choices, and planned changes before applying them | Must | Interactive acceptance test |
+| R7 | Never install a system package without consent | Must | Interactive acceptance test |
+| R8 | On an unsupported platform, print the steps and change nothing | Must | Container test on an unknown distribution |
+| R9 | With no terminal attached, print steps rather than prompt | Must | Non-interactive test |
+| R10 | Verify the downloaded binary before running it | Must | Checksum test |
+| R11 | Restore the previous binary when an update fails | Must | Fault-injection test |
+| R12 | Record DimOS version, selected capabilities, and last result locally | Must | Offline inspection |
+| R13 | Keep credentials out of local state, logs, and process arguments | Must | Security review |
+| R14 | Adding a dependency to a module is a `pyproject.toml` edit and nothing else | Must | Add one extra and install it |
 
 ## 5. Success metrics
 
+Every target is a number a test produces.
+
 | Outcome | Target | How measured |
 |---|---|---|
-| First-time workstation setup | Completes through one documented entry point | Clean supported workstation |
-| Clean robot setup | Reaches a running headless blueprint without undocumented steps | Clean supported Unitree robot |
-| Safe repeatability | Immediate second run makes no unnecessary changes | Compare consecutive run results |
-| Stable target identity | Same target is recognized after reboot and address change | Reboot and rediscovery test |
-| Platform separation | A new DimOS version or manufacturer adds no platform-specific code to DIOS and requires no DIOS-specific change to `dimos` | Repository boundary review |
+| Fresh-machine setup | 4 of 4 platforms green on at least 95% of nightly runs over 30 days | Nightly CI on Ubuntu 22.04 x86_64, Ubuntu 22.04 aarch64, macOS 14 arm64, Jetson Orin JetPack 6.2 |
+| Time to first `dimos run` | Median 10 min or less on a fresh Ubuntu x86_64 workstation | CI wall-clock, recorded per run |
+| Repeatability | A second `dimos setup --non-interactive` applies zero changes | Run 2's action log contains no `applied` entry |
+| G1 bring-up | 30 min or less from boxed robot to `dimos run` on the robot, with no step outside the tool | FDE records wall-clock and any manual step on the bring-up issue |
+| Unsupported platform | Exits non-zero, prints steps, leaves no partial install | Container test diffs the filesystem |
+| Update safety | A corrupted download leaves the previous binary working | Fault-injection test |
+| One installer | `scripts/install.sh` is 120 lines or fewer and calls no package manager | Grep in CI |
+
+"One command" is the customer message. The engineering target is the supported matrix above, and a
+guided path everywhere else.
 
 ### Launch guardrails
 
-- No password or private key is stored in local target history or logs.
-- A missing or incompatible requirement is explained before irreversible work begins.
-- Setup remains useful without cloud services.
+- No password or private key reaches local state or logs.
+- A missing or incompatible requirement is explained before anything irreversible happens.
+- Setup works with no cloud service.
+
+## 6. Decisions needed
+
+1. **The `dimos` name is already the Python console script.** The recommendation is that the binary
+   becomes the front door and hands unknown subcommands to the Python CLI. The alternative is to
+   keep the binary named `dim` and live with two command names.
+2. **What happens to the `dios` repository.** The installer moves out and the desktop and app store
+   have nowhere else to go. The recommendation is to keep `dios` private for the desktop and move
+   only the installer.
+3. **`dim` on existing machines.** FDEs have it on PATH from months of testing. The recommendation
+   is that `dim update` installs `dimos` and leaves `dim` as a symlink for one release.
 
 ---
 
-**Technical implementation:** [DIOS Architecture](https://github.com/dimensionalOS/dios/blob/main/ARCHITECTURE.md)
+**Technical implementation:** [DIOS Architecture](ARCHITECTURE.md)
