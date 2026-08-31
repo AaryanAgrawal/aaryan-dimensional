@@ -8,9 +8,8 @@
 #   ./setup.sh             install or update the workstation
 #   ./setup.sh --check     read-only readiness report
 #
-# Window management is the same model on both machines -- a horizontal strip of
-# windows you scroll through. niri on Linux, paneru on macOS, identical keys:
-# the modifier is the 3rd key from the left (Super on a PC, Option on a Mac).
+# Window management: niri (scrollable tiling) on Linux. macOS stays stock --
+# paneru was tried and removed 2026-08-31; Spaces + Rectangle cover it.
 
 set -euo pipefail
 
@@ -126,28 +125,12 @@ mac_packages() {
   log "Packages (brew)"
   have brew || { warn "install Homebrew first: brew.sh"; return 0; }
   # shellcheck disable=SC2086
-  brew install $TOOLS atuin paneru zsh-autosuggestions zsh-syntax-highlighting \
+  brew install $TOOLS atuin zsh-autosuggestions zsh-syntax-highlighting \
     >/dev/null || warn "some brew formulae failed"
   brew list --cask ghostty >/dev/null 2>&1 || brew install --cask ghostty >/dev/null 2>&1 \
     || warn "ghostty cask failed"
 }
 
-mac_paneru() {
-  log "paneru (scrollable tiling)"
-  write_paneru_config
-  have paneru || { warn "paneru not installed"; return 0; }
-  paneru install >/dev/null 2>&1 || true
-  paneru restart >/dev/null 2>&1 || paneru start >/dev/null 2>&1 || true
-  # a running daemon that cannot answer has no Accessibility grant yet
-  if ! paneru query active >/dev/null 2>&1; then
-    warn "paneru needs Accessibility: System Settings > Privacy & Security > Accessibility"
-  fi
-  # macOS claims 3- and 4-finger horizontal swipe for Spaces, so paneru never
-  # sees the gesture; alt+scroll works regardless. Left for the operator to decide.
-  if [ "$(defaults read com.apple.AppleMultitouchTrackpad TrackpadFourFingerHorizSwipeGesture 2>/dev/null || echo 0)" != "0" ]; then
-    step "4-finger swipe belongs to macOS Spaces -- use option+scroll, or turn it off in Trackpad settings"
-  fi
-}
 
 # ---------------------------------------------------------------- shared
 
@@ -237,7 +220,7 @@ input {
 layout {
     gaps 8
     center-focused-column "never"
-    preset-column-widths {        // what Mod+I / Mod+O cycles, same four as paneru
+    preset-column-widths {        // what Mod+I / Mod+O cycles
         proportion 0.33333
         proportion 0.5
         proportion 0.75
@@ -254,9 +237,7 @@ layout {
 prefer-no-csd
 screenshot-path "~/Pictures/Screenshots/%Y-%m-%d %H-%M-%S.png"
 
-// Mod is Super: 3rd key from the left, the same physical slot as Option on the
-// Mac, where paneru binds the identical letters. W and brackets rather than
-// F/B/Period because those are zsh word-navigation under macos-option-as-alt.
+// W and brackets rather than F/B/Period: those are zsh word-navigation keys.
 binds {
     Mod+T { spawn "ghostty"; }
     Mod+Q { close-window; }
@@ -274,7 +255,7 @@ binds {
     Mod+I { switch-preset-column-width-back; }   // in  = smaller
     Mod+O { switch-preset-column-width; }        // out = bigger
     Mod+F { maximize-column; }
-    Mod+Shift+F { fullscreen-window; }           // true fullscreen; paneru has no equivalent
+    Mod+Shift+F { fullscreen-window; }
 
     Print { screenshot; }
     Mod+Shift+E { quit; }
@@ -285,70 +266,6 @@ EOF
   fi
 }
 
-write_paneru_config() {
-  mkdir -p "$HOME/.config/paneru"
-  bak "$HOME/.config/paneru/paneru.toml"
-  cat > "$HOME/.config/paneru/paneru.toml" <<'EOF'
-# Modifier is Option: 3rd key from the left, the same physical slot as Super on
-# a PC keyboard, where niri binds the identical letters.
-#
-#   mac    fn  control  option  command
-#   linux  ctrl  fn     super   alt
-#                       ^^^^^^ this one, both machines
-#
-# Letters dodge zsh word-navigation (alt+f, alt+b, alt+.) because
-# macos-option-as-alt is on in the ghostty config and those still have to work.
-
-# Both off: mouse_follows_focus warps the cursor on every focus change, and with a
-# strip that slides under a still cursor, focus_follows_mouse re-focuses whatever
-# scrolls beneath it. Keyboard drives focus; the mouse stays where you left it.
-[options]
-focus_follows_mouse = false
-mouse_follows_focus = false
-preset_column_widths = [0.33333, 0.5, 0.75, 1.0]   # third, half, 75%, full
-
-[bindings]
-
-# Three pairs, by row:  j/k across the strip · h/l within a column · i/o size.
-# Shift on the horizontal pair carries the window instead of just looking at it.
-# No stacking: splitting a column means half the screen height each, which is
-# not enough on a laptop. Widths side by side do the same job better.
-
-window_focus_west  = "alt - j"          # <- along the strip
-window_focus_east  = "alt - k"          # -> along the strip
-window_swap_west   = "alt + shift - j"  # carry the window with you
-window_swap_east   = "alt + shift - k"
-
-window_focus_north = "alt - h"          # up inside a stacked column
-window_focus_south = "alt - l"          # down
-
-window_shrink    = "alt - i"            # in  = smaller
-window_resize    = "alt - o"            # out = bigger
-window_fullwidth = "alt - f"            # fill the screen
-
-restart = "ctrl + alt - r"
-quit    = "ctrl + alt - q"
-
-[swipe]
-sensitivity = 0.5
-continuous = false
-
-[swipe.gesture]
-fingers_count = 4           # macOS Spaces owns this until you turn it off in Trackpad settings
-vertical = true
-
-[swipe.scroll]
-modifier = "alt"            # option + two-finger scroll slides the strip; works with no system change
-vertical_modifier = "shift"
-
-# Manage everything, including background apps and windows with odd accessibility
-# roles that paneru would normally skip. Add a floating=true rule for any window
-# this makes worse -- dialogs and pickers are the usual offenders.
-[windows.everything]
-title = ".*"
-manage = true
-EOF
-}
 
 write_zshrc() {
   bak "$HOME/.zshrc"
@@ -726,9 +643,7 @@ readiness_check() {
   check_command "Dimensional harness" dimensional-ai "$(command_path dimensional-ai)"
   check_command "Diffity" diffity "$(command_version diffity --version)"
   check_command "Ghostty" ghostty "$(command_path ghostty)"
-  if [ "$OS" = Darwin ]; then
-    check_command "Paneru" paneru "$(command_path paneru)"
-  else
+  if [ "$OS" = Linux ]; then
     check_command "niri" niri "$(command_path niri)"
   fi
   check_section "CLAUDE LAYER"
@@ -798,7 +713,7 @@ main() {
   log "$OS"
   case "$OS" in
     Linux)  linux_packages; linux_niri ;;
-    Darwin) mac_packages;   mac_paneru ;;
+    Darwin) mac_packages ;;
     *)      printf 'unsupported OS: %s\n' "$OS" >&2; exit 1 ;;
   esac
   font

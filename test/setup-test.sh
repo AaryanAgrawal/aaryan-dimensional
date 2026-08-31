@@ -121,7 +121,7 @@ esac
 exit 0
 EOF
   chmod +x "$bin/tool"
-  for command in sudo git curl zsh jq rg node npm dtach gh code atuin niri paneru ghostty brew \
+  for command in sudo git curl zsh jq rg node npm dtach gh code atuin niri ghostty brew \
       claude codex opencode hermes openspec dimensional-ai uv diffity chsh op fc-list fc-cache unzip; do
     ln -s tool "$bin/$command"
   done
@@ -273,7 +273,7 @@ HOME="$FAKE_HOME" SHELL="$FAKE_BIN/zsh" PATH="$FAKE_BIN:/usr/bin:/bin" \
 assert_contains "$TMP/install.out" 'Workstation result: 0 failed, 0 need setup.'
 assert_contains "$FAKE_HOME/.config/ghostty/config" 'ctrl+shift+e=new_split:right'
 if [ "$(uname -s)" = Darwin ]; then
-  assert_contains "$FAKE_HOME/.config/paneru/paneru.toml" 'window_focus_west  = "alt - j"'
+  [ ! -e "$FAKE_HOME/.config/paneru/paneru.toml" ] || fail "paneru config written after removal"
 else
   assert_contains "$FAKE_HOME/.config/niri/config.kdl" 'Mod+J { focus-column-left; }'
   assert_contains "$TMP/npm.log" "config set prefix $FAKE_HOME/.local"
