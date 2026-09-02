@@ -47,3 +47,27 @@ Open work this raises:
    per checker deadlines. Alternatives: N named trigger inputs per blueprint, or one topic with an
    id. Leaning to one topic plus a deadline now, an id when a second checker exists.
 
+
+## 2026-09-02: 4 rad/s, and a 50 ms hold (branch `aaryan/estop` @ 50a7cf009)
+
+PR 3691 closed for rework; the branch stays. Sim rig, replay tool and `SIM_TEST.md` removed from
+the branch (kept in `context/estop-sim-rig/`, the rig now takes `--video`). Branch is 506 lines.
+
+Flail speed moved 5 -> 4 rad/s. The steady-state sweep (SIMULATED, GR00T, `--no-stop`, so
+nothing truncates the signal) puts normal at 1 joint and abnormal at 11 or more for every speed
+from 4 to 9, so the exact value barely matters; 4 has the widest gap (1 vs 12). Only 3 rad/s is
+wrong: walk reaches 3 joints there.
+
+The real defect was the startup transient. In the rig the policy arms while the torso is still
+welded to the hoist, with `ramp=0`, and the joints snap for 10 to 15 ms. At 5 rad/s the check
+sampled past it by luck; at 4 rad/s it caught it and damped a standing robot, which then fell.
+Fix: `Hold`, a reason must persist 50 ms of wall time before the stop acts. Measured persistence
+at 4 rad/s: transient 10 to 15 ms; lift 875 ms, lift_free 495 ms, fall 1630 ms. 30x apart.
+My earlier claim that a debounce would clip a lift was wrong: it used data truncated by the stop.
+
+Whether hardware has its own startup transient is exactly what Test 4 (the 369 MB
+`g1_groot_characterization_2026-08-27.db` LFS object) answers. Still not runnable here: no LFS
+credentials on this machine.
+
+Evidence: `estop_fall_sheet.png`, `estop_lift_sheet.png`, `estop_sim_*.gif` (full G1 URDF, real
+GR00T, full physics, all SIMULATED). Fall: 61.9 -> 22.9 rad/s peak. Lift: 31.0 -> 11.8 rad/s.

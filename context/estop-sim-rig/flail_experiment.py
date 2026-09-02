@@ -38,11 +38,13 @@ from dimos.control.tasks.g1_groot_wbc_task.g1_groot_wbc_task import (
 )
 from dimos.control.tasks.trajectory_task.trajectory_task import joint_trajectory_task
 from dimos.hardware.whole_body.spec import WholeBodyConfig
+from dimos.robot.unitree.g1.protective import FLAIL_JOINT_SPEED_RAD_S
 import dimos.simulation.adapters.whole_body.g1 as sim_g1
 from dimos.simulation.engines.mujoco_sim_module import MujocoSimModule
 from dimos.simulation.engines.robot_sim_binding import RobotSimSpec, mjcf_joint_names_from_hardware
 from dimos.utils.data import get_data
 
+_VIDEO = False
 _ROBOT_MJCF = Path(__file__).with_name("assets") / "g1_29dof.xml"
 _SETTLE_S = 0.5  # driven stance on the hoist after arming, before the hoist lets go
 _STAND_S = 2.0  # free stance before the lift / push / walk command
@@ -90,6 +92,9 @@ class _Scenario:
         self, name: str, sim: MujocoSimModule, coord: ControlCoordinator, rng: Any
     ) -> None:
         self.name, self.sim, self.coord, self.done = name, sim, coord, False
+        self.frames: list[Any] = []
+        self.renderer: Any = None
+        self.next_frame = 0.0
         assert sim._engine is not None and sim._sim_hooks is not None
         self.engine, self.hooks = sim._engine, sim._sim_hooks
         self.rows: dict[str, list[Any]] = {k: [] for k in _FIELDS}
@@ -154,8 +159,49 @@ class _Scenario:
         else:
             self.done = t >= t_event + 5.0
 
+    def render(self, engine: Any) -> None:
+        """One frame every 1/30 s of sim time, labelled with what the check sees."""
+        import mujoco as _mj
+        from PIL import Image, ImageDraw
+
+        data = engine.data
+        if data.time < self.next_frame:
+            return
+        self.next_frame = data.time + 1.0 / 30.0
+        if self.renderer is None:
+            self.renderer = _mj.Renderer(engine.model, height=480, width=640)
+            self.cam = _mj.MjvCamera()
+            _mj.mjv_defaultCamera(self.cam)
+            self.cam.distance, self.cam.elevation, self.cam.azimuth = 3.2, -12, 135
+        self.cam.lookat[:] = data.xpos[self.pelvis]
+        self.renderer.update_scene(data, self.cam)
+        dq = np.abs(engine.joint_velocities)
+        fast = int((dq > FLAIL_JOINT_SPEED_RAD_S).sum())
+        tilt = _tilt_deg(data.qpos[self.qadr + 3 : self.qadr + 7])
+        stopped = bool(self.coord._estopped) if hasattr(self.coord, "_estopped") else False
+        img = Image.fromarray(self.renderer.render())
+        dr = ImageDraw.Draw(img)
+        if stopped:
+            dr.rectangle([0, 0, img.width - 1, img.height - 1], outline=(220, 40, 40), width=8)
+        for i, line in enumerate(
+            [
+                f"SIMULATED  MuJoCo {mujoco.__version__}  GR00T  G1 29dof   t={data.time:5.2f}s",
+                f"tilt {tilt:5.1f} deg / 45      joints past {FLAIL_JOINT_SPEED_RAD_S:g} rad/s: {fast} / 3",
+                f"max|dq| {dq.max():5.1f} rad/s",
+                "E-STOP  damping only" if stopped else "running",
+            ]
+        ):
+            dr.text(
+                (12, 10 + i * 16),
+                line,
+                fill=(240, 80, 80) if (stopped and i == 3) else (240, 240, 240),
+            )
+        self.frames.append(np.asarray(img))
+
     def after(self, engine: Any) -> None:
         self.sim._publish_shm_and_lcm(engine)
+        if _VIDEO:
+            self.render(engine)
         data, r = engine.data, self.rows
         foot = body = 0
         for c in data.contact[: data.ncon]:
@@ -187,7 +233,7 @@ class _Scenario:
 
 
 def main() -> None:
-    global _LIFT_S
+    global _LIFT_S, _VIDEO
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--scenario", choices=["stand", "walk", "lift", "lift_free", "fall"], required=True
@@ -196,8 +242,10 @@ def main() -> None:
     ap.add_argument("--lift-seconds", type=float, default=_LIFT_S)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--no-stop", action="store_true", help="the BEFORE case: never damp the robot")
+    ap.add_argument("--video", type=Path, help="write an annotated GIF here")
     args = ap.parse_args()
     _LIFT_S = args.lift_seconds
+    _VIDEO = bool(args.video)
     if args.no_stop:
         sim_g1.stop_reason = lambda *_args, **_kwargs: ""  # type: ignore[attr-defined]
     rev = subprocess.run(
@@ -294,6 +342,11 @@ def main() -> None:
         f"saved {args.out}: {len(arrays['t'])} steps, t_release={scenario.t_release:.3f}, "
         f"t_impact={scenario.t_impact:.3f}, max|dq|={np.abs(arrays['dq']).max():.2f} rad/s"
     )
+    if args.video and scenario.frames:
+        import imageio.v2 as imageio
+
+        imageio.mimsave(args.video, scenario.frames, duration=1 / 30, loop=0)
+        print(f"saved {args.video}: {len(scenario.frames)} frames")
 
 
 if __name__ == "__main__":
