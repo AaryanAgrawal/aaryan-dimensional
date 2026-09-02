@@ -1,0 +1,202 @@
+######## fall
+SIMULATED MuJoCo 3.10.0 seed=0 scenario=fall stop=True git=47d48dc10
+00:48:51.075 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+00:48:51.089 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 50.0Hz
+00:48:51.216 [inf][ation/engines/mujoco_engine.py] connect() cls=MujocoEngine
+00:48:51.216 [inf][ation/engines/mujoco_engine.py] sim loop started cls=MujocoEngine
+00:48:51.216 [err][n/engines/mujoco_sim_module.py] Camera not found in MJCF camera_name=wrist_camera
+00:48:51.218 [inf][n/engines/mujoco_sim_module.py] MujocoSimModule started address= camera=wrist_camera dof=29 robot_mjcf=/tmp/g1_29dof_hoist.xml scene_xml=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/mujoco_sim/scene_empty.xml shm_key=bbfb5ea6adb9
+00:48:51.220 [inf][tion/adapters/whole_body/g1.py] SimMujocoG1WholeBodyAdapter connected num_motors=29 shm_key=bbfb5ea6adb9
+00:48:51.220 [inf][dimos/control/coordinator.py  ] Added hardware g1 with joints: ['g1/left_hip_pitch', 'g1/left_hip_roll', 'g1/left_hip_yaw', 'g1/left_knee', 'g1/left_ankle_pitch', 'g1/left_ankle_roll', 'g1/right_hip_pitch', 'g1/right_hip_roll', 'g1/right_hip_yaw', 'g1/right_knee', 'g1/right_ankle_pitch', 'g1/right_ankle_roll', 'g1/waist_yaw', 'g1/waist_roll', 'g1/waist_pitch', 'g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw']
+00:48:51.236 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask loaded ONNX models balance=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/balance.onnx balance_providers=['CPUExecutionProvider'] requested_providers=['CPUExecutionProvider'] task=groot_wbc walk=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/walk.onnx walk_providers=['CPUExecutionProvider']
+00:48:51.237 [inf][dimos/control/coordinator.py  ] Added task groot_wbc
+00:48:51.238 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask started armed=False dry_run=False task=groot_wbc
+00:48:51.238 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask arm requested ramp_seconds=0.0 task=groot_wbc
+00:48:51.238 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw')
+00:48:51.238 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+00:48:51.238 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask armed (no ramp) task=groot_wbc
+00:48:51.239 [inf][dimos/control/tick_loop.py    ] TickLoop started at 50.0Hz
+00:48:51.240 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=joint_command
+00:48:51.241 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=twist_command
+00:48:51.241 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 50.0Hz
+[2m2026-09-02T00:48:53.926443Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: ddc646765ab088d755888579ee660ac2, locators: [tcp/127.0.0.1:36993] }) to 10.0.0.83:55746: Invalid argument (os error 22)
+00:48:54.159 [err][tion/adapters/whole_body/g1.py] E-STOP reason=flailing, 3 joints past 5 rad/s
+[2m2026-09-02T00:48:57.921482Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: ddc646765ab088d755888579ee660ac2, locators: [tcp/127.0.0.1:36993] }) to 10.0.0.52:60944: Invalid argument (os error 22)
+00:48:59.619 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+00:48:59.635 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+00:48:59.635 [inf][dimos/control/coordinator.py  ] Disconnected hardware g1
+00:48:59.639 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+00:48:59.640 [inf][ation/engines/mujoco_engine.py] disconnect() cls=MujocoEngine
+00:48:59.644 [inf][ation/engines/mujoco_engine.py] sim loop stopped cls=MujocoEngine
+saved /tmp/estop/fall.npz: 1630 steps, t_release=0.515, t_impact=3.085, max|dq|=26.05 rad/s
+
+######## fall_nostop
+SIMULATED MuJoCo 3.10.0 seed=0 scenario=fall stop=False git=47d48dc10
+00:49:00.960 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+00:49:00.976 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 50.0Hz
+00:49:01.090 [inf][ation/engines/mujoco_engine.py] connect() cls=MujocoEngine
+00:49:01.090 [inf][ation/engines/mujoco_engine.py] sim loop started cls=MujocoEngine
+00:49:01.090 [err][n/engines/mujoco_sim_module.py] Camera not found in MJCF camera_name=wrist_camera
+00:49:01.091 [inf][n/engines/mujoco_sim_module.py] MujocoSimModule started address= camera=wrist_camera dof=29 robot_mjcf=/tmp/g1_29dof_hoist.xml scene_xml=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/mujoco_sim/scene_empty.xml shm_key=bbfb5ea6adb9
+00:49:01.093 [inf][tion/adapters/whole_body/g1.py] SimMujocoG1WholeBodyAdapter connected num_motors=29 shm_key=bbfb5ea6adb9
+00:49:01.093 [inf][dimos/control/coordinator.py  ] Added hardware g1 with joints: ['g1/left_hip_pitch', 'g1/left_hip_roll', 'g1/left_hip_yaw', 'g1/left_knee', 'g1/left_ankle_pitch', 'g1/left_ankle_roll', 'g1/right_hip_pitch', 'g1/right_hip_roll', 'g1/right_hip_yaw', 'g1/right_knee', 'g1/right_ankle_pitch', 'g1/right_ankle_roll', 'g1/waist_yaw', 'g1/waist_roll', 'g1/waist_pitch', 'g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw']
+00:49:01.110 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask loaded ONNX models balance=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/balance.onnx balance_providers=['CPUExecutionProvider'] requested_providers=['CPUExecutionProvider'] task=groot_wbc walk=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/walk.onnx walk_providers=['CPUExecutionProvider']
+00:49:01.110 [inf][dimos/control/coordinator.py  ] Added task groot_wbc
+00:49:01.111 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask started armed=False dry_run=False task=groot_wbc
+00:49:01.111 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask arm requested ramp_seconds=0.0 task=groot_wbc
+00:49:01.111 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw')
+00:49:01.111 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+00:49:01.113 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask armed (no ramp) task=groot_wbc
+00:49:01.113 [inf][dimos/control/tick_loop.py    ] TickLoop started at 50.0Hz
+00:49:01.114 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=twist_command
+00:49:01.114 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=joint_command
+00:49:01.115 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 50.0Hz
+[2m2026-09-02T00:49:01.915281Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 36856497d5caccc5e0a50445cf11d97a, locators: [tcp/127.0.0.1:46655] }) to 10.0.0.83:55746: Invalid argument (os error 22)
+[2m2026-09-02T00:49:05.908575Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 36856497d5caccc5e0a50445cf11d97a, locators: [tcp/127.0.0.1:46655] }) to 10.0.0.52:60944: Invalid argument (os error 22)
+[2m2026-09-02T00:49:06.215751Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 36856497d5caccc5e0a50445cf11d97a, locators: [tcp/127.0.0.1:46655] }) to 10.0.0.218:34622: Invalid argument (os error 22)
+[2m2026-09-02T00:49:09.699229Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh_transport::unicast::establishment::open[0m[2m:[0m Received a close message (reason 0) in response to an InitSyn on: tcp/10.0.0.73:59746 => tcp/10.0.0.73:44183 at /root/.cargo/git/checkouts/zenoh-9c599d5ef3e0480e/81c6c93/io/zenoh-transport/src/unicast/establishment/open.rs:264.
+[2m2026-09-02T00:49:09.699295Z[0m [33m WARN[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to connect to any locator of scouted peer d1994025f5114707b2f17c6065c2661d: [tcp/[2603:3024:1c3d:3300::3c5c]:44183, tcp/[2603:3024:1c3d:3300:1182:1869:e240:8f37]:44183, tcp/[2603:3024:1c3d:3300:761:cee6:771e:2178]:44183, tcp/[fe80::a32c:a4e:39fd:e1]:44183, tcp/10.0.0.73:44183]
+00:49:09.734 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+00:49:09.742 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+00:49:09.742 [inf][dimos/control/coordinator.py  ] Disconnected hardware g1
+00:49:09.744 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+00:49:09.745 [inf][ation/engines/mujoco_engine.py] disconnect() cls=MujocoEngine
+00:49:09.747 [inf][ation/engines/mujoco_engine.py] sim loop stopped cls=MujocoEngine
+saved /tmp/estop/fall_nostop.npz: 1679 steps, t_release=0.515, t_impact=3.335, max|dq|=64.77 rad/s
+
+######## lift
+SIMULATED MuJoCo 3.10.0 seed=0 scenario=lift stop=True git=47d48dc10
+00:49:11.060 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+00:49:11.071 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 50.0Hz
+00:49:11.215 [inf][ation/engines/mujoco_engine.py] connect() cls=MujocoEngine
+00:49:11.216 [inf][ation/engines/mujoco_engine.py] sim loop started cls=MujocoEngine
+00:49:11.216 [err][n/engines/mujoco_sim_module.py] Camera not found in MJCF camera_name=wrist_camera
+00:49:11.217 [inf][n/engines/mujoco_sim_module.py] MujocoSimModule started address= camera=wrist_camera dof=29 robot_mjcf=/tmp/g1_29dof_hoist.xml scene_xml=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/mujoco_sim/scene_empty.xml shm_key=bbfb5ea6adb9
+00:49:11.219 [inf][tion/adapters/whole_body/g1.py] SimMujocoG1WholeBodyAdapter connected num_motors=29 shm_key=bbfb5ea6adb9
+00:49:11.219 [inf][dimos/control/coordinator.py  ] Added hardware g1 with joints: ['g1/left_hip_pitch', 'g1/left_hip_roll', 'g1/left_hip_yaw', 'g1/left_knee', 'g1/left_ankle_pitch', 'g1/left_ankle_roll', 'g1/right_hip_pitch', 'g1/right_hip_roll', 'g1/right_hip_yaw', 'g1/right_knee', 'g1/right_ankle_pitch', 'g1/right_ankle_roll', 'g1/waist_yaw', 'g1/waist_roll', 'g1/waist_pitch', 'g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw']
+00:49:11.241 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask loaded ONNX models balance=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/balance.onnx balance_providers=['CPUExecutionProvider'] requested_providers=['CPUExecutionProvider'] task=groot_wbc walk=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/walk.onnx walk_providers=['CPUExecutionProvider']
+00:49:11.242 [inf][dimos/control/coordinator.py  ] Added task groot_wbc
+00:49:11.242 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask started armed=False dry_run=False task=groot_wbc
+00:49:11.242 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask arm requested ramp_seconds=0.0 task=groot_wbc
+00:49:11.242 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw')
+00:49:11.242 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+00:49:11.243 [inf][dimos/control/tick_loop.py    ] TickLoop started at 50.0Hz
+00:49:11.243 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask armed (no ramp) task=groot_wbc
+00:49:11.243 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=joint_command
+00:49:11.244 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=twist_command
+00:49:11.244 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 50.0Hz
+00:49:13.861 [err][tion/adapters/whole_body/g1.py] E-STOP reason=flailing, 5 joints past 5 rad/s
+[2m2026-09-02T00:49:14.203032Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 62c67cb59cbc63b7226cfe777144b04e, locators: [tcp/127.0.0.1:37657] }) to 10.0.0.52:60944: Invalid argument (os error 22)
+[2m2026-09-02T00:49:14.203059Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 62c67cb59cbc63b7226cfe777144b04e, locators: [tcp/127.0.0.1:37657] }) to 10.0.0.218:34622: Invalid argument (os error 22)
+[2m2026-09-02T00:49:18.195689Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 62c67cb59cbc63b7226cfe777144b04e, locators: [tcp/127.0.0.1:37657] }) to 10.0.0.83:55746: Invalid argument (os error 22)
+[2m2026-09-02T00:49:18.915130Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh_transport::unicast::establishment::open[0m[2m:[0m Received a close message (reason 0) in response to an InitSyn on: tcp/10.0.0.73:57572 => tcp/10.0.0.73:44183 at /root/.cargo/git/checkouts/zenoh-9c599d5ef3e0480e/81c6c93/io/zenoh-transport/src/unicast/establishment/open.rs:264.
+[2m2026-09-02T00:49:18.915191Z[0m [33m WARN[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to connect to any locator of scouted peer d1994025f5114707b2f17c6065c2661d: [tcp/[2603:3024:1c3d:3300::3c5c]:44183, tcp/[2603:3024:1c3d:3300:1182:1869:e240:8f37]:44183, tcp/[2603:3024:1c3d:3300:761:cee6:771e:2178]:44183, tcp/[fe80::a32c:a4e:39fd:e1]:44183, tcp/10.0.0.73:44183]
+00:49:20.528 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+00:49:20.547 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+00:49:20.548 [inf][dimos/control/coordinator.py  ] Disconnected hardware g1
+00:49:20.551 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+00:49:20.552 [inf][ation/engines/mujoco_engine.py] disconnect() cls=MujocoEngine
+00:49:20.557 [inf][ation/engines/mujoco_engine.py] sim loop stopped cls=MujocoEngine
+saved /tmp/estop/lift.npz: 1808 steps, t_release=0.515, t_impact=nan, max|dq|=13.15 rad/s
+
+######## lift_free
+SIMULATED MuJoCo 3.10.0 seed=0 scenario=lift_free stop=True git=47d48dc10
+00:49:21.881 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+[2m2026-09-02T00:49:21.884133Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 73609dd5c9ef92e6f95f407bcf07a412, locators: [tcp/127.0.0.1:33509] }) to 10.0.0.52:60944: Invalid argument (os error 22)
+00:49:21.896 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 50.0Hz
+00:49:22.039 [inf][ation/engines/mujoco_engine.py] connect() cls=MujocoEngine
+00:49:22.039 [inf][ation/engines/mujoco_engine.py] sim loop started cls=MujocoEngine
+00:49:22.040 [err][n/engines/mujoco_sim_module.py] Camera not found in MJCF camera_name=wrist_camera
+00:49:22.042 [inf][n/engines/mujoco_sim_module.py] MujocoSimModule started address= camera=wrist_camera dof=29 robot_mjcf=/tmp/g1_29dof_hoist.xml scene_xml=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/mujoco_sim/scene_empty.xml shm_key=bbfb5ea6adb9
+00:49:22.044 [inf][tion/adapters/whole_body/g1.py] SimMujocoG1WholeBodyAdapter connected num_motors=29 shm_key=bbfb5ea6adb9
+00:49:22.044 [inf][dimos/control/coordinator.py  ] Added hardware g1 with joints: ['g1/left_hip_pitch', 'g1/left_hip_roll', 'g1/left_hip_yaw', 'g1/left_knee', 'g1/left_ankle_pitch', 'g1/left_ankle_roll', 'g1/right_hip_pitch', 'g1/right_hip_roll', 'g1/right_hip_yaw', 'g1/right_knee', 'g1/right_ankle_pitch', 'g1/right_ankle_roll', 'g1/waist_yaw', 'g1/waist_roll', 'g1/waist_pitch', 'g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw']
+00:49:22.075 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask loaded ONNX models balance=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/balance.onnx balance_providers=['CPUExecutionProvider'] requested_providers=['CPUExecutionProvider'] task=groot_wbc walk=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/walk.onnx walk_providers=['CPUExecutionProvider']
+00:49:22.076 [inf][dimos/control/coordinator.py  ] Added task groot_wbc
+00:49:22.076 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask started armed=False dry_run=False task=groot_wbc
+00:49:22.076 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask arm requested ramp_seconds=0.0 task=groot_wbc
+00:49:22.076 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw')
+00:49:22.076 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+00:49:22.077 [inf][dimos/control/tick_loop.py    ] TickLoop started at 50.0Hz
+00:49:22.077 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask armed (no ramp) task=groot_wbc
+00:49:22.077 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=joint_command
+00:49:22.079 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=twist_command
+00:49:22.080 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 50.0Hz
+[2m2026-09-02T00:49:22.195315Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 73609dd5c9ef92e6f95f407bcf07a412, locators: [tcp/127.0.0.1:33509] }) to 10.0.0.218:34622: Invalid argument (os error 22)
+00:49:24.925 [err][tion/adapters/whole_body/g1.py] E-STOP reason=flailing, 3 joints past 5 rad/s
+[2m2026-09-02T00:49:26.183891Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 73609dd5c9ef92e6f95f407bcf07a412, locators: [tcp/127.0.0.1:33509] }) to 10.0.0.83:55746: Invalid argument (os error 22)
+[2m2026-09-02T00:49:28.131216Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh_transport::unicast::establishment::open[0m[2m:[0m Received a close message (reason 0) in response to an InitSyn on: tcp/10.0.0.73:57584 => tcp/10.0.0.73:44183 at /root/.cargo/git/checkouts/zenoh-9c599d5ef3e0480e/81c6c93/io/zenoh-transport/src/unicast/establishment/open.rs:264.
+[2m2026-09-02T00:49:28.131271Z[0m [33m WARN[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to connect to any locator of scouted peer d1994025f5114707b2f17c6065c2661d: [tcp/[2603:3024:1c3d:3300::3c5c]:44183, tcp/[2603:3024:1c3d:3300:1182:1869:e240:8f37]:44183, tcp/[2603:3024:1c3d:3300:761:cee6:771e:2178]:44183, tcp/[fe80::a32c:a4e:39fd:e1]:44183, tcp/10.0.0.73:44183]
+[2m2026-09-02T00:49:29.870621Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 73609dd5c9ef92e6f95f407bcf07a412, locators: [tcp/127.0.0.1:33509] }) to 10.0.0.52:60944: Invalid argument (os error 22)
+[2m2026-09-02T00:49:30.179162Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 73609dd5c9ef92e6f95f407bcf07a412, locators: [tcp/127.0.0.1:33509] }) to 10.0.0.218:34622: Invalid argument (os error 22)
+00:49:31.403 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+00:49:31.412 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+00:49:31.412 [inf][dimos/control/coordinator.py  ] Disconnected hardware g1
+00:49:31.417 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+00:49:31.417 [inf][ation/engines/mujoco_engine.py] disconnect() cls=MujocoEngine
+00:49:31.422 [inf][ation/engines/mujoco_engine.py] sim loop stopped cls=MujocoEngine
+saved /tmp/estop/lift_free.npz: 1811 steps, t_release=0.520, t_impact=nan, max|dq|=11.80 rad/s
+
+######## stand
+SIMULATED MuJoCo 3.10.0 seed=0 scenario=stand stop=True git=47d48dc10
+00:49:32.736 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+00:49:32.747 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 50.0Hz
+00:49:32.884 [inf][ation/engines/mujoco_engine.py] connect() cls=MujocoEngine
+00:49:32.884 [inf][ation/engines/mujoco_engine.py] sim loop started cls=MujocoEngine
+00:49:32.885 [err][n/engines/mujoco_sim_module.py] Camera not found in MJCF camera_name=wrist_camera
+00:49:32.887 [inf][n/engines/mujoco_sim_module.py] MujocoSimModule started address= camera=wrist_camera dof=29 robot_mjcf=/tmp/g1_29dof_hoist.xml scene_xml=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/mujoco_sim/scene_empty.xml shm_key=bbfb5ea6adb9
+00:49:32.889 [inf][tion/adapters/whole_body/g1.py] SimMujocoG1WholeBodyAdapter connected num_motors=29 shm_key=bbfb5ea6adb9
+00:49:32.889 [inf][dimos/control/coordinator.py  ] Added hardware g1 with joints: ['g1/left_hip_pitch', 'g1/left_hip_roll', 'g1/left_hip_yaw', 'g1/left_knee', 'g1/left_ankle_pitch', 'g1/left_ankle_roll', 'g1/right_hip_pitch', 'g1/right_hip_roll', 'g1/right_hip_yaw', 'g1/right_knee', 'g1/right_ankle_pitch', 'g1/right_ankle_roll', 'g1/waist_yaw', 'g1/waist_roll', 'g1/waist_pitch', 'g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw']
+00:49:32.906 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask loaded ONNX models balance=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/balance.onnx balance_providers=['CPUExecutionProvider'] requested_providers=['CPUExecutionProvider'] task=groot_wbc walk=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/walk.onnx walk_providers=['CPUExecutionProvider']
+00:49:32.906 [inf][dimos/control/coordinator.py  ] Added task groot_wbc
+00:49:32.907 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask started armed=False dry_run=False task=groot_wbc
+00:49:32.907 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask arm requested ramp_seconds=0.0 task=groot_wbc
+00:49:32.907 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw')
+00:49:32.907 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+00:49:32.907 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask armed (no ramp) task=groot_wbc
+00:49:32.908 [inf][dimos/control/tick_loop.py    ] TickLoop started at 50.0Hz
+00:49:32.908 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=joint_command
+00:49:32.909 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=twist_command
+00:49:32.909 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 50.0Hz
+[2m2026-09-02T00:49:34.171292Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 60d4f8c09c56f7c937f65bcf8969a763, locators: [tcp/127.0.0.1:41395] }) to 10.0.0.83:55746: Invalid argument (os error 22)
+[2m2026-09-02T00:49:37.863930Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 60d4f8c09c56f7c937f65bcf8969a763, locators: [tcp/127.0.0.1:41395] }) to 10.0.0.52:60944: Invalid argument (os error 22)
+[2m2026-09-02T00:49:38.164043Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: 60d4f8c09c56f7c937f65bcf8969a763, locators: [tcp/127.0.0.1:41395] }) to 10.0.0.218:34622: Invalid argument (os error 22)
+00:49:40.633 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+00:49:40.647 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+00:49:40.647 [inf][dimos/control/coordinator.py  ] Disconnected hardware g1
+00:49:40.650 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+00:49:40.650 [inf][ation/engines/mujoco_engine.py] disconnect() cls=MujocoEngine
+00:49:40.651 [inf][ation/engines/mujoco_engine.py] sim loop stopped cls=MujocoEngine
+saved /tmp/estop/stand.npz: 1507 steps, t_release=0.510, t_impact=nan, max|dq|=9.82 rad/s
+
+######## walk
+SIMULATED MuJoCo 3.10.0 seed=0 scenario=walk stop=True git=47d48dc10
+00:49:42.006 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+00:49:42.019 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 50.0Hz
+00:49:42.154 [inf][ation/engines/mujoco_engine.py] connect() cls=MujocoEngine
+00:49:42.154 [inf][ation/engines/mujoco_engine.py] sim loop started cls=MujocoEngine
+00:49:42.155 [err][n/engines/mujoco_sim_module.py] Camera not found in MJCF camera_name=wrist_camera
+00:49:42.156 [inf][n/engines/mujoco_sim_module.py] MujocoSimModule started address= camera=wrist_camera dof=29 robot_mjcf=/tmp/g1_29dof_hoist.xml scene_xml=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/mujoco_sim/scene_empty.xml shm_key=bbfb5ea6adb9
+00:49:42.157 [inf][tion/adapters/whole_body/g1.py] SimMujocoG1WholeBodyAdapter connected num_motors=29 shm_key=bbfb5ea6adb9
+00:49:42.157 [inf][dimos/control/coordinator.py  ] Added hardware g1 with joints: ['g1/left_hip_pitch', 'g1/left_hip_roll', 'g1/left_hip_yaw', 'g1/left_knee', 'g1/left_ankle_pitch', 'g1/left_ankle_roll', 'g1/right_hip_pitch', 'g1/right_hip_roll', 'g1/right_hip_yaw', 'g1/right_knee', 'g1/right_ankle_pitch', 'g1/right_ankle_roll', 'g1/waist_yaw', 'g1/waist_roll', 'g1/waist_pitch', 'g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw']
+[2m2026-09-02T00:49:42.160019Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: d4052c7755cf946719836e94d8b9a67f, locators: [tcp/127.0.0.1:39077] }) to 10.0.0.83:55746: Invalid argument (os error 22)
+00:49:42.186 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask loaded ONNX models balance=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/balance.onnx balance_providers=['CPUExecutionProvider'] requested_providers=['CPUExecutionProvider'] task=groot_wbc walk=/home/dimos/aaryan-dimensional/workspace/dimos/.claude/worktrees/estop-spec/data/groot/walk.onnx walk_providers=['CPUExecutionProvider']
+00:49:42.186 [inf][dimos/control/coordinator.py  ] Added task groot_wbc
+00:49:42.186 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask started armed=False dry_run=False task=groot_wbc
+00:49:42.186 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask arm requested ramp_seconds=0.0 task=groot_wbc
+00:49:42.187 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('g1/left_shoulder_pitch', 'g1/left_shoulder_roll', 'g1/left_shoulder_yaw', 'g1/left_elbow', 'g1/left_wrist_roll', 'g1/left_wrist_pitch', 'g1/left_wrist_yaw', 'g1/right_shoulder_pitch', 'g1/right_shoulder_roll', 'g1/right_shoulder_yaw', 'g1/right_elbow', 'g1/right_wrist_roll', 'g1/right_wrist_pitch', 'g1/right_wrist_yaw')
+00:49:42.187 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+00:49:42.187 [inf][_wbc_task/g1_groot_wbc_task.py] G1GrootWBCTask armed (no ramp) task=groot_wbc
+00:49:42.188 [inf][dimos/control/tick_loop.py    ] TickLoop started at 50.0Hz
+00:49:42.188 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=twist_command
+00:49:42.189 [war][dimos/control/coordinator.py  ] Tasks are bound to a stream but the coordinator could not subscribe to it; use task_invoke RPC or set transport via blueprint stream=joint_command
+00:49:42.190 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 50.0Hz
+[2m2026-09-02T00:49:46.152766Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: d4052c7755cf946719836e94d8b9a67f, locators: [tcp/127.0.0.1:39077] }) to 10.0.0.52:60944: Invalid argument (os error 22)
+[2m2026-09-02T00:49:46.459726Z[0m [31mERROR[0m net-0 ThreadId(03) [2mzenoh::net::runtime::orchestrator[0m[2m:[0m Unable to send Hello(HelloProto { version: 9, whatami: Peer, zid: d4052c7755cf946719836e94d8b9a67f, locators: [tcp/127.0.0.1:39077] }) to 10.0.0.218:34622: Invalid argument (os error 22)
+00:49:49.962 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+00:49:49.971 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+00:49:49.971 [inf][dimos/control/coordinator.py  ] Disconnected hardware g1
+00:49:49.976 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+00:49:49.977 [inf][ation/engines/mujoco_engine.py] disconnect() cls=MujocoEngine
+00:49:49.980 [inf][ation/engines/mujoco_engine.py] sim loop stopped cls=MujocoEngine
+saved /tmp/estop/walk.npz: 1512 steps, t_release=0.515, t_impact=nan, max|dq|=8.79 rad/s
+
