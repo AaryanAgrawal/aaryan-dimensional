@@ -88,6 +88,13 @@ Next actions.
 | Trial material | Removed from the tree 2026-08-20. The writing behind #3162 is on the dimos branch `context/fiducial-trial` — start at `trial-context/INDEX.md`. The harness code and figures are in this repo's git history ≤ `c20f601`; the 11 GB of eval output and the `.rrd` files are on the dev box at `workspace/temp/trial`. |
 | Scratch, run output, clones | `workspace/` — untracked, dev box only. |
 
+## Sep 2 — Jetson orin-095 built and tested for the Go2 backpack (DIM-1583)
+
+Jeff's Orin NX is on dimos `main` @ `49f1f2152` with the venv synced, all three natives built
+(`mls_planner`, `voxel_ray_tracing`, `pointlio_native`), 169 tests green on the device, and a bounded
+`unitree-go2-mls-htc` replay clean. Not yet on the robot. Runbook, gaps, and traps:
+[`context/tickets/DIM-1583.md`](context/tickets/DIM-1583.md). Login in `credentials.md`.
+
 ## Aug 7–9 — dimos-helm + dimos-infect: the setup stack, two repos, nothing pushed
 
 **STATE 2026-08-09.** A five-agent overnight built the robot setup stack. Both repos build, test

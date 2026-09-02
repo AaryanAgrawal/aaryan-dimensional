@@ -70,3 +70,7 @@ Environment and toolchain failures hit on real hardware, for DIOS to replicate a
     viewer connected to both ports but received only the gRPC handshake. Stop the viewer, restart
     Dimos, then reconnect both URLs through `10.0.0.95`; the fresh viewer streamed data and rendered
     the point cloud.
+
+16. **Static `192.168.123.100` on both the dev box and the Orin.** With Jeff's Orin NX on the dev
+    box's Ethernet, the IPv4 sweep found only the dev box itself. SSH over IPv6 link-local
+    (`fe80::...%enp130s0`) works; write the `%` as `%%` in `ssh_config`.
