@@ -12,14 +12,14 @@
 
 ### What is the problem we are solving?
 
-Robots need to recover their position after drift or restart so they keep working without an
+Robots need to recover their position after drift or restart so they can keep working without an
 operator, even in repetitive or crowded spaces where geometry alone is ambiguous.
 
 Two partners already need this:
 
-* Omakase saw drift in 100m featureless hospital corridors, where the Mid-360 only sees about 50m,
-  and relocalization then failed outright when 20 media people crowded the robot.
-* Lita Hotel relocalizes off Aruco tags per room today and wants less manual work.
+* Omakase saw drift in 100m featureless hospital corridors, where the Mid-360 only sees about 50m.
+  Relocalization then failed outright when 20 media people crowded the robot.
+* Lita Hotel relocalizes off Aruco tags per room today, and wants less manual, ops-heavy work.
 
 ### Why now?
 
@@ -27,19 +27,18 @@ Relocalization is the named failure in a live deployments (above).
 
 ### Existing alternatives
 
-* The RANSAC search has lower confidence than fiducial, is mre expensive to run, and needs Lidar.
+* The RANSAC search. Lower confidence than fiducial and mre expensive to run. Also needs Lidar.
 
 ## 2. Solution
 
 ### Customer messaging
 
-Want to deploy 10 robot dogs? Put up AruCo tags, do ONE teleop premap run, and deploy all 10 on the same map.
+Want to deploy 10 robot dogs? Put up AruCo tags, ONE teleop premap run, and deploy as many with the same shared map.
 
 ### Solution
 
-Survey the space once into a marker map with a pose for each tag id. After that, a tag in view
-proposes a robot pose in that map, and it is applied once it passes the quality gates. With a tag in
-sight, the fix can apply within first second of restart.
+Survey the space once into a marker map that holds a pose for each tag id. After that, a tag in
+view proposes a candidate for robot pose in said environment map. This goes through quality gates and is applied if passed. Fiducial relocal can apply within first second of restart if tag in sight.
 
 ### Our current state
 
@@ -51,9 +50,9 @@ None
 
 ## 3. User stories
 
-I am a user running a robot in a repetitive or crowded corridor, and I can recover its position from a surveyed tag because I want it to keep going without my help.
+I am a user running a robot in a repetitive or crowded corridor, and I can use a surveyed tag to recover its position because I want it to continue without my help.
 
-I am a user deploying a robot across many rooms, and I can survey tags once because I want it to recover without configuring every tag by hand.
+I am a user deploying a robot across many rooms, and I can survey tags once because I want the robot to recover without configuring every tag by hand.
 
 ---
 
