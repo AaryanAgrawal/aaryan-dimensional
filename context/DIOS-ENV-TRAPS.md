@@ -74,3 +74,22 @@ Environment and toolchain failures hit on real hardware, for DIOS to replicate a
 16. **Static `192.168.123.100` on both the dev box and the Orin.** With Jeff's Orin NX on the dev
     box's Ethernet, the IPv4 sweep found only the dev box itself. SSH over IPv6 link-local
     (`fe80::...%enp130s0`) works; write the `%` as `%%` in `ssh_config`.
+
+17. **C++ natives die under the zenoh default.** On main @ `49f1f2152` `dimos run unitree-go2-nav-3d`
+    deploys every module, then `pointlio_native` exits 1 with no stderr in the log:
+    "DIMOS_TRANSPORT=zenoh is not supported by the C++ native SDK (LCM only)". Same for
+    `mid360_native`. Pass `--transport lcm`; the rust natives are fine either way.
+
+18. **Raw Mid-360 rows land in 1970 under `--record`.** The Mid360 native stamps points with lidar
+    uptime and the tap copies the stamp onto the row, so `livox_lidar`/`livox_imu` cannot be aligned
+    with the wall-clock streams. Keep them out with `--record-topics` and take `RECORD_PCAP=1` instead.
+    With them in, the tap also drops ~6% ("writer queue full", fixed 1000-deep queue).
+
+19. **Two ports, two cables, easy to cross.** On the Orin the Mid-360 is a 100 Mb link and the Go2 a
+    1 Gb link; `cat /sys/class/net/<if>/speed` tells them apart before any IP debugging. Jeff's
+    `~/dimos/.env` pins the lidar at .157; the unit on the dog is `192.168.1.171` (multicast
+    224.1.1.5 gives it away without sudo).
+
+20. **`KeyboardTeleop` needs X11.** Headless it dies in its thread ("x11 not available") and the run
+    continues without teleop; drive with the Unitree remote or `ssh -X`. Also `Go2Mid360Recorder`
+    throws "Cannot operate on a closed database" at shutdown; data was intact.

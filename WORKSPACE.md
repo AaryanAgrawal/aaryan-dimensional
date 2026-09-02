@@ -90,10 +90,12 @@ Next actions.
 
 ## Sep 2 — Jetson orin-095 built and tested for the Go2 backpack (DIM-1583)
 
-Jeff's Orin NX is on dimos `main` @ `49f1f2152` with the venv synced, all three natives built
-(`mls_planner`, `voxel_ray_tracing`, `pointlio_native`), 169 tests green on the device, and a bounded
-`unitree-go2-mls-htc` replay clean. Not yet on the robot. Runbook, gaps, and traps:
-[`context/tickets/DIM-1583.md`](context/tickets/DIM-1583.md). Login in `credentials.md`.
+Jeff's Orin NX is on dimos `main` @ `49f1f2152`, mounted on the Go2 with the Mid-360, and ran
+`unitree-go2-mls-htc`, `unitree-go2-nav-3d` (LCM) and the `--record` recording blueprint live with
+the dog standing. Runbook and traps: [`context/tickets/DIM-1583.md`](context/tickets/DIM-1583.md).
+Leshy's dataset ask (recreate SF office + China office with correct tf, `--record` as the canonical
+recorder), the measured mount history, and the raw-Mid-360 clock problem:
+[`context/go2-mid360-datasets.md`](context/go2-mid360-datasets.md). Login in `credentials.md`.
 
 ## Aug 7–9 — dimos-helm + dimos-infect: the setup stack, two repos, nothing pushed
 
