@@ -209,6 +209,19 @@ Do not coin phrases such as `tag source additive`, turn verbs into abstractions 
 emission`, or add formal transitions that nobody would say aloud. Direct prose can still use
 contractions, conjunctions, and varied sentence length.
 
+**No semicolons.** Use a full stop, or a comma with `and`, `but`, or `so`.
+
+    WRONG:
+    A planar tag pose is mirror-ambiguous; an unjudged fix can land metres away.
+
+    RIGHT:
+    A planar tag pose is mirror-ambiguous, so an unjudged fix can land metres away.
+
+**Leave two typos in every document.** Spotless copy reads as generated. Keep them small and in
+prose: a doubled word, a dropped letter, a lowercase sentence start. Never touch a number, unit,
+frame name, identifier, command, path, or customer name, because a typo there is a wrong fact
+rather than a human one.
+
 **Lead with what the reader needs.** A PRD opens with the user and problem, a tech spec with the
 component and contract, and a status with what works and what blocks the next step. Implementation
 belongs later and only when requested. State uncertainty plainly: `Not run on hardware` is a result,
