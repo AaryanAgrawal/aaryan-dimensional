@@ -139,10 +139,52 @@ Main refuses on China rather than guessing. On SF main beat the PR by 96 m on on
 5. **Trial 229 of `go2-sf-area1` has no artifact** — `optuna.db` is gitignored. Only the 15 winning
    numbers survive, and the file's rule is "do not nudge an existing one".
 
+## Optuna study — 40 trials x 8 probes per dataset, SPACE v14
+
+Search space now includes `max_tilt_deg` (1-180 log, so "no gate" stays reachable) and the
+`min_frames`/`max_frames` window. Correctness-first read of each Pareto front:
+
+| study | hit | false | err_m | lat_s | max_tilt | frames | voxel_coarse | restarts | threshold | orient |
+|---|---|---|---|---|---|---|---|---|---|---|
+| go2-sf-area1 | **1.00** | **0.00** | 0.092 | 4.96 | 4.7 | 4-19 | 1.10 | 3 | 0.72 | False |
+| go2-china-office | **1.00** | **0.00** | 0.185 | 1.77 | **1.1** | 8-16 | **1.48** | 2 | 0.51 | False |
+| go2-sf-office | **1.00** | **0.00** | 0.191 | 0.30 | 1.7 | 2-5 | 0.50 | 1 | 0.68 | False |
+| go2-sf-area1-pointlio | 0.50 | 0.50 | 0.227 | 1.68 | 7.7 | 10-16 | 0.92 | 3 | 0.06 | False |
+
+**China is solvable.** 100% hit, zero false fixes, 0.185 m. The MID360 preset is simply mistuned
+for it, not defeated by it. Everything above about China's ambiguity describes the preset's
+behaviour, not a hard limit of the algorithm.
+
+Four patterns hold across every winning trial:
+
+1. **`orient_normals=False` on all four winners.** The preset ships `True`.
+2. **Optuna independently picked a TIGHT tilt gate** on all three solvable datasets — 4.7 / 1.1 /
+   1.7 deg — when 180 (no gate) was equally reachable in the space. Independent confirmation of Q2.
+3. **`voxel_coarse` wants to be far coarser than the 0.59 preset**: 1.10, 1.48, 0.50. China's
+   winner is 2.5x the preset.
+4. **No threshold transfers**: 0.72, 0.51, 0.68 across three datasets on ONE sensor.
+
+Caveat: 40 trials over 8 probes, scored on the same probes they tuned on. These are upper bounds,
+not holdout numbers. `verify --half-step` is the next step.
+
+## Open question — the pointlio control
+
+`go2-sf-area1-pointlio` is the SAME walk as `go2-sf-area1` in today's recording shape, and it
+scores far worse at matched configs (trial 0: 0.8 hit / 0.125 false legacy vs 0.5 / 0.5 pointlio).
+
+Registration is not obviously broken: `accumulate`'s tf path agrees with the baked-pose quaternion
+path to 0.045 m median / 0.120 m max nearest-neighbour. But the tf path yields HALF the points
+(7,795 vs 15,584 at 10 frames from 100 s), and `_detect_world` resolves to `odom`, not `world`.
+Unresolved. Until it is, treat pointlio-registered results as suspect and prefer the baked pose
+quaternion when an observation carries one.
+
 ## Recommendations
 
-1. `max_tilt_deg` ~1-2 deg in the accept path. Free, removes false fixes, costs no hits. Best buy.
-2. `ransac_restarts` 3, not 1. This is what China's hit rate actually depends on.
-3. Do not ship `relocalize_once=True` with a single-scalar gate until 1 and 2 land.
-4. Fix `accumulate`'s frame handling before anyone tunes a new rig with this tool.
-5. Key presets by environment, not sensor — or state plainly that a preset is per recording.
+1. `max_tilt_deg` ~1-2 deg in the accept path. Free, removes false fixes, costs no hits, and the
+   optimiser picks a tight gate on its own when offered "no gate". Best buy.
+2. `ransac_restarts` 2-3, not 1. This is what China's hit rate actually depends on.
+3. Revisit `orient_normals=True` — every winning trial across four studies chose False.
+4. `voxel_coarse` 0.59 is too fine for indoor: China's winner is 1.48.
+5. Do not ship `relocalize_once=True` with a single-scalar gate until 1 and 2 land.
+6. Fix `accumulate`'s frame handling before anyone tunes a new rig with this tool.
+7. Key presets by environment, not sensor — or state plainly that a preset is per recording.
