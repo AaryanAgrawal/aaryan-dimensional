@@ -178,6 +178,36 @@ path to 0.045 m median / 0.120 m max nearest-neighbour. But the tf path yields H
 Unresolved. Until it is, treat pointlio-registered results as suspect and prefer the baked pose
 quaternion when an observation carries one.
 
+## A/B: the PR exactly as shipped, with only a tilt gate added
+
+MID360 preset untouched (voxel_coarse 0.59, restarts 1, cutoff 0.6, frames 3-7, orient_normals
+True). Only `--max-tilt` varied. 10 probes per run, FIVE runs per arm, because tune.py's RANSAC is
+unseeded and a single run cannot separate the gate from noise.
+
+| dataset | shipped (no gate) | 1 deg gate | effect |
+|---|---|---|---|
+| go2-sf-area1 (leshy's own) | 6 hit / 1 false, **every rep identical** | 6 hit / 1 false, **every rep identical** | **none** |
+| go2-china-office | false 3,3,2,2,3 (mean **2.6**), hits mean 0.4 | false 2,1,0,1,0 (mean **0.8**), hits mean 0.8 | **-69% false fixes, hits up** |
+| go2-sf-office (tonight) | hits mean 5.4, false mean 4.6 | hits mean ~6.3, false mean ~3.8 | favourable but WITHIN noise |
+
+Three things this settles:
+
+1. **On leshy's own dataset the gate does nothing.** Zero variance across ten runs, gate on or off.
+   Anyone evaluating the gate on go2-sf-area1 alone will correctly conclude it is useless. It earns
+   its keep only where the preset already struggles.
+2. **On China it is a real, reproducible win.** The distributions barely overlap: baseline never
+   below 2 false fixes, gated never above 2. Refusals go 4 -> 5 in every single run, so the gate
+   converts one false fix per run into a refusal. Hits do not drop; they rise slightly.
+3. **A single run proves nothing here.** Our own first A/B showed China 3 false -> 0 and that did not
+   replicate. Run-to-run variance is itself a measure of ambiguity: SF-area1 zero, China 2-3,
+   tonight 4-5. The unseeded RANSAC only bites where the environment is ambiguous - exactly where
+   the measurement needs to be trustworthy.
+
+Caveat on tonight's false-fix column: most of its "false fixes" are probes 2.01-2.44 deg against a
+hard 2.00 deg rotation bar, carrying the TRUTH? flag (the aligned pose fits the premap BETTER than
+the recorded truth). That column measures PGO-vs-raw-odometry disagreement more than relocalization
+error, and refusals are always 0 because every probe is in-map.
+
 ## Recommendations
 
 1. `max_tilt_deg` ~1-2 deg in the accept path. Free, removes false fixes, costs no hits, and the
